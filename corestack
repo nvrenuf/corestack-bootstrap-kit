@@ -6,8 +6,7 @@ COMPOSE_FILE="${CORESTACK_COMPOSE_FILE:-${REPO_ROOT}/deploy/compose/docker-compo
 ENV_EXAMPLE_FILE="${REPO_ROOT}/deploy/compose/.env.example"
 DEFAULT_ENV_FILE="${REPO_ROOT}/deploy/compose/.env"
 ENV_FILE="${CORESTACK_ENV_FILE:-${DEFAULT_ENV_FILE}}"
-DEFAULT_PROJECT_NAME="$(basename "${REPO_ROOT}" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-')"
-PROJECT_NAME="${CORESTACK_PROJECT_NAME:-${DEFAULT_PROJECT_NAME}}"
+PROJECT_NAME="${CORESTACK_PROJECT_NAME:-corestack}"
 
 DEFAULT_CHAT_MODEL="granite3.1-moe:3b-instruct-q4_K_M"
 DEFAULT_EMBEDDING_MODEL="nomic-embed-text:v1.5"
@@ -18,7 +17,7 @@ usage() {
 Usage: ./corestack <command> [args]
 
 Commands:
-  up [--seed-models] [compose args...]
+  up [--no-seed] [--seed-models] [compose args...]
                      Create .env if missing, build, and start stack
   seed-models        Pull CHAT_MODEL + EMBEDDING_MODEL (+ default sanity model)
   doctor             Run Docker, DNS, and port diagnostics
@@ -142,7 +141,7 @@ pull_ollama_model() {
     return 0
   fi
   log_info "Pulling Ollama model: ${model}"
-  docker exec -i corestack-ollama ollama pull "${model}"
+  compose_cmd exec -T ollama ollama pull "${model}"
 }
 
 seed_models() {
@@ -192,11 +191,13 @@ seed_models() {
     pull_ollama_model "${model}"
   done
 
+  compose_cmd restart open-webui
+
   cat <<EOF
 Model seeding complete.
 - Open WebUI: http://localhost:3000
 - Ollama tags: http://localhost:11434/api/tags
-If the model list is still empty in WebUI, go to Settings -> Connections -> Ollama -> Manage -> pull the tag once to register.
+If model list does not refresh immediately, reload Open WebUI.
 EOF
 }
 
@@ -257,13 +258,13 @@ sudo systemctl restart docker
 EOF
   fi
 
-  check_port_conflicts corestack-ollama 11434
-  check_port_conflicts corestack-open-webui 3000
-  check_port_conflicts corestack-n8n 5678
-  check_port_conflicts corestack-launcher 8080
-  check_port_conflicts corestack-adminer 8081
-  check_port_conflicts corestack-tool-gateway 8787
-  check_port_conflicts corestack-postgres 5432
+  check_port_conflicts "${PROJECT_NAME}-ollama-1" 11434
+  check_port_conflicts "${PROJECT_NAME}-open-webui-1" 3000
+  check_port_conflicts "${PROJECT_NAME}-n8n-1" 5678
+  check_port_conflicts "${PROJECT_NAME}-launcher-1" 8080
+  check_port_conflicts "${PROJECT_NAME}-adminer-1" 8081
+  check_port_conflicts "${PROJECT_NAME}-tool-gateway-1" 8787
+  check_port_conflicts "${PROJECT_NAME}-postgres-1" 5432
 }
 
 up_stack() {
@@ -271,9 +272,13 @@ up_stack() {
   require_cmd curl
 
   local seed_after_up="false"
+  local no_seed="false"
   local compose_args=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --no-seed)
+        no_seed="true"
+        ;;
       --seed-models)
         seed_after_up="true"
         ;;
@@ -284,8 +289,14 @@ up_stack() {
     shift
   done
 
-  compose_cmd up -d --build "${compose_args[@]}"
+  compose_cmd up -d --build --remove-orphans "${compose_args[@]}"
   wait_for_ollama || true
+
+  if [[ "${seed_after_up}" == "false" && "${no_seed}" == "false" ]]; then
+    if curl -fsS http://localhost:11434/api/tags | grep -q '"models":\[\]'; then
+      seed_after_up="true"
+    fi
+  fi
 
   if [[ "${seed_after_up}" == "true" ]]; then
     seed_models
@@ -312,6 +323,15 @@ reset_stack() {
   else
     compose_cmd down --remove-orphans || true
   fi
+
+  docker rm -f \
+    corestack-ollama \
+    corestack-open-webui \
+    corestack-n8n \
+    corestack-postgres \
+    corestack-adminer \
+    corestack-tool-gateway \
+    corestack-launcher >/dev/null 2>&1 || true
 
   mapfile -t leftover_containers < <(docker ps -aq --filter "label=com.docker.compose.project=${PROJECT_NAME}")
   if [[ ${#leftover_containers[@]} -gt 0 ]]; then
