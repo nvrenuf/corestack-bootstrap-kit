@@ -43,10 +43,12 @@ ensure_dir "${STACK_DIR}/logs"
   curl -ksSf https://localhost >/dev/null 2>&1 && log INFO "WebUI route reachable" || log WARN "WebUI route unreachable"
   curl -ksSf https://n8n.localhost >/dev/null 2>&1 && log INFO "n8n route reachable" || log WARN "n8n route unreachable"
 
-  if command -v ollama >/dev/null 2>&1; then
+  if run_sudo docker ps --format '{{.Names}}' | rg -qx 'corestack-ollama'; then
+    run_sudo docker exec corestack-ollama ollama list || log WARN "Unable to list ollama models from container"
+  elif command -v ollama >/dev/null 2>&1; then
     ollama list || log WARN "Unable to list ollama models"
   else
-    log WARN "ollama CLI not found"
+    log WARN "ollama CLI not found and corestack-ollama container not running"
   fi
 
   log INFO "Postcheck complete"
