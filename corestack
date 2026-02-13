@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMPOSE_FILE="${CORESTACK_COMPOSE_FILE:-${REPO_ROOT}/deploy/compose/docker-compose.yml}"
+DEFAULT_ENV_FILE="${REPO_ROOT}/deploy/compose/.env"
+ENV_FILE="${CORESTACK_ENV_FILE:-${DEFAULT_ENV_FILE}}"
+
+usage() {
+  cat <<'USAGE'
+Usage: ./corestack <command> [args]
+
+Commands:
+  up                 Start stack in detached mode
+  down               Stop/remove containers and networks (keep volumes/data)
+  start              Start existing containers
+  stop               Stop running containers
+  restart            down then up
+  status             Show container status
+  logs [service...]  Follow logs (tail 200), optional service filters
+  destroy            Destructive: down -v after explicit confirmation
+  help               Show this message
+USAGE
+}
+
+require_tools() {
+  if ! command -v docker >/dev/null 2>&1; then
+    echo "ERROR: docker is required" >&2
+    exit 1
+  fi
+  if ! docker compose version >/dev/null 2>&1; then
+    echo "ERROR: docker compose v2 is required" >&2
+    exit 1
+  fi
+}
+
+compose_cmd() {
+  local args=( -f "${COMPOSE_FILE}" )
+  if [[ -f "${ENV_FILE}" ]]; then
+    args=( --env-file "${ENV_FILE}" "${args[@]}" )
+  fi
+  docker compose "${args[@]}" "$@"
+}
+
+confirm_destroy() {
+  echo "WARNING: 'destroy' removes containers, networks, and volumes (deletes persisted data)."
+  echo "Type DESTROY to continue:"
+  local answer
+  read -r answer
+  if [[ "${answer}" != "DESTROY" ]]; then
+    echo "Aborted."
+    exit 1
+  fi
+}
+
+main() {
+  require_tools
+
+  if [[ ! -f "${COMPOSE_FILE}" ]]; then
+    echo "ERROR: compose file not found: ${COMPOSE_FILE}" >&2
+    exit 1
+  fi
+
+  local cmd="${1:-help}"
+  shift || true
+
+  case "${cmd}" in
+    up)
+      compose_cmd up -d "$@"
+      ;;
+    down)
+      compose_cmd down "$@"
+      ;;
+    start)
+      compose_cmd start "$@"
+      ;;
+    stop)
+      compose_cmd stop "$@"
+      ;;
+    restart)
+      compose_cmd down
+      compose_cmd up -d
+      ;;
+    status)
+      compose_cmd ps "$@"
+      ;;
+    logs)
+      compose_cmd logs --follow --tail 200 "$@"
+      ;;
+    destroy)
+      confirm_destroy
+      compose_cmd down -v "$@"
+      ;;
+    help|-h|--help)
+      usage
+      ;;
+    *)
+      echo "Unknown command: ${cmd}" >&2
+      usage
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"
