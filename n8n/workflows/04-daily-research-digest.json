@@ -1,0 +1,140 @@
+{
+  "name": "04 Daily Research Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "schedule-digest",
+      "name": "Daily Morning Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 280]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst inboxFile = '/data/research-inbox/latest.json';\nconst promptFile = '/opt/corestack/n8n/templates/prompts/research_summarize.md';\nlet items = [];\nlet promptTemplate = 'Summarize these items:\n{{ITEMS_JSON}}';\ntry { items = JSON.parse(fs.readFileSync(inboxFile, 'utf8')); } catch (e) {}\ntry { promptTemplate = fs.readFileSync(promptFile, 'utf8'); } catch (e) {}\nconst has_items = Array.isArray(items) && items.length > 0;\nconst prompt = promptTemplate.replace('{{ITEMS_JSON}}', JSON.stringify(items, null, 2));\nreturn [{ json: { has_items, items_count: items.length || 0, prompt, generated_at: new Date().toISOString() } }];"
+      },
+      "id": "load-prompt",
+      "name": "Load Inbox + Prompt Template",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 280]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.has_items}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if-items",
+      "name": "Has New Items?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [720, 280]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "jsonOutput": "={{ { skipped: true, reason: 'No new RSS items in /data/research-inbox/latest.json', generated_at: new Date().toISOString() } }}"
+      },
+      "id": "skip",
+      "name": "Skip (No New Items)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [960, 420]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "jsonOutput": "={{ { model: ($env.CHAT_MODEL || 'granite3.1-moe:3b-instruct-q4_K_M'), prompt: $json.prompt, stream: false } }}"
+      },
+      "id": "build-request",
+      "name": "Build Ollama Request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [960, 180]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {
+          "timeout": "={{Number($env.WEB_TIMEOUT_MS || 10000)}}",
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "ollama-generate",
+      "name": "Ollama Generate Digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 180],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst dir = '/data/digests';\ntry { fs.mkdirSync(dir, { recursive: true }); } catch (e) {}\nconst stamp = new Date().toISOString().replace(/[:.]/g, '-');\nconst responseText = $json.response || $json.output || $json.text || JSON.stringify($json);\nconst markdown = `# Daily Research Digest\\n\\nGenerated: ${new Date().toISOString()}\\n\\n${responseText}\\n`;\nconst file = `${dir}/digest-${stamp}.md`;\ntry { fs.writeFileSync(file, markdown); } catch (e) {}\nreturn [{ json: { artifact_path: file, generated_at: new Date().toISOString(), preview: markdown.slice(0, 500) } }];"
+      },
+      "id": "write-digest",
+      "name": "Write Digest Markdown",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1440, 180]
+    }
+  ],
+  "connections": {
+    "Daily Morning Trigger": {
+      "main": [[{ "node": "Load Inbox + Prompt Template", "type": "main", "index": 0 }]]
+    },
+    "Load Inbox + Prompt Template": {
+      "main": [[{ "node": "Has New Items?", "type": "main", "index": 0 }]]
+    },
+    "Has New Items?": {
+      "main": [
+        [{ "node": "Build Ollama Request", "type": "main", "index": 0 }],
+        [{ "node": "Skip (No New Items)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Ollama Request": {
+      "main": [[{ "node": "Ollama Generate Digest", "type": "main", "index": 0 }]]
+    },
+    "Ollama Generate Digest": {
+      "main": [[{ "node": "Write Digest Markdown", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    {
+      "name": "corestack"
+    },
+    {
+      "name": "agent"
+    }
+  ]
+}

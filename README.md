@@ -23,6 +23,10 @@ Default model/env values are in `deploy/compose/.env.example`:
 - `EMBEDDING_MODEL=nomic-embed-text:v1.5`
 - `OLLAMA_BASE_URL=http://host.docker.internal:11434`
 - `OLLAMA_NUM_PARALLEL=1`
+- `WEB_ALLOWLIST=localhost,127.0.0.1,open-webui,ollama,n8n`
+- `WEB_TIMEOUT_MS=10000`
+- `WEB_USER_AGENT=corestack-n8n-tools/1.0`
+- `CACHE_TTL_SECONDS=900`
 
 To override defaults:
 
@@ -87,6 +91,26 @@ Expected: chat model plus `nomic-embed-text:v1.5` are present.
 
 5. Open WebUI chat sanity:
 Expected: chat works without the `"does not support chat"` error when using `CHAT_MODEL`.
+
+6. n8n tool webhook examples:
+```bash
+curl -sS -X POST http://localhost:5678/webhook/tools/web.fetch \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://example.com","agent":"demo","purpose":"test"}'
+
+curl -sS -X POST http://localhost:5678/webhook/tools/web.search \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"corestack updates","agent":"demo","purpose":"test","max_results":5}'
+```
+Expected: JSON response from each webhook after workflows are imported and active.
+
+**Default n8n Automations**
+
+- Scaffolding root: `n8n/`
+- Importable workflows: `n8n/workflows/`
+- Templates and prompt files: `n8n/templates/`
+- Guides and helper scripts: `n8n/scripts/`
+- Full docs: `n8n/README.md` and `docs/n8n-automations.md`
 
 **Legacy Granite Bootstrap**
 

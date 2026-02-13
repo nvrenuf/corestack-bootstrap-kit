@@ -1,0 +1,179 @@
+{
+  "name": "02 Web Search Tool",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tools/web.search",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-search",
+      "name": "Webhook /tools/web.search",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\nconst query = String(body.query || '').trim();\nconst agent = String(body.agent || 'unknown-agent');\nconst purpose = String(body.purpose || 'unspecified');\nconst max_results = Math.min(Math.max(Number(body.max_results || 5), 1), 20);\nif (!query) throw new Error('query is required');\nreturn [{ json: { query, agent, purpose, max_results, searched_at: new Date().toISOString() } }];"
+      },
+      "id": "normalize-search",
+      "name": "Normalize Search Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst ttl = Number($env.CACHE_TTL_SECONDS || 900) * 1000;\nconst data = $getWorkflowStaticData('global');\nif (!data.searchCache) data.searchCache = {};\nconst key = `${item.query}::${item.max_results}`;\nconst hit = data.searchCache[key];\nif (hit && Date.now() - hit.cached_at_ms < ttl) {\n  return [{ json: { ...item, cache_hit: true, payload: hit.payload } }];\n}\nreturn [{ json: { ...item, cache_hit: false, cache_key: key } }];"
+      },
+      "id": "search-cache-lookup",
+      "name": "Search Cache Lookup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 320]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.cache_hit}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if-search-cache",
+      "name": "Search Cache Hit?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1020, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst apiKey = $env.SEARCH_API_KEY || '';\nconst mode = apiKey ? 'api' : 'fallback';\nreturn [{ json: { ...item, mode, api_key_present: Boolean(apiKey) } }];"
+      },
+      "id": "mode",
+      "name": "Select API or Fallback Mode",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1280, 420]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.mode}}",
+              "operation": "equal",
+              "value2": "api"
+            }
+          ]
+        }
+      },
+      "id": "if-mode",
+      "name": "API Mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1540, 420]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "jsonOutput": "={{ { query: $json.query, results: [], searched_at: new Date().toISOString(), source_mode: 'api', note: 'API mode placeholder. Configure SEARCH_API_PROVIDER, SEARCH_API_URL, and SEARCH_API_KEY before production use.' } }}"
+      },
+      "id": "api-placeholder",
+      "name": "API Mode Placeholder",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1780, 340]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "jsonOutput": "={{ { query: $json.query, results: [ { title: 'Fallback mode placeholder result', url: 'https://example.com', snippet: 'No search API key configured. Using scaffold fallback mode.', source: 'fallback' } ], searched_at: new Date().toISOString(), source_mode: 'fallback', note: 'Fallback mode is not reliable for production search quality.' } }}"
+      },
+      "id": "fallback-placeholder",
+      "name": "Fallback Mode Placeholder",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1780, 520]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst payload = item.payload || item;\nconst query = payload.query || item.query;\nconst results = Array.isArray(payload.results) ? payload.results : [];\nconst searched_at = payload.searched_at || new Date().toISOString();\nconst normalized = { query, results, searched_at, source_mode: payload.source_mode || 'unknown', note: payload.note || '' };\nconst data = $getWorkflowStaticData('global');\nif (!data.searchLogs) data.searchLogs = [];\nif (!data.searchCache) data.searchCache = {};\nconst key = item.cache_key || `${query}::${results.length}`;\ndata.searchLogs.push({ query, results_count: results.length, agent: item.agent || 'unknown-agent', purpose: item.purpose || 'unspecified', searched_at });\nif (data.searchLogs.length > 1000) data.searchLogs = data.searchLogs.slice(-1000);\ndata.searchCache[key] = { cached_at_ms: Date.now(), payload: normalized };\nreturn [{ json: normalized }];"
+      },
+      "id": "log-search",
+      "name": "Log + Cache Search",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2040, 420]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json.payload || $json}}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-search",
+      "name": "Respond Search",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [2280, 320]
+    }
+  ],
+  "connections": {
+    "Webhook /tools/web.search": {
+      "main": [[{ "node": "Normalize Search Input", "type": "main", "index": 0 }]]
+    },
+    "Normalize Search Input": {
+      "main": [[{ "node": "Search Cache Lookup", "type": "main", "index": 0 }]]
+    },
+    "Search Cache Lookup": {
+      "main": [[{ "node": "Search Cache Hit?", "type": "main", "index": 0 }]]
+    },
+    "Search Cache Hit?": {
+      "main": [
+        [{ "node": "Respond Search", "type": "main", "index": 0 }],
+        [{ "node": "Select API or Fallback Mode", "type": "main", "index": 0 }]
+      ]
+    },
+    "Select API or Fallback Mode": {
+      "main": [[{ "node": "API Mode?", "type": "main", "index": 0 }]]
+    },
+    "API Mode?": {
+      "main": [
+        [{ "node": "API Mode Placeholder", "type": "main", "index": 0 }],
+        [{ "node": "Fallback Mode Placeholder", "type": "main", "index": 0 }]
+      ]
+    },
+    "API Mode Placeholder": {
+      "main": [[{ "node": "Log + Cache Search", "type": "main", "index": 0 }]]
+    },
+    "Fallback Mode Placeholder": {
+      "main": [[{ "node": "Log + Cache Search", "type": "main", "index": 0 }]]
+    },
+    "Log + Cache Search": {
+      "main": [[{ "node": "Respond Search", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    {
+      "name": "corestack"
+    },
+    {
+      "name": "tool"
+    }
+  ]
+}

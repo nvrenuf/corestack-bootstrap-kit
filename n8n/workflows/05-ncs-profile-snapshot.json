@@ -1,0 +1,119 @@
+{
+  "name": "05 NCS Profile Snapshot",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 9,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "schedule-ncs",
+      "name": "Daily Snapshot Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 280]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "jsonOutput": "={{ { urls: [ 'https://example.com/ncs/profile-1', 'https://example.com/ncs/profile-2' ] } }}"
+      },
+      "id": "set-urls",
+      "name": "Set NCS Profile URLs (Editable)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 280]
+    },
+    {
+      "parameters": {
+        "jsCode": "const out = [];\nfor (const item of $input.all()) {\n  for (const url of item.json.urls || []) {\n    out.push({ json: { url } });\n  }\n}\nreturn out;"
+      },
+      "id": "expand-urls",
+      "name": "Expand URL List",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 280]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/tools/web.fetch",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { url: $json.url, agent: 'ncs-profile-snapshot', purpose: 'daily profile snapshot' } }}",
+        "options": {
+          "timeout": "={{Number($env.WEB_TIMEOUT_MS || 10000)}}",
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "call-web-fetch",
+      "name": "Call Tool /tools/web.fetch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [940, 280],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = String($json.extracted_text || '');\nconst title = String($json.title || '').trim();\nconst links = [];\nconst linkRegex = /https?:\\/\\/[^\\s\"'<>]+/g;\nfor (const match of raw.matchAll(linkRegex)) {\n  if (links.length >= 20) break;\n  links.push(match[0]);\n}\nconst stats = {};\nconst statRegex = /([A-Za-z ]{2,40}):\\s*([0-9][0-9,\\.]*)/g;\nfor (const match of raw.matchAll(statRegex)) {\n  stats[match[1].trim()] = match[2].trim();\n}\nreturn [{\n  json: {\n    url: $json.url || null,\n    title,\n    key_links: links,\n    visible_stats: stats,\n    captured_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "extract-fields",
+      "name": "Extract Snapshot Fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, 280]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst dir = '/data/ncs-snapshots';\ntry { fs.mkdirSync(dir, { recursive: true }); } catch (e) {}\nconst stamp = new Date().toISOString().replace(/[:.]/g, '-');\nconst safe = String(($json.title || 'snapshot').toLowerCase().replace(/[^a-z0-9]+/g, '-')).slice(0, 60);\nconst file = `${dir}/${safe || 'snapshot'}-${stamp}.json`;\ntry { fs.writeFileSync(file, JSON.stringify($json, null, 2)); } catch (e) {}\nreturn [{ json: { ...$json, artifact_path: file } }];"
+      },
+      "id": "write-snapshot",
+      "name": "Write Snapshot File",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1420, 280]
+    }
+  ],
+  "connections": {
+    "Daily Snapshot Trigger": {
+      "main": [[{ "node": "Set NCS Profile URLs (Editable)", "type": "main", "index": 0 }]]
+    },
+    "Set NCS Profile URLs (Editable)": {
+      "main": [[{ "node": "Expand URL List", "type": "main", "index": 0 }]]
+    },
+    "Expand URL List": {
+      "main": [[{ "node": "Call Tool /tools/web.fetch", "type": "main", "index": 0 }]]
+    },
+    "Call Tool /tools/web.fetch": {
+      "main": [[{ "node": "Extract Snapshot Fields", "type": "main", "index": 0 }]]
+    },
+    "Extract Snapshot Fields": {
+      "main": [[{ "node": "Write Snapshot File", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    {
+      "name": "corestack"
+    },
+    {
+      "name": "snapshot"
+    }
+  ]
+}

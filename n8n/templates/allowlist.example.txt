@@ -1,0 +1,11 @@
+# One hostname per line.
+# Keep this list minimal. Default-deny behavior is required.
+localhost
+127.0.0.1
+open-webui
+ollama
+n8n
+
+# Add external domains intentionally, for example:
+# example.com
+# news.ycombinator.com
