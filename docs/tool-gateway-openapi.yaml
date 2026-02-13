@@ -1,0 +1,363 @@
+openapi: 3.0.3
+info:
+  title: Corestack Tool Gateway API
+  version: 0.1.0
+  description: |
+    Contract-first API for tool calls used by agents and orchestrators.
+    Provides health checks and normalized tool responses for fetch/search actions.
+servers:
+  - url: http://localhost:8787
+paths:
+  /health:
+    get:
+      summary: Service health
+      operationId: getHealth
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                healthy:
+                  value:
+                    ok: true
+                    data:
+                      status: healthy
+                      service: tool-gateway
+                    error: null
+                    source_meta:
+                      backend: local
+                    timings_ms:
+                      total: 1
+                    content_hash: null
+  /tools/web.fetch:
+    post:
+      summary: Fetch a web page with allowlist enforcement
+      operationId: postWebFetch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebFetchRequest'
+            examples:
+              basic:
+                value:
+                  agent_id: research-agent
+                  purpose: gather public summary
+                  request_id: req_12345
+                  inputs:
+                    url: https://example.com
+      responses:
+        '200':
+          description: Successful fetch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+              examples:
+                success:
+                  value:
+                    ok: true
+                    data:
+                      url: https://example.com
+                      final_url: https://example.com
+                      status: 200
+                      title: Example Domain
+                      extracted_text: Example Domain This domain is for use in documentation examples.
+                      fetched_at: '2026-02-13T10:00:00Z'
+                    error: null
+                    source_meta:
+                      tool: web.fetch
+                      backend: local
+                    timings_ms:
+                      total: 153
+                      fetch: 147
+                    content_hash: 7a8f025f9cf32be2f2a59d8da293f61439f755d55ee1342f9a2dce8b5ca88461
+        '400':
+          $ref: '#/components/responses/Error400'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+        '504':
+          $ref: '#/components/responses/Error504'
+  /tools/web.search:
+    post:
+      summary: Search the web through configured backend
+      operationId: postWebSearch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebSearchRequest'
+            examples:
+              basic:
+                value:
+                  agent_id: research-agent
+                  purpose: collect current headlines
+                  request_id: req_67890
+                  inputs:
+                    query: ai infrastructure updates
+                    max_results: 5
+      responses:
+        '200':
+          description: Search response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+              examples:
+                configured:
+                  value:
+                    ok: true
+                    data:
+                      query: ai infrastructure updates
+                      results:
+                        - title: Example result
+                          url: https://example.com/result
+                          snippet: Example search snippet.
+                          source: example
+                          published_at: '2026-02-12T15:30:00Z'
+                      searched_at: '2026-02-13T10:05:00Z'
+                    error: null
+                    source_meta:
+                      tool: web.search
+                      backend: local
+                    timings_ms:
+                      total: 88
+                    content_hash: null
+                not_configured:
+                  value:
+                    ok: false
+                    data: {}
+                    error:
+                      code: NOT_CONFIGURED
+                      message: Search backend is not configured.
+                      details: null
+                    source_meta:
+                      tool: web.search
+                      backend: local
+                    timings_ms:
+                      total: 1
+                    content_hash: null
+        '400':
+          $ref: '#/components/responses/Error400'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+        '504':
+          $ref: '#/components/responses/Error504'
+components:
+  responses:
+    Error400:
+      description: Invalid request payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Envelope'
+          examples:
+            bad_request:
+              value:
+                ok: false
+                data: {}
+                error:
+                  code: BAD_REQUEST
+                  message: Invalid payload.
+                  details:
+                    field: inputs.url
+                source_meta:
+                  tool: web.fetch
+                  backend: local
+                timings_ms:
+                  total: 0
+                content_hash: null
+    Error403:
+      description: Policy denied request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Envelope'
+          examples:
+            denied:
+              value:
+                ok: false
+                data: {}
+                error:
+                  code: POLICY_DENIED
+                  message: Hostname is not allowlisted.
+                  details:
+                    hostname: denied.example
+                source_meta:
+                  tool: web.fetch
+                  backend: local
+                timings_ms:
+                  total: 0
+                content_hash: null
+    Error429:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Envelope'
+          examples:
+            rate_limited:
+              value:
+                ok: false
+                data: {}
+                error:
+                  code: RATE_LIMITED
+                  message: Too many requests.
+                  details: null
+                source_meta:
+                  tool: web.fetch
+                  backend: local
+                timings_ms:
+                  total: 0
+                content_hash: null
+    Error500:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Envelope'
+          examples:
+            internal:
+              value:
+                ok: false
+                data: {}
+                error:
+                  code: INTERNAL_ERROR
+                  message: Unexpected server error.
+                  details: null
+                source_meta:
+                  tool: web.search
+                  backend: local
+                timings_ms:
+                  total: 0
+                content_hash: null
+    Error504:
+      description: Upstream timeout
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Envelope'
+          examples:
+            timeout:
+              value:
+                ok: false
+                data: {}
+                error:
+                  code: UPSTREAM_TIMEOUT
+                  message: Upstream request timed out.
+                  details: null
+                source_meta:
+                  tool: web.fetch
+                  backend: local
+                timings_ms:
+                  total: 8000
+                  fetch: 8000
+                content_hash: null
+  schemas:
+    RequestMetadata:
+      type: object
+      required:
+        - agent_id
+        - purpose
+        - inputs
+      properties:
+        agent_id:
+          type: string
+          minLength: 1
+        purpose:
+          type: string
+          minLength: 1
+        request_id:
+          type: string
+        inputs:
+          type: object
+          additionalProperties: true
+    WebFetchRequest:
+      allOf:
+        - $ref: '#/components/schemas/RequestMetadata'
+        - type: object
+          properties:
+            inputs:
+              type: object
+              required:
+                - url
+              properties:
+                url:
+                  type: string
+                  format: uri
+              additionalProperties: true
+    WebSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/RequestMetadata'
+        - type: object
+          properties:
+            inputs:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  minLength: 1
+                max_results:
+                  type: integer
+                  minimum: 1
+                  maximum: 50
+              additionalProperties: true
+    ErrorObject:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          nullable: true
+    Envelope:
+      type: object
+      required:
+        - ok
+        - data
+        - error
+        - source_meta
+        - timings_ms
+        - content_hash
+      properties:
+        ok:
+          type: boolean
+        data:
+          type: object
+          additionalProperties: true
+        error:
+          allOf:
+            - $ref: '#/components/schemas/ErrorObject'
+          nullable: true
+        source_meta:
+          type: object
+          additionalProperties: true
+        timings_ms:
+          type: object
+          additionalProperties:
+            type: number
+        content_hash:
+          type: string
+          nullable: true
+    HealthResponse:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
