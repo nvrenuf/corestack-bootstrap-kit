@@ -47,10 +47,30 @@ sudo systemctl start docker
 echo "==> Adding $USER to docker group"
 sudo usermod -aG docker $USER
 
+# ---- Create corestack env file (if repo files are present) ----
+if [[ -f "deploy/compose/.env.example" ]]; then
+  if [[ ! -f "deploy/compose/.env" ]]; then
+    echo "==> Creating deploy/compose/.env from template"
+    cp deploy/compose/.env.example deploy/compose/.env
+  else
+    echo "==> deploy/compose/.env already exists; leaving it unchanged"
+  fi
+else
+  echo "==> Skipping env file setup (deploy/compose/.env.example not found in current directory)"
+fi
+
 # ---- Verification ----
 echo "==> Verifying installation"
 docker --version
 docker compose version
+
+# ---- Apply docker group in current shell without opening an interactive session ----
+if [[ -t 0 ]]; then
+  echo "==> Applying docker group to current session (newgrp docker)"
+  newgrp docker <<'EOF'
+docker --version >/dev/null 2>&1 || true
+EOF
+fi
 
 echo ""
 echo "Docker installation complete."
