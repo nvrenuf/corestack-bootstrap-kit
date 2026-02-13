@@ -1,46 +1,93 @@
 # Corestack Bootstrap Kit
 
-Corestack Bootstrap Kit is a docs-first, local-first installer framework for Corestack "AI OS" deployments on Ubuntu. It provides reusable scaffolding for secure, idempotent bootstrap flows, starting with IBM Granite on Ollama and extending to additional model stacks like Mistral.
+Corestack Bootstrap Kit includes a reproducible local stack for Ollama + Open WebUI + n8n, with a lightweight launcher page.
 
-## Why this repo exists
-
-- **Local-first operations:** AI workloads run on customer infrastructure first.
-- **Data residency by default:** model serving, vector storage, and workflow tooling remain in customer-controlled environments.
-- **Repeatable installs:** each bootstrap is safe to re-run and keeps operator edits intact.
-- **Docs as source of truth:** every operational behavior must be documented before and with script changes.
-
-## Current included bootstrap
-
-- `granite`: Ubuntu bootstrap for Ollama + Granite model pulls + Open WebUI + n8n + supporting services.
-
-## Golden path quickstart (Granite)
-
-On a fresh Ubuntu host:
+**Quickstart**
+Prereqs: Docker Desktop/Engine with Docker Compose v2.
 
 ```bash
 git clone https://github.com/nvrenuf/corestack-bootstrap-kit.git corestack-bootstrap-kit
 cd corestack-bootstrap-kit
-make smoke
-./scripts/granite/bootstrap.sh
+./scripts/granite/bootstrap-launcher.sh
 ```
 
-After install, use these exact URLs:
-- Open WebUI: `https://localhost`
-- n8n: `https://n8n.localhost`
+This single command:
+1. Starts Ollama.
+2. Pulls a chat model and embedding model.
+3. Starts Open WebUI, n8n, and the launcher.
 
-Generated files are written under `./build/`, runtime logs under `~/corestack/logs/` (unless overridden), and optional local repo logs under `./logs/`.
+**Configuration**
+Default model/env values are in `deploy/compose/.env.example`:
 
-## Where to look next
+- `CHAT_MODEL=granite3.1-moe:3b-instruct-q4_K_M`
+- `EMBEDDING_MODEL=nomic-embed-text:v1.5`
+- `OLLAMA_BASE_URL=http://host.docker.internal:11434`
+- `OLLAMA_NUM_PARALLEL=1`
 
-- Docs index: `docs/README.md`
-- Granite runbook: `docs/runbooks/GRANITE_BOOTSTRAP.md`
-- Config conventions and pinning: `docs/architecture/CONFIG_CONVENTIONS.md`
-- New bootstrap authoring guide: `docs/runbooks/ADDING_A_BOOTSTRAP.md`
+To override defaults:
 
-## Add a new bootstrap
+```bash
+cp deploy/compose/.env.example deploy/compose/.env
+# edit deploy/compose/.env
+docker compose --env-file deploy/compose/.env -f deploy/compose/docker-compose.yml up -d
+```
 
-Use the template workflow in `docs/runbooks/ADDING_A_BOOTSTRAP.md`:
-1. Add `config/<bootstrap>/versions.yaml`.
-2. Add `scripts/<bootstrap>/` scripts that call `scripts/lib/preflight.sh` and `scripts/lib/postcheck.sh`.
-3. Add template files in `templates/` and render into `build/` only.
-4. Update docs and tests in the same change.
+Open WebUI is configured by env vars (no manual UI setup required):
+- `DEFAULT_MODELS` uses `CHAT_MODEL` for chat.
+- `RAG_EMBEDDING_MODEL` uses `EMBEDDING_MODEL` for embeddings/RAG.
+
+`nomic-embed-text:v1.5` is embedding-only and must not be used as a chat model.
+
+**Ports**
+
+- `8080` Launcher: `http://localhost:8080`
+- `3000` Open WebUI: `http://localhost:3000`
+- `5678` n8n: `http://localhost:5678`
+- `11434` Ollama API: `http://localhost:11434/api/tags`
+
+**Troubleshooting**
+
+- `400: "nomic-embed-text:v1.5" does not support chat`
+  - Cause: embedding model was selected for chat.
+  - Fix: set `CHAT_MODEL` to a chat-capable model (default: `granite3.1-moe:3b-instruct-q4_K_M`) and restart compose.
+
+- `500: llama runner process has terminated: signal: killed`
+  - Cause: usually memory pressure/OOM.
+  - Fixes:
+    - use a smaller chat model
+    - reduce context window
+    - set parallelism to 1 (`OLLAMA_NUM_PARALLEL=1`)
+    - increase Docker Desktop memory allocation
+
+**Acceptance Tests**
+
+1. Start stack:
+```bash
+docker compose -f deploy/compose/docker-compose.yml up -d
+```
+Expected: `corestack-ollama`, `corestack-open-webui`, `corestack-n8n`, and `corestack-launcher` are running.
+
+2. Check launcher:
+```bash
+curl -sSf http://localhost:8080 | head
+```
+Expected: HTML for "Corestack Launcher" is returned.
+
+3. Check container count:
+```bash
+docker ps --format '{{.Names}}' | grep '^corestack-' | sort
+```
+Expected: 4 containers listed.
+
+4. Check models in Ollama:
+```bash
+docker exec corestack-ollama ollama list
+```
+Expected: chat model plus `nomic-embed-text:v1.5` are present.
+
+5. Open WebUI chat sanity:
+Expected: chat works without the `"does not support chat"` error when using `CHAT_MODEL`.
+
+**Legacy Granite Bootstrap**
+
+The original Granite bootstrap flow remains available at `scripts/granite/bootstrap.sh` and related docs under `docs/runbooks/`.
