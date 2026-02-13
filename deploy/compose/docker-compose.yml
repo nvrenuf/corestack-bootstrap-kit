@@ -49,6 +49,25 @@ services:
       - ../../n8n/templates:/opt/corestack/n8n/templates:ro
       - ../../n8n/workflows:/opt/corestack/n8n/workflows:ro
 
+
+  tool-gateway:
+    build:
+      context: ../../tool-gateway
+    container_name: corestack-tool-gateway
+    restart: unless-stopped
+    environment:
+      WEB_ALLOWLIST: "${WEB_ALLOWLIST:-}"
+      WEB_ALLOWLIST_FILE: "${WEB_ALLOWLIST_FILE:-}"
+      WEB_TIMEOUT_MS: "${WEB_TIMEOUT_MS:-8000}"
+      WEB_MAX_BYTES: "${WEB_MAX_BYTES:-1500000}"
+      TOOL_BACKEND: "${TOOL_BACKEND:-local}"
+      N8N_WEB_FETCH_URL: "${N8N_WEB_FETCH_URL:-}"
+      N8N_WEB_SEARCH_URL: "${N8N_WEB_SEARCH_URL:-}"
+    ports:
+      - "8787:8787"
+    depends_on:
+      - n8n
+
   launcher:
     image: nginx:1.27-alpine
     container_name: corestack-launcher
