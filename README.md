@@ -68,6 +68,16 @@ curl -sS -X POST http://localhost:8787/tools/web.fetch \
 - Agent tool-calling pattern: `docs/agent-tool-calls.md`
 - Service README: `tool-gateway/README.md`
 
+## Testing tools without an agent
+
+```bash
+WEB_ALLOWLIST=example.com docker compose -f deploy/compose/docker-compose.yml up -d tool-gateway
+
+TOOL_GATEWAY_URL=http://localhost:8787 ./scripts/tool_call.sh health
+TOOL_GATEWAY_URL=http://localhost:8787 ./scripts/tool_call.sh fetch https://example.com "manual fetch test"
+TOOL_GATEWAY_URL=http://localhost:8787 ./scripts/tool_call.sh search "corestack updates" "manual search test"
+```
+
 ## n8n tool workflow docs
 
 - Workflow scaffolding: `n8n/README.md`
