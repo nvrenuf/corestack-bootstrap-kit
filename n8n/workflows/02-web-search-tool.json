@@ -12,7 +12,7 @@
       "name": "Webhook /tools/web.search",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [260, 300]
+      "position": [220, 320]
     },
     {
       "parameters": {
@@ -23,17 +23,17 @@
       "name": "Search API Config Placeholder",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [500, 300]
+      "position": [460, 320]
     },
     {
       "parameters": {
-        "jsCode": "const body = $items('Webhook /tools/web.search', 0, 0)[0].json.body || $items('Webhook /tools/web.search', 0, 0)[0].json;\nconst query = String(body.query || '').trim();\nconst max_results = Math.min(Math.max(Number(body.max_results || 5), 1), 10);\nif (!query) {\n  return [{ json: { ok: false, code: 400, error: 'query is required' } }];\n}\nconst payload = {\n  query,\n  results: [\n    {\n      title: 'Placeholder result (configure search API)',\n      url: 'https://example.com/search-placeholder',\n      snippet: 'Set search_api_url and search_api_key in this workflow before production use.',\n      source: 'placeholder',\n      published_at: null\n    }\n  ].slice(0, max_results),\n  searched_at: new Date().toISOString()\n};\nconsole.log('corestack.web_search', JSON.stringify({ query, results_count: payload.results.length }));\nreturn [{ json: { ok: true, payload } }];"
+        "jsCode": "const incoming = $items('Webhook /tools/web.search', 0, 0)[0].json.body || $items('Webhook /tools/web.search', 0, 0)[0].json;\nconst inputs = incoming.inputs || {};\nconst query = String(inputs.query || '').trim();\nconst max_results = Math.min(Math.max(Number(inputs.max_results || 5), 1), 10);\nif (!query) {\n  return [{ json: { ok: false, code: 400, error: 'inputs.query is required' } }];\n}\nconst hasKey = $json.search_api_key && $json.search_api_key !== 'REQUIRED';\nreturn [{ json: { ok: true, query, max_results, has_key: Boolean(hasKey), search_api_url: $json.search_api_url, search_api_key: $json.search_api_key } }];"
       },
-      "id": "validate-build",
-      "name": "Validate Query + Build Results",
+      "id": "validate-input",
+      "name": "Validate Search Inputs",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [760, 300]
+      "position": [700, 320]
     },
     {
       "parameters": {
@@ -50,7 +50,7 @@
       "name": "Valid?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1020, 300]
+      "position": [940, 320]
     },
     {
       "parameters": {
@@ -60,25 +60,105 @@
           "responseCode": "={{$json.code || 400}}"
         }
       },
-      "id": "respond-bad",
-      "name": "Respond Bad Request",
+      "id": "respond-invalid",
+      "name": "Respond Invalid",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.2,
-      "position": [1260, 440]
+      "position": [1180, 520]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.has_key}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if-key",
+      "name": "API Key Configured?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1180, 240]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$json.search_api_url}}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{$json.query}}"
+            },
+            {
+              "name": "num",
+              "value": "={{$json.max_results}}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 8000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{'Bearer ' + $json.search_api_key}}"
+            }
+          ]
+        }
+      },
+      "id": "http-search",
+      "name": "Search API Request (Placeholder)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1420, 180],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\nif (Array.isArray($json.results)) {\n  for (const r of $json.results.slice(0, 10)) {\n    results.push({\n      title: String(r.title || ''),\n      url: String(r.url || r.link || ''),\n      snippet: String(r.snippet || r.description || ''),\n      source: String(r.source || 'api'),\n      published_at: r.published_at || null\n    });\n  }\n}\nconst payload = {\n  query: $json.query || '',\n  results,\n  searched_at: new Date().toISOString()\n};\nconsole.log('corestack.web_search', JSON.stringify({ query: payload.query, results_count: payload.results.length }));\nreturn [{ json: payload }];"
+      },
+      "id": "format-search",
+      "name": "Format Search Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1660, 180]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "jsonOutput": "={{ {\"query\": $json.query, \"results\": [], \"searched_at\": new Date().toISOString() } }}"
+      },
+      "id": "empty-results",
+      "name": "Return Empty Results",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1420, 320]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{$json.payload}}",
+        "responseBody": "={{$json}}",
         "options": {
           "responseCode": 200
         }
       },
       "id": "respond-ok",
-      "name": "Respond Search Results",
+      "name": "Respond Search",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.2,
-      "position": [1260, 220]
+      "position": [1900, 240]
     }
   ],
   "connections": {
@@ -86,16 +166,31 @@
       "main": [[{ "node": "Search API Config Placeholder", "type": "main", "index": 0 }]]
     },
     "Search API Config Placeholder": {
-      "main": [[{ "node": "Validate Query + Build Results", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Validate Search Inputs", "type": "main", "index": 0 }]]
     },
-    "Validate Query + Build Results": {
+    "Validate Search Inputs": {
       "main": [[{ "node": "Valid?", "type": "main", "index": 0 }]]
     },
     "Valid?": {
       "main": [
-        [{ "node": "Respond Search Results", "type": "main", "index": 0 }],
-        [{ "node": "Respond Bad Request", "type": "main", "index": 0 }]
+        [{ "node": "API Key Configured?", "type": "main", "index": 0 }],
+        [{ "node": "Respond Invalid", "type": "main", "index": 0 }]
       ]
+    },
+    "API Key Configured?": {
+      "main": [
+        [{ "node": "Search API Request (Placeholder)", "type": "main", "index": 0 }],
+        [{ "node": "Return Empty Results", "type": "main", "index": 0 }]
+      ]
+    },
+    "Search API Request (Placeholder)": {
+      "main": [[{ "node": "Format Search Results", "type": "main", "index": 0 }]]
+    },
+    "Format Search Results": {
+      "main": [[{ "node": "Respond Search", "type": "main", "index": 0 }]]
+    },
+    "Return Empty Results": {
+      "main": [[{ "node": "Respond Search", "type": "main", "index": 0 }]]
     }
   },
   "settings": {

@@ -1,56 +1,75 @@
-# Corestack n8n Tool Workflow Scaffolding
+# Corestack Tool Workflows for n8n
 
-This directory contains importable **tool workflows** for Corestack. These are separated from human-facing automations.
+This directory contains importable **Corestack Tool Workflows** for n8n.
+These are backend tool endpoints for agent/orchestrator flows, not end-user automation recipes.
 
 ## Included workflows
 
-- `00-corestack-healthchecks.json` (cron health checks)
-- `01-web-fetch-tool.json` (`POST /webhook/tools/web.fetch`)
-- `02-web-search-tool.json` (`POST /webhook/tools/web.search`)
+- `00-corestack-healthchecks.json`
+- `01-web-fetch-tool.json`
+- `02-web-search-tool.json`
 
-## Import steps
+## Import workflows
 
-1. Start n8n with compose:
+1. Start n8n:
 ```bash
 docker compose -f deploy/compose/docker-compose.yml up -d n8n
 ```
-2. Open `http://localhost:5678`
-3. Import each file from `n8n/workflows/` in order (`00`, `01`, `02`).
-4. Activate workflows.
+2. Open `http://localhost:5678`.
+3. Import files from `n8n/workflows/` in order: `00`, `01`, `02`.
+4. Activate imported workflows.
 
-Or scripted import:
+Optional scripted import:
 ```bash
 ./n8n/scripts/import-workflows.sh
 ```
 
-## Tool webhook paths
+## Tool webhook endpoints
 
-- Web fetch: `http://localhost:5678/webhook/tools/web.fetch`
-- Web search: `http://localhost:5678/webhook/tools/web.search`
+- `POST http://localhost:5678/webhook/tools/web.fetch`
+- `POST http://localhost:5678/webhook/tools/web.search`
+
+Expected request shape:
+
+```json
+{
+  "agent_id": "string",
+  "purpose": "string",
+  "inputs": { ... }
+}
+```
+
+## Required env templates
+
+Use these templates as non-secret defaults:
+
+- `n8n/templates/env.n8n.example`
+- `n8n/templates/allowlist.example.txt`
+
+No secrets should be committed. Configure API keys in n8n credentials or local environment only.
 
 ## Allowlist behavior
 
-`01-web-fetch-tool` includes an allowlist placeholder Set node.
-- Start with minimal domains only.
-- Non-allowlisted domains return deny responses.
-- Prefer feeding this list from environment templates (`n8n/templates/env.n8n.example`).
+`01-web-fetch-tool` includes an allowlist placeholder Set node + IF gate.
+Only allowlisted hostnames should be fetched.
 
-## Security notes
+## Ports and volumes (default compose)
 
-- Do not store credentials in repository.
-- Use placeholder values only in exported workflow files.
-- Respect robots.txt and Terms of Service when fetching external pages.
+- n8n UI/API: `5678:5678`
+- persistent data volume: `/home/node/.n8n`
+- mounted workflow files: `/opt/corestack/n8n/workflows`
+- mounted templates: `/opt/corestack/n8n/templates`
 
 ## Acceptance commands
 
 ```bash
-# Fetch tool call (after import + activate)
+# web.fetch test
 curl -sS -X POST http://localhost:5678/webhook/tools/web.fetch \
   -H 'Content-Type: application/json' \
-  -d '{"url":"https://example.com","agent_id":"demo","purpose":"test"}'
+  -d '{"agent_id":"demo","purpose":"fetch test","inputs":{"url":"https://example.com"}}'
 
-# Search tool call (placeholder response)
+# web.search test
 curl -sS -X POST http://localhost:5678/webhook/tools/web.search \
   -H 'Content-Type: application/json' \
-  -d '{"query":"corestack","agent_id":"demo","purpose":"test","max_results":5}'
+  -d '{"agent_id":"demo","purpose":"search test","inputs":{"query":"corestack","max_results":5}}'
 ```

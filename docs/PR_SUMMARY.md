@@ -1,75 +1,69 @@
 # PR Summary
 
-## Branch
+## What was added
 
-`feature/tool-gateway-and-n8n-scaffolding`
+- Tool Gateway contract docs and FastAPI scaffold.
+- Local tool-call harness and agent-call documentation.
+- n8n tool workflow scaffolding:
+  - `00-corestack-healthchecks.json`
+  - `01-web-fetch-tool.json`
+  - `02-web-search-tool.json`
+- n8n env/allowlist templates and security docs.
+- Optional Tool Gateway forwarding to n8n via `TOOL_BACKEND=n8n`.
 
-## What changed
-
-1. Step 1: Tool Gateway contract-first OpenAPI spec
-- Added `docs/tool-gateway-openapi.yaml` with:
-  - `GET /health`
-  - `POST /tools/web.fetch`
-  - `POST /tools/web.search`
-- Added normalized response envelope schema and error responses (`400`, `403`, `429`, `500`, `504`).
-- Added contract notes in `docs/tool-gateway.md`.
-
-2. Step 2: FastAPI Tool Gateway scaffold
-- Added new service under `tool-gateway/` with:
-  - FastAPI routes for `/health`, `/tools/web.fetch`, `/tools/web.search`
-  - allowlist policy from `WEB_ALLOWLIST` or `WEB_ALLOWLIST_FILE`
-  - default-deny if allowlist empty
-  - timeout and byte limits via env (`WEB_TIMEOUT_MS`, `WEB_MAX_BYTES`)
-  - JSONL structured logging to stdout
-  - local fetch implementation with title/text extraction and SHA-256 `content_hash`
-  - search endpoint validation + `NOT_CONFIGURED` envelope stub
-- Integrated service into `deploy/compose/docker-compose.yml` on port `8787`.
-
-3. Step 3: Agent calling pattern + harness
-- Added `docs/agent-tool-calls.md` with tool-call schema and routing pattern.
-- Added `scripts/tool_call.sh` harness for local smoke calls.
-
-4. Step 4: n8n tool workflow scaffolding + forwarding docs
-- Added/updated n8n tool workflow scaffolding:
-  - `n8n/workflows/00-corestack-healthchecks.json`
-  - `n8n/workflows/01-web-fetch-tool.json`
-  - `n8n/workflows/02-web-search-tool.json`
-- Added `n8n/templates/env.n8n.example` and `n8n/templates/allowlist.example.txt`.
-- Updated `n8n/README.md` and `docs/n8n-automations.md` for import, separation, and forwarding usage.
-- Tool Gateway supports `TOOL_BACKEND=n8n` with normalized response envelopes.
-
-## Test commands
+## Start stack
 
 ```bash
-# 1) Compose config validation
-docker compose -f deploy/compose/docker-compose.yml config
+cp deploy/compose/.env.example deploy/compose/.env
+docker compose --env-file deploy/compose/.env -f deploy/compose/docker-compose.yml up -d
+```
 
-# 2) Python app import/compile sanity
-python3 -m compileall tool-gateway/app
+## Import n8n workflows
 
-# 3) n8n workflow JSON validation
-node n8n/scripts/validate-workflows.js
+1. Open `http://localhost:5678`
+2. Import from `n8n/workflows/` in order `00`, `01`, `02`
+3. Activate workflows
 
-# 4) Bring up stack
-docker compose --env-file deploy/compose/.env.example -f deploy/compose/docker-compose.yml up -d
+Or:
 
-# 5) Health check
-curl -sS http://localhost:8787/health | jq
+```bash
+./n8n/scripts/import-workflows.sh
+```
 
-# 6) Allowed fetch example
+## Test local Tool Gateway mode
+
+```bash
 WEB_ALLOWLIST=example.com docker compose -f deploy/compose/docker-compose.yml up -d tool-gateway
-curl -sS -X POST http://localhost:8787/tools/web.fetch \
-  -H 'Content-Type: application/json' \
-  -d '{"agent_id":"demo","purpose":"allowed-test","inputs":{"url":"https://example.com"}}' | jq
+TOOL_GATEWAY_URL=http://localhost:8787 ./scripts/tool_call.sh health
+TOOL_GATEWAY_URL=http://localhost:8787 ./scripts/tool_call.sh fetch https://example.com "allowed fetch"
+TOOL_GATEWAY_URL=http://localhost:8787 ./scripts/tool_call.sh search "corestack" "search test"
+```
 
-# 7) Disallowed fetch example (expect 403)
-curl -i -sS -X POST http://localhost:8787/tools/web.fetch \
-  -H 'Content-Type: application/json' \
-  -d '{"agent_id":"demo","purpose":"deny-test","inputs":{"url":"https://wikipedia.org"}}'
+## Test n8n webhooks directly
 
-# 8) Optional n8n backend mode
+```bash
+curl -sS -X POST http://localhost:5678/webhook/tools/web.fetch \
+  -H 'Content-Type: application/json' \
+  -d '{"agent_id":"demo","purpose":"webhook test","inputs":{"url":"https://example.com"}}'
+
+curl -sS -X POST http://localhost:5678/webhook/tools/web.search \
+  -H 'Content-Type: application/json' \
+  -d '{"agent_id":"demo","purpose":"webhook test","inputs":{"query":"corestack","max_results":5}}'
+```
+
+## Switch Tool Gateway to n8n backend
+
+```bash
 TOOL_BACKEND=n8n \
 N8N_WEB_FETCH_URL=http://n8n:5678/webhook/tools/web.fetch \
 N8N_WEB_SEARCH_URL=http://n8n:5678/webhook/tools/web.search \
 docker compose -f deploy/compose/docker-compose.yml up -d tool-gateway
+```
+
+Then call:
+
+```bash
+curl -sS -X POST http://localhost:8787/tools/web.fetch \
+  -H 'Content-Type: application/json' \
+  -d '{"agent_id":"demo","purpose":"gateway forward test","inputs":{"url":"https://example.com"}}'
 ```

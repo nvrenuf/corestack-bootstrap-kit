@@ -12,7 +12,7 @@
       "name": "Webhook /tools/web.fetch",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [240, 320]
+      "position": [220, 320]
     },
     {
       "parameters": {
@@ -23,17 +23,17 @@
       "name": "Allowlist Config (Placeholder)",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [480, 320]
+      "position": [460, 320]
     },
     {
       "parameters": {
-        "jsCode": "const body = $items('Webhook /tools/web.fetch', 0, 0)[0].json.body || $items('Webhook /tools/web.fetch', 0, 0)[0].json;\nconst url = String(body.url || '').trim();\nconst agent_id = String(body.agent_id || body.agent || 'unknown-agent');\nconst purpose = String(body.purpose || 'unspecified');\nif (!/^https?:\\/\\//i.test(url)) {\n  return [{ json: { ok: false, code: 400, error: 'invalid url', agent_id, purpose, url } }];\n}\nconst hostname = new URL(url).hostname.toLowerCase();\nconst allowlistRaw = String($json.allowlist || '').toLowerCase();\nconst allowlist = allowlistRaw.split(',').map((v) => v.trim()).filter(Boolean);\nif (!allowlist.includes(hostname)) {\n  return [{ json: { ok: false, code: 403, error: 'hostname not allowlisted', agent_id, purpose, url, hostname } }];\n}\nreturn [{ json: { ok: true, url, agent_id, purpose, timeout_ms: Number($json.timeout_ms || 8000) } }];"
+        "jsCode": "const incoming = $items('Webhook /tools/web.fetch', 0, 0)[0].json.body || $items('Webhook /tools/web.fetch', 0, 0)[0].json;\nconst inputs = incoming.inputs || {};\nconst url = String(inputs.url || '').trim();\nconst agent_id = String(incoming.agent_id || 'unknown-agent');\nconst purpose = String(incoming.purpose || 'unspecified');\nif (!/^https?:\\/\\//i.test(url)) {\n  return [{ json: { ok: false, code: 400, error: 'inputs.url must start with http/https', agent_id, purpose, url } }];\n}\nconst hostname = new URL(url).hostname.toLowerCase();\nconst allowlistRaw = String($json.allowlist || '').toLowerCase();\nconst allowlist = allowlistRaw.split(',').map((v) => v.trim()).filter(Boolean);\nif (!allowlist.includes(hostname)) {\n  return [{ json: { ok: false, code: 403, error: 'hostname not allowlisted', agent_id, purpose, url, hostname } }];\n}\nreturn [{ json: { ok: true, url, agent_id, purpose, timeout_ms: Number($json.timeout_ms || 8000) } }];"
       },
       "id": "validate-policy",
-      "name": "Validate URL + Allowlist",
+      "name": "Validate Inputs + Allowlist",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [740, 320]
+      "position": [700, 320]
     },
     {
       "parameters": {
@@ -50,12 +50,12 @@
       "name": "Allowed?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [980, 320]
+      "position": [940, 320]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ {\"error\": $json.error, \"status\": $json.code, \"url\": $json.url } }}",
+        "responseBody": "={{ {\"error\": $json.error, \"status\": $json.code || 403, \"url\": $json.url || null } }}",
         "options": {
           "responseCode": "={{$json.code || 403}}"
         }
@@ -64,7 +64,7 @@
       "name": "Respond Deny",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.2,
-      "position": [1220, 460]
+      "position": [1180, 460]
     },
     {
       "parameters": {
@@ -85,18 +85,18 @@
       "name": "HTTP Fetch",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1220, 200],
+      "position": [1180, 200],
       "continueOnFail": true
     },
     {
       "parameters": {
-        "jsCode": "const body = String($json.body || '');\nconst titleMatch = body.match(/<title[^>]*>([^<]+)<\\/title>/i);\nconst title = titleMatch ? titleMatch[1].trim() : '';\nconst extracted_text = body.replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 12000);\nconst out = {\n  url: $json.url,\n  status: Number($json.statusCode || 0),\n  title,\n  extracted_text,\n  fetched_at: new Date().toISOString(),\n  agent_id: $json.agent_id,\n  purpose: $json.purpose\n};\nconsole.log('corestack.web_fetch', JSON.stringify({ agent_id: out.agent_id, purpose: out.purpose, url: out.url, status: out.status }));\nreturn [{ json: out }];"
+        "jsCode": "const body = String($json.body || '');\nconst titleMatch = body.match(/<title[^>]*>([^<]+)<\\/title>/i);\nconst title = titleMatch ? titleMatch[1].trim() : '';\nconst extracted_text = body.replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 12000);\nconst out = {\n  url: $json.url,\n  status: Number($json.statusCode || 0),\n  title,\n  extracted_text,\n  fetched_at: new Date().toISOString()\n};\nconsole.log('corestack.web_fetch', JSON.stringify({ agent_id: $json.agent_id, purpose: $json.purpose, url: out.url, status: out.status }));\nreturn [{ json: out }];"
       },
       "id": "format-log",
       "name": "Format + Log",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1460, 200]
+      "position": [1420, 200]
     },
     {
       "parameters": {
@@ -110,7 +110,7 @@
       "name": "Respond OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.2,
-      "position": [1700, 200]
+      "position": [1660, 200]
     }
   ],
   "connections": {
@@ -118,9 +118,9 @@
       "main": [[{ "node": "Allowlist Config (Placeholder)", "type": "main", "index": 0 }]]
     },
     "Allowlist Config (Placeholder)": {
-      "main": [[{ "node": "Validate URL + Allowlist", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Validate Inputs + Allowlist", "type": "main", "index": 0 }]]
     },
-    "Validate URL + Allowlist": {
+    "Validate Inputs + Allowlist": {
       "main": [[{ "node": "Allowed?", "type": "main", "index": 0 }]]
     },
     "Allowed?": {
