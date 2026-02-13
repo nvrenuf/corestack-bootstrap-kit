@@ -136,6 +136,20 @@ curl -i -sS -X POST http://localhost:8787/tools/web.fetch \
   -d '{"agent_id":"demo","purpose":"deny-test","inputs":{"url":"https://wikipedia.org"}}'
 ```
 
+## Uninstall
+
+Stop/remove containers and networks, but keep data volumes (default and safe):
+
+```bash
+./scripts/granite/uninstall.sh
+```
+
+Purge all data volumes (including Postgres volume `corestack-postgres-data`):
+
+```bash
+./scripts/granite/uninstall.sh --purge-data
+```
+
 ## Legacy Granite bootstrap
 
 Legacy bootstrap scripts remain available in `scripts/granite/`.

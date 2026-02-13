@@ -14,7 +14,7 @@ DEPLOY_ENV_FILE="${REPO_ROOT}/deploy/compose/.env"
 UNINSTALL_HELPER="${CORESTACK_HOME}/uninstall-granite.sh"
 N8N_DATA_DIR="${REPO_ROOT}/n8n/data"
 
-PURGE_VOLUMES="false"
+REMOVE_VOLUMES="false"
 DELETE_HOME="false"
 COMPOSE_ARGS=()
 
@@ -23,7 +23,9 @@ usage() {
 Usage: ./scripts/granite/uninstall.sh [options]
 
 Options:
-  --purge         Remove named volumes for launcher stack services (including tool-gateway, n8n, webui, ollama) and purge local n8n artifacts under repo n8n/data.
+  --purge-data    Remove named volumes (including corestack-postgres-data) and purge local n8n artifacts under repo n8n/data.
+  --remove-volumes Alias for --purge-data.
+  --purge         Backward-compatible alias for --purge-data.
   --delete-home   Remove $CORESTACK_HOME after compose teardown.
   -h, --help      Show this help message.
 EOF
@@ -40,8 +42,8 @@ require_docker_runtime() {
 parse_args() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --purge)
-        PURGE_VOLUMES="true"
+      --purge-data|--remove-volumes|--purge)
+        REMOVE_VOLUMES="true"
         shift
         ;;
       --delete-home)
@@ -102,7 +104,7 @@ teardown_compose_stack() {
   fi
 
   build_compose_args "${compose_file}" "${env_file}"
-  if [[ "${PURGE_VOLUMES}" == "true" ]]; then
+  if [[ "${REMOVE_VOLUMES}" == "true" ]]; then
     log WARN "Purging ${stack_name}: containers, networks, and named volumes."
     docker compose "${COMPOSE_ARGS[@]}" down -v --remove-orphans || true
   else
@@ -120,6 +122,13 @@ main() {
   teardown_compose_stack "launcher stack" "${DEPLOY_COMPOSE_FILE}" "${DEPLOY_ENV_FILE}"
   teardown_compose_stack "legacy granite stack" "${COMPOSE_FILE}" "${ENV_FILE}"
 
+  if [[ "${REMOVE_VOLUMES}" == "false" ]]; then
+    log INFO "Data volumes were preserved (including corestack-postgres-data)."
+    log INFO "Use --purge-data to remove all stack volumes and delete Postgres data."
+  else
+    log WARN "Data volumes were removed, including corestack-postgres-data."
+  fi
+
   if [[ -d "${BUILD_DIR}" ]]; then
     rm -rf "${BUILD_DIR}"
     log INFO "Removed generated build directory: ${BUILD_DIR}"
@@ -130,7 +139,7 @@ main() {
     log INFO "Removed uninstall helper: ${UNINSTALL_HELPER}"
   fi
 
-  if [[ "${PURGE_VOLUMES}" == "true" && -d "${N8N_DATA_DIR}" ]]; then
+  if [[ "${REMOVE_VOLUMES}" == "true" && -d "${N8N_DATA_DIR}" ]]; then
     find "${N8N_DATA_DIR}" -mindepth 1 ! -name '.gitkeep' -exec rm -rf {} +
     log INFO "Purged local n8n artifacts under ${N8N_DATA_DIR} (kept .gitkeep)."
   fi
