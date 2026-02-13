@@ -20,7 +20,17 @@ This folder contains importable n8n workflows and templates that ship with Cores
 - No secrets are stored in this repository.
 - Scraping workflows are read-only and must respect robots.txt, Terms of Service, and rate limits.
 
-## Import steps (manual)
+## Import workflows
+
+### Scripted import (recommended)
+
+```bash
+./n8n/scripts/import-workflows.sh
+```
+
+This imports all files in `n8n/workflows/` into the running `corestack-n8n` container.
+
+### Manual import (UI)
 
 1. Start stack: `docker compose -f deploy/compose/docker-compose.yml up -d`
 2. Open n8n: `http://localhost:5678`

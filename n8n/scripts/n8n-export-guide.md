@@ -1,5 +1,19 @@
 # n8n Export/Import Guide
 
+## Import workflows (script)
+
+Run:
+
+```bash
+./n8n/scripts/import-workflows.sh
+```
+
+This imports all JSON files mounted at `/opt/corestack/n8n/workflows` inside the running `corestack-n8n` container.
+
+Notes:
+- Start stack first: `docker compose -f deploy/compose/docker-compose.yml up -d`
+- Re-import can create duplicates; remove older copies in n8n UI if needed.
+
 ## Import workflows (UI)
 1. Open n8n at `http://localhost:5678`.
 2. Go to **Workflows**.
