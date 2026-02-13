@@ -1,0 +1,20 @@
+global:
+  install_root: "${HOME}/corestack"
+  logs_dir: "${HOME}/corestack/logs"
+  hardening:
+    enable_ufw: true
+    enable_unattended_upgrades: true
+    enable_chrony: true
+  network:
+    public_bind_address: "0.0.0.0"
+    local_bind_address: "127.0.0.1"
+    webui_url: "https://localhost"
+    n8n_url: "https://n8n.localhost"
+  ports:
+    caddy_https: 443
+    caddy_http: 80
+    open_webui: 3000
+    n8n: 5678
+    ollama: 11434
+    qdrant: 6333
+    postgres: 5432

@@ -1,0 +1,8 @@
+# Global ownership
+* @corestack-maintainers
+
+# Security-sensitive paths
+SECURITY.md @corestack-security
+scripts/granite/hardening.sh @corestack-security
+scripts/lib/preflight.sh @corestack-security
+scripts/lib/postcheck.sh @corestack-security

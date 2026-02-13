@@ -1,0 +1,14 @@
+# Runtime env and logs
+*.env
+*.log
+logs/*
+!logs/.gitkeep
+
+# Build output
+build/*
+!build/.gitkeep
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/

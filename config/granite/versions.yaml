@@ -1,0 +1,13 @@
+containers:
+  ollama: "ollama/ollama:0.3.14"
+  open_webui: "ghcr.io/open-webui/open-webui:v0.3.12"
+  qdrant: "qdrant/qdrant:v1.10.1"
+  postgres: "postgres:16.4-alpine"
+  n8n: "docker.n8n.io/n8nio/n8n:1.57.0"
+  caddy: "caddy:2.8.4-alpine"
+models:
+  granite:
+    - "granite3.1-dense:8b-instruct-q4_K_M"
+    - "granite3.1-moe:3b-instruct-q4_K_M"
+  embedding:
+    - "nomic-embed-text:v1.5"
