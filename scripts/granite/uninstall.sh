@@ -23,7 +23,7 @@ usage() {
 Usage: ./scripts/granite/uninstall.sh [options]
 
 Options:
-  --purge         Remove named volumes and purge local n8n artifacts under repo n8n/data.
+  --purge         Remove named volumes for launcher stack services (including tool-gateway, n8n, webui, ollama) and purge local n8n artifacts under repo n8n/data.
   --delete-home   Remove $CORESTACK_HOME after compose teardown.
   -h, --help      Show this help message.
 EOF
@@ -140,7 +140,7 @@ main() {
     log INFO "Removed runtime directory: ${CORESTACK_HOME}"
   fi
 
-  log INFO "Granite uninstall complete"
+  log INFO "Granite uninstall complete (launcher stack + legacy stack teardown finished)"
 }
 
 main "$@"
