@@ -18,13 +18,13 @@ Corestack Bootstrap Kit is a docs-first, local-first installer framework for Cor
 On a fresh Ubuntu host:
 
 ```bash
-git clone <your-fork-or-repo-url> corestack-bootstrap-kit
+git clone https://github.com/nvrenuf/corestack-bootstrap-kit.git corestack-bootstrap-kit
 cd corestack-bootstrap-kit
 make smoke
 ./scripts/granite/bootstrap.sh
 ```
 
-After install:
+After install, use these exact URLs:
 - Open WebUI: `https://localhost`
 - n8n: `https://n8n.localhost`
 

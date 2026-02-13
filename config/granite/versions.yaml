@@ -1,6 +1,6 @@
 containers:
   ollama: "ollama/ollama:0.13.5"
-  open_webui: "ghcr.io/open-webui/open-webui:v0.7.2"
+  open_webui: "ghcr.io/open-webui/open-webui:v0.8.0"
   qdrant: "qdrant/qdrant:v1.16.3"
   postgres: "postgres:16-alpine"
   n8n: "docker.n8n.io/n8nio/n8n:2.6.3"
