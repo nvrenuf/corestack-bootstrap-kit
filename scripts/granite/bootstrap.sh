@@ -25,11 +25,37 @@ install_deps() {
     fi
   done
 
+  local docker_installed="false"
   if ! command -v docker >/dev/null 2>&1; then
-    curl -fsSL https://get.docker.com | run_sudo sh
+    if run_sudo apt-get install -y docker.io; then
+      docker_installed="true"
+    else
+      log WARN "Unable to install docker.io from apt; trying get.docker.com fallback."
+      curl -fsSL https://get.docker.com | run_sudo sh
+      docker_installed="true"
+    fi
+  else
+    docker_installed="true"
   fi
 
-  run_sudo systemctl enable --now docker
+  if [[ "${docker_installed}" != "true" ]] || ! command -v docker >/dev/null 2>&1; then
+    log ERROR "Docker CLI is unavailable after dependency install."
+    return 1
+  fi
+
+  if ! docker compose version >/dev/null 2>&1; then
+    run_sudo apt-get install -y docker-compose-v2 || run_sudo apt-get install -y docker-compose-plugin || true
+  fi
+
+  if command -v systemctl >/dev/null 2>&1; then
+    if run_sudo systemctl list-unit-files --type=service | awk '{print $1}' | grep -qx "docker.service"; then
+      run_sudo systemctl enable --now docker
+    else
+      log WARN "docker.service unit not found; Docker may need manual daemon startup."
+    fi
+  else
+    log WARN "systemctl not found; skipping docker service enablement."
+  fi
 }
 
 load_pins() {
