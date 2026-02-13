@@ -12,24 +12,25 @@
       "name": "Webhook /tools/web.fetch",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [260, 320]
+      "position": [240, 320]
     },
     {
       "parameters": {
-        "jsCode": "const body = $json.body || $json;\nconst url = String(body.url || '').trim();\nconst agent = String(body.agent || 'unknown-agent');\nconst purpose = String(body.purpose || 'unspecified');\nif (!url) { throw new Error('url is required'); }\nreturn [{ json: { url, agent, purpose, received_at: new Date().toISOString() } }];"
+        "mode": "manual",
+        "jsonOutput": "={{ {\"allowlist\": \"example.com,localhost\", \"timeout_ms\": 8000 } }}"
       },
-      "id": "normalize",
-      "name": "Normalize Input",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [500, 320]
+      "id": "allowlist-config",
+      "name": "Allowlist Config (Placeholder)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [480, 320]
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first().json;\nconst parsed = new URL(item.url);\nconst hostname = parsed.hostname.toLowerCase();\nconst allowlistRaw = String($env.WEB_ALLOWLIST || 'localhost,127.0.0.1');\nconst allowlist = allowlistRaw.split(',').map((v) => v.trim().toLowerCase()).filter(Boolean);\nconst minIntervalMs = Number($env.WEB_MIN_INTERVAL_MS || 1000);\nconst data = $getWorkflowStaticData('global');\nif (!data.lastCallByHost) data.lastCallByHost = {};\nconst now = Date.now();\nconst last = Number(data.lastCallByHost[hostname] || 0);\nconst rateLimited = now - last < minIntervalMs;\nif (!rateLimited) data.lastCallByHost[hostname] = now;\nconst allowed = allowlist.includes(hostname);\nlet rejection_code = null;\nlet rejection_reason = '';\nif (!allowed) { rejection_code = 403; rejection_reason = `hostname not allowlisted: ${hostname}`; }\nif (rateLimited) { rejection_code = 429; rejection_reason = `rate limit exceeded for ${hostname}`; }\nreturn [{ json: { ...item, hostname, allowlist, allowed: allowed && !rateLimited, rejection_code, rejection_reason } }];"
+        "jsCode": "const body = $items('Webhook /tools/web.fetch', 0, 0)[0].json.body || $items('Webhook /tools/web.fetch', 0, 0)[0].json;\nconst url = String(body.url || '').trim();\nconst agent_id = String(body.agent_id || body.agent || 'unknown-agent');\nconst purpose = String(body.purpose || 'unspecified');\nif (!/^https?:\\/\\//i.test(url)) {\n  return [{ json: { ok: false, code: 400, error: 'invalid url', agent_id, purpose, url } }];\n}\nconst hostname = new URL(url).hostname.toLowerCase();\nconst allowlistRaw = String($json.allowlist || '').toLowerCase();\nconst allowlist = allowlistRaw.split(',').map((v) => v.trim()).filter(Boolean);\nif (!allowlist.includes(hostname)) {\n  return [{ json: { ok: false, code: 403, error: 'hostname not allowlisted', agent_id, purpose, url, hostname } }];\n}\nreturn [{ json: { ok: true, url, agent_id, purpose, timeout_ms: Number($json.timeout_ms || 8000) } }];"
       },
-      "id": "guard",
-      "name": "Allowlist + Rate Guard",
+      "id": "validate-policy",
+      "name": "Validate URL + Allowlist",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [740, 320]
@@ -39,7 +40,7 @@
         "conditions": {
           "boolean": [
             {
-              "value1": "={{$json.allowed}}",
+              "value1": "={{$json.ok}}",
               "value2": true
             }
           ]
@@ -53,78 +54,30 @@
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first().json;\nconst code = Number(item.rejection_code || 403);\nreturn [{ json: { status: 'rejected', code, error: item.rejection_reason, url: item.url, agent: item.agent, purpose: item.purpose, fetched_at: new Date().toISOString() } }];"
-      },
-      "id": "deny",
-      "name": "Build Deny Payload",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1220, 460]
-    },
-    {
-      "parameters": {
         "respondWith": "json",
-        "responseBody": "={{$json}}",
+        "responseBody": "={{ {\"error\": $json.error, \"status\": $json.code, \"url\": $json.url } }}",
         "options": {
           "responseCode": "={{$json.code || 403}}"
         }
       },
       "id": "respond-deny",
-      "name": "Respond 403/429",
+      "name": "Respond Deny",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.2,
-      "position": [1460, 460]
-    },
-    {
-      "parameters": {
-        "jsCode": "const item = $input.first().json;\nconst ttl = Number($env.CACHE_TTL_SECONDS || 900) * 1000;\nconst data = $getWorkflowStaticData('global');\nif (!data.fetchCache) data.fetchCache = {};\nconst now = Date.now();\nconst cached = data.fetchCache[item.url];\nif (cached && now - cached.cached_at_ms < ttl) {\n  return [{ json: { ...item, cache_hit: true, payload: cached.payload } }];\n}\nreturn [{ json: { ...item, cache_hit: false } }];"
-      },
-      "id": "cache-read",
-      "name": "Cache Lookup",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1220, 200]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{$json.cache_hit}}",
-              "value2": true
-            }
-          ]
-        }
-      },
-      "id": "if-cache-hit",
-      "name": "Cache Hit?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [1460, 200]
+      "position": [1220, 460]
     },
     {
       "parameters": {
         "method": "GET",
         "url": "={{$json.url}}",
         "options": {
-          "timeout": "={{Number($env.WEB_TIMEOUT_MS || 10000)}}",
-          "redirect": {
-            "followRedirects": true
-          },
+          "timeout": "={{$json.timeout_ms}}",
           "response": {
             "response": {
               "fullResponse": true,
               "responseFormat": "string",
               "neverError": true
             }
-          },
-          "headerParameters": {
-            "parameters": [
-              {
-                "name": "User-Agent",
-                "value": "={{$env.WEB_USER_AGENT || 'corestack-n8n-tools/1.0'}}"
-              }
-            ]
           }
         }
       },
@@ -132,80 +85,55 @@
       "name": "HTTP Fetch",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1700, 120],
+      "position": [1220, 200],
       "continueOnFail": true
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first().json;\nconst maxBytes = Number($env.WEB_MAX_CONTENT_BYTES || 200000);\nconst body = String(item.body || '');\nconst trimmed = body.slice(0, maxBytes);\nconst titleMatch = trimmed.match(/<title[^>]*>([^<]+)<\\/title>/i);\nconst title = titleMatch ? titleMatch[1].trim() : '';\nconst text = trimmed\n  .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n  .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/\\s+/g, ' ')\n  .trim();\nconst payload = {\n  url: item.url,\n  final_url: item.url,\n  status: Number(item.statusCode || 0),\n  title,\n  extracted_text: text.slice(0, 12000),\n  fetched_at: new Date().toISOString(),\n  truncated: body.length > maxBytes\n};\nreturn [{ json: { ...item, payload } }];"
+        "jsCode": "const body = String($json.body || '');\nconst titleMatch = body.match(/<title[^>]*>([^<]+)<\\/title>/i);\nconst title = titleMatch ? titleMatch[1].trim() : '';\nconst extracted_text = body.replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 12000);\nconst out = {\n  url: $json.url,\n  status: Number($json.statusCode || 0),\n  title,\n  extracted_text,\n  fetched_at: new Date().toISOString(),\n  agent_id: $json.agent_id,\n  purpose: $json.purpose\n};\nconsole.log('corestack.web_fetch', JSON.stringify({ agent_id: out.agent_id, purpose: out.purpose, url: out.url, status: out.status }));\nreturn [{ json: out }];"
       },
-      "id": "extract",
-      "name": "Extract + Size Limit",
+      "id": "format-log",
+      "name": "Format + Log",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1940, 120]
-    },
-    {
-      "parameters": {
-        "jsCode": "const item = $input.first().json;\nconst data = $getWorkflowStaticData('global');\nif (!data.fetchLogs) data.fetchLogs = [];\nif (!data.fetchCache) data.fetchCache = {};\nconst logEntry = {\n  url: item.url,\n  status: item.payload?.status || 0,\n  agent: item.agent,\n  purpose: item.purpose,\n  fetched_at: item.payload?.fetched_at || new Date().toISOString()\n};\ndata.fetchLogs.push(logEntry);\nif (data.fetchLogs.length > 1000) data.fetchLogs = data.fetchLogs.slice(-1000);\ndata.fetchCache[item.url] = { cached_at_ms: Date.now(), payload: item.payload };\nreturn [{ json: item.payload }];"
-      },
-      "id": "log-cache",
-      "name": "Log + Cache",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [2180, 120]
+      "position": [1460, 200]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{$json.payload || $json}}",
+        "responseBody": "={{$json}}",
         "options": {
           "responseCode": 200
         }
       },
       "id": "respond-ok",
-      "name": "Respond 200",
+      "name": "Respond OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.2,
-      "position": [2420, 120]
+      "position": [1700, 200]
     }
   ],
   "connections": {
     "Webhook /tools/web.fetch": {
-      "main": [[{ "node": "Normalize Input", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Allowlist Config (Placeholder)", "type": "main", "index": 0 }]]
     },
-    "Normalize Input": {
-      "main": [[{ "node": "Allowlist + Rate Guard", "type": "main", "index": 0 }]]
+    "Allowlist Config (Placeholder)": {
+      "main": [[{ "node": "Validate URL + Allowlist", "type": "main", "index": 0 }]]
     },
-    "Allowlist + Rate Guard": {
+    "Validate URL + Allowlist": {
       "main": [[{ "node": "Allowed?", "type": "main", "index": 0 }]]
     },
     "Allowed?": {
       "main": [
-        [{ "node": "Cache Lookup", "type": "main", "index": 0 }],
-        [{ "node": "Build Deny Payload", "type": "main", "index": 0 }]
-      ]
-    },
-    "Build Deny Payload": {
-      "main": [[{ "node": "Respond 403/429", "type": "main", "index": 0 }]]
-    },
-    "Cache Lookup": {
-      "main": [[{ "node": "Cache Hit?", "type": "main", "index": 0 }]]
-    },
-    "Cache Hit?": {
-      "main": [
-        [{ "node": "Respond 200", "type": "main", "index": 0 }],
-        [{ "node": "HTTP Fetch", "type": "main", "index": 0 }]
+        [{ "node": "HTTP Fetch", "type": "main", "index": 0 }],
+        [{ "node": "Respond Deny", "type": "main", "index": 0 }]
       ]
     },
     "HTTP Fetch": {
-      "main": [[{ "node": "Extract + Size Limit", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Format + Log", "type": "main", "index": 0 }]]
     },
-    "Extract + Size Limit": {
-      "main": [[{ "node": "Log + Cache", "type": "main", "index": 0 }]]
-    },
-    "Log + Cache": {
-      "main": [[{ "node": "Respond 200", "type": "main", "index": 0 }]]
+    "Format + Log": {
+      "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]]
     }
   },
   "settings": {
@@ -214,13 +142,5 @@
   "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": false
-  },
-  "tags": [
-    {
-      "name": "corestack"
-    },
-    {
-      "name": "tool"
-    }
-  ]
+  }
 }

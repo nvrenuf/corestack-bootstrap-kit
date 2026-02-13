@@ -12,48 +12,39 @@
           ]
         }
       },
-      "id": "schedule-health",
+      "id": "schedule-trigger",
       "name": "Every 5 Minutes",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [
-        220,
-        280
-      ]
+      "position": [260, 260]
     },
     {
       "parameters": {
         "mode": "manual",
-        "jsonOutput": "={{ {\"targets\": [ {\"service\":\"open-webui\",\"url\":\"http://open-webui:8080/\"}, {\"service\":\"ollama\",\"url\":\"http://ollama:11434/api/tags\"}, {\"service\":\"n8n\",\"url\":\"http://n8n:5678/\"} ] } }}"
+        "jsonOutput": "={{ {\"checks\":[{\"name\":\"tool-gateway\",\"url\":\"http://tool-gateway:8787/health\"},{\"name\":\"ollama-tags\",\"url\":\"http://ollama:11434/api/tags\"}] } }}"
       },
       "id": "set-targets",
-      "name": "Set Targets",
+      "name": "Set Health Targets",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [
-        460,
-        280
-      ]
+      "position": [500, 260]
     },
     {
       "parameters": {
-        "jsCode": "const out = [];\nfor (const item of $input.all()) {\n  const targets = item.json.targets || [];\n  for (const target of targets) {\n    out.push({ json: { ...target, checked_at: new Date().toISOString() } });\n  }\n}\nreturn out;"
+        "jsCode": "const out = [];\nfor (const item of $input.all()) {\n  for (const check of item.json.checks || []) {\n    out.push({ json: { ...check, checked_at: new Date().toISOString() } });\n  }\n}\nreturn out;"
       },
-      "id": "code-expand",
-      "name": "Expand Target List",
+      "id": "expand-list",
+      "name": "Expand Checks",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        700,
-        280
-      ]
+      "position": [740, 260]
     },
     {
       "parameters": {
         "method": "GET",
         "url": "={{$json.url}}",
         "options": {
-          "timeout": 8000,
+          "timeout": 5000,
           "response": {
             "response": {
               "fullResponse": true,
@@ -66,94 +57,32 @@
       "name": "HTTP Health Check",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        940,
-        280
-      ],
+      "position": [980, 260],
       "continueOnFail": true
     },
     {
       "parameters": {
-        "jsCode": "const now = new Date().toISOString();\nconst out = [];\nfor (const item of $input.all()) {\n  const statusCode = item.json.statusCode || item.json.code || 0;\n  out.push({\n    json: {\n      service: item.json.service || 'unknown',\n      status: statusCode >= 200 && statusCode < 400 ? 'ok' : 'error',\n      latency_ms: item.json.timings?.total ?? null,\n      checked_at: now,\n      status_code: statusCode,\n      url: item.json.url\n    }\n  });\n}\nreturn out;"
+        "jsCode": "const rows = $input.all().map((item) => ({\n  service: item.json.name || 'unknown',\n  status: (item.json.statusCode || 0) >= 200 && (item.json.statusCode || 0) < 400 ? 'ok' : 'error',\n  latency_ms: item.json.timings?.total ?? null,\n  checked_at: item.json.checked_at || new Date().toISOString(),\n  status_code: item.json.statusCode || 0\n}));\nconsole.log('corestack.healthchecks', JSON.stringify(rows));\nreturn rows.map((row) => ({ json: row }));"
       },
-      "id": "code-format",
-      "name": "Format Status",
+      "id": "format-log",
+      "name": "Format + Execution Log",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1180,
-        280
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const fs = require('fs');\nconst path = '/data/healthchecks';\ntry { fs.mkdirSync(path, { recursive: true }); } catch (e) {}\nconst file = `${path}/latest.json`;\nconst payload = $input.all().map(i => i.json);\ntry { fs.writeFileSync(file, JSON.stringify(payload, null, 2)); } catch (e) {}\nreturn payload.map((p) => ({ json: p }));"
-      },
-      "id": "code-log",
-      "name": "Write Optional File Log",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1420,
-        280
-      ]
+      "position": [1220, 260]
     }
   ],
   "connections": {
     "Every 5 Minutes": {
-      "main": [
-        [
-          {
-            "node": "Set Targets",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Set Health Targets", "type": "main", "index": 0 }]]
     },
-    "Set Targets": {
-      "main": [
-        [
-          {
-            "node": "Expand Target List",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "Set Health Targets": {
+      "main": [[{ "node": "Expand Checks", "type": "main", "index": 0 }]]
     },
-    "Expand Target List": {
-      "main": [
-        [
-          {
-            "node": "HTTP Health Check",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "Expand Checks": {
+      "main": [[{ "node": "HTTP Health Check", "type": "main", "index": 0 }]]
     },
     "HTTP Health Check": {
-      "main": [
-        [
-          {
-            "node": "Format Status",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Format Status": {
-      "main": [
-        [
-          {
-            "node": "Write Optional File Log",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Format + Execution Log", "type": "main", "index": 0 }]]
     }
   },
   "settings": {
@@ -162,6 +91,5 @@
   "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": false
-  },
-  "tags": []
+  }
 }
