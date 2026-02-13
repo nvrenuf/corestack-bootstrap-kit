@@ -9,6 +9,10 @@ CORESTACK_HOME="${CORESTACK_HOME:-${HOME}/corestack}"
 BUILD_DIR="${REPO_ROOT}/build/granite"
 ENV_FILE="${CORESTACK_HOME}/corestack.env"
 COMPOSE_FILE="${BUILD_DIR}/docker-compose.yml"
+DEPLOY_COMPOSE_FILE="${REPO_ROOT}/deploy/compose/docker-compose.yml"
+DEPLOY_ENV_FILE="${REPO_ROOT}/deploy/compose/.env"
+UNINSTALL_HELPER="${CORESTACK_HOME}/uninstall-granite.sh"
+N8N_DATA_DIR="${REPO_ROOT}/n8n/data"
 
 PURGE_VOLUMES="false"
 DELETE_HOME="false"
@@ -19,7 +23,7 @@ usage() {
 Usage: ./scripts/granite/uninstall.sh [options]
 
 Options:
-  --purge         Remove named volumes (deletes Postgres/Qdrant/Ollama data).
+  --purge         Remove named volumes and purge local n8n artifacts under repo n8n/data.
   --delete-home   Remove $CORESTACK_HOME after compose teardown.
   -h, --help      Show this help message.
 EOF
@@ -73,13 +77,37 @@ ensure_compose_file() {
     return 0
   fi
   log INFO "Compose file missing; rendering ${COMPOSE_FILE}"
-  "${REPO_ROOT}/scripts/granite/render-compose.sh"
+  if ! "${REPO_ROOT}/scripts/granite/render-compose.sh"; then
+    log WARN "Unable to render legacy compose file; continuing with launcher stack teardown only."
+  fi
 }
 
 build_compose_args() {
-  COMPOSE_ARGS=(-f "${COMPOSE_FILE}")
-  if [[ -f "${ENV_FILE}" ]]; then
-    COMPOSE_ARGS=(--env-file "${ENV_FILE}" "${COMPOSE_ARGS[@]}")
+  local compose_file="$1"
+  local env_file="$2"
+  COMPOSE_ARGS=(-f "${compose_file}")
+  if [[ -f "${env_file}" ]]; then
+    COMPOSE_ARGS=(--env-file "${env_file}" "${COMPOSE_ARGS[@]}")
+  fi
+}
+
+teardown_compose_stack() {
+  local stack_name="$1"
+  local compose_file="$2"
+  local env_file="$3"
+
+  if [[ ! -f "${compose_file}" ]]; then
+    log INFO "Skipping ${stack_name}; compose file not found: ${compose_file}"
+    return 0
+  fi
+
+  build_compose_args "${compose_file}" "${env_file}"
+  if [[ "${PURGE_VOLUMES}" == "true" ]]; then
+    log WARN "Purging ${stack_name}: containers, networks, and named volumes."
+    docker compose "${COMPOSE_ARGS[@]}" down -v --remove-orphans || true
+  else
+    log INFO "Stopping ${stack_name}: containers and networks (volumes preserved)."
+    docker compose "${COMPOSE_ARGS[@]}" down --remove-orphans || true
   fi
 }
 
@@ -88,19 +116,23 @@ main() {
   require_docker_runtime
   load_env_if_present
   ensure_compose_file
-  build_compose_args
 
-  if [[ "${PURGE_VOLUMES}" == "true" ]]; then
-    log WARN "Purging containers, networks, and named volumes."
-    docker compose "${COMPOSE_ARGS[@]}" down -v --remove-orphans || true
-  else
-    log INFO "Stopping and removing containers and networks (volumes preserved)."
-    docker compose "${COMPOSE_ARGS[@]}" down --remove-orphans || true
-  fi
+  teardown_compose_stack "launcher stack" "${DEPLOY_COMPOSE_FILE}" "${DEPLOY_ENV_FILE}"
+  teardown_compose_stack "legacy granite stack" "${COMPOSE_FILE}" "${ENV_FILE}"
 
   if [[ -d "${BUILD_DIR}" ]]; then
     rm -rf "${BUILD_DIR}"
     log INFO "Removed generated build directory: ${BUILD_DIR}"
+  fi
+
+  if [[ -f "${UNINSTALL_HELPER}" ]]; then
+    rm -f "${UNINSTALL_HELPER}"
+    log INFO "Removed uninstall helper: ${UNINSTALL_HELPER}"
+  fi
+
+  if [[ "${PURGE_VOLUMES}" == "true" && -d "${N8N_DATA_DIR}" ]]; then
+    find "${N8N_DATA_DIR}" -mindepth 1 ! -name '.gitkeep' -exec rm -rf {} +
+    log INFO "Purged local n8n artifacts under ${N8N_DATA_DIR} (kept .gitkeep)."
   fi
 
   if [[ "${DELETE_HOME}" == "true" && -d "${CORESTACK_HOME}" ]]; then
