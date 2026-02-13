@@ -113,6 +113,61 @@ teardown_compose_stack() {
   fi
 }
 
+cleanup_known_resources() {
+  local known_containers=(
+    corestack-launcher
+    corestack-tool-gateway
+    corestack-n8n
+    corestack-open-webui
+    corestack-ollama
+    corestack-postgres
+    corestack-caddy
+    corestack-qdrant
+  )
+
+  local existing_containers=()
+  local c
+  for c in "${known_containers[@]}"; do
+    if docker ps -a --format '{{.Names}}' | grep -qx "${c}"; then
+      existing_containers+=("${c}")
+    fi
+  done
+
+  if [[ ${#existing_containers[@]} -gt 0 ]]; then
+    log WARN "Removing remaining known containers: ${existing_containers[*]}"
+    docker rm -f "${existing_containers[@]}" >/dev/null 2>&1 || true
+  fi
+
+  if [[ "${REMOVE_VOLUMES}" == "true" ]]; then
+    local known_volumes=(
+      corestack-bootstrap-kit_corestack-postgres-data
+      corestack-bootstrap-kit_n8n_data
+      corestack-bootstrap-kit_open_webui_data
+      corestack-bootstrap-kit_ollama_data
+      corestack-postgres-data
+      n8n_data
+      open_webui_data
+      ollama_data
+      qdrant_data
+      postgres_data
+      caddy_data
+      caddy_config
+    )
+    local existing_volumes=()
+    local v
+    for v in "${known_volumes[@]}"; do
+      if docker volume ls --format '{{.Name}}' | grep -qx "${v}"; then
+        existing_volumes+=("${v}")
+      fi
+    done
+
+    if [[ ${#existing_volumes[@]} -gt 0 ]]; then
+      log WARN "Removing remaining known volumes: ${existing_volumes[*]}"
+      docker volume rm "${existing_volumes[@]}" >/dev/null 2>&1 || true
+    fi
+  fi
+}
+
 main() {
   parse_args "$@"
   require_docker_runtime
@@ -121,6 +176,7 @@ main() {
 
   teardown_compose_stack "launcher stack" "${DEPLOY_COMPOSE_FILE}" "${DEPLOY_ENV_FILE}"
   teardown_compose_stack "legacy granite stack" "${COMPOSE_FILE}" "${ENV_FILE}"
+  cleanup_known_resources
 
   if [[ "${REMOVE_VOLUMES}" == "false" ]]; then
     log INFO "Data volumes were preserved (including corestack-postgres-data)."
