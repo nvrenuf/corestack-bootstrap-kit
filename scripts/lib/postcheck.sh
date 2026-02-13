@@ -24,6 +24,20 @@ done
 
 ensure_dir "${STACK_DIR}/logs"
 
+probe_url() {
+  local url="$1"
+  local attempts="${2:-15}"
+  local sleep_seconds="${3:-2}"
+  local i
+  for ((i = 1; i <= attempts; i++)); do
+    if curl -ksSf "${url}" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep "${sleep_seconds}"
+  done
+  return 1
+}
+
 {
   log INFO "Postcheck start bootstrap=${BOOTSTRAP}"
 
@@ -40,10 +54,10 @@ ensure_dir "${STACK_DIR}/logs"
     log WARN "ufw command not found"
   fi
 
-  curl -ksSf https://localhost >/dev/null 2>&1 && log INFO "WebUI route reachable" || log WARN "WebUI route unreachable"
-  curl -ksSf https://n8n.localhost >/dev/null 2>&1 && log INFO "n8n route reachable" || log WARN "n8n route unreachable"
+  probe_url "https://localhost" && log INFO "WebUI route reachable" || log WARN "WebUI route unreachable"
+  probe_url "https://n8n.localhost" && log INFO "n8n route reachable" || log WARN "n8n route unreachable"
 
-  if run_sudo docker ps --format '{{.Names}}' | rg -qx 'corestack-ollama'; then
+  if run_sudo docker ps --format '{{.Names}}' | grep -qx 'corestack-ollama'; then
     run_sudo docker exec corestack-ollama ollama list || log WARN "Unable to list ollama models from container"
   elif command -v ollama >/dev/null 2>&1; then
     ollama list || log WARN "Unable to list ollama models"

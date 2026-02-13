@@ -13,7 +13,7 @@ global:
   ports:
     caddy_https: 443
     caddy_http: 80
-    open_webui: 3000
+    open_webui: 8080
     n8n: 5678
     ollama: 11434
     qdrant: 6333

@@ -1,10 +1,10 @@
 containers:
-  ollama: "ollama/ollama:0.3.14"
-  open_webui: "ghcr.io/open-webui/open-webui:v0.3.12"
-  qdrant: "qdrant/qdrant:v1.10.1"
-  postgres: "postgres:16.4-alpine"
-  n8n: "docker.n8n.io/n8nio/n8n:1.57.0"
-  caddy: "caddy:2.8.4-alpine"
+  ollama: "ollama/ollama:0.13.5"
+  open_webui: "ghcr.io/open-webui/open-webui:v0.7.2"
+  qdrant: "qdrant/qdrant:v1.16.3"
+  postgres: "postgres:16-alpine"
+  n8n: "docker.n8n.io/n8nio/n8n:2.6.3"
+  caddy: "caddy:2.10.2-alpine"
 models:
   granite:
     - "granite3.1-dense:8b-instruct-q4_K_M"

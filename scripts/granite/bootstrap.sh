@@ -103,6 +103,12 @@ main() {
   source "${ENV_FILE}"
   set +a
 
+  if [[ "${WEBUI_PORT:-}" == "3000" ]]; then
+    log WARN "Detected legacy WEBUI_PORT=3000 in ${ENV_FILE}; overriding to 8080 for Open WebUI compatibility."
+    WEBUI_PORT=8080
+    export WEBUI_PORT
+  fi
+
   load_pins
 
   "${REPO_ROOT}/scripts/granite/render-compose.sh"

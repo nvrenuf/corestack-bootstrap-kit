@@ -9,8 +9,8 @@ No latest-drift by default.
 - Pin both container image tags and model tags.
 
 Example pin targets:
-- `ollama:0.3.14`
-- `ghcr.io/open-webui/open-webui:v0.3.12`
+- `ollama/ollama:0.13.5`
+- `ghcr.io/open-webui/open-webui:v0.7.2`
 - Granite models such as `granite3.1-dense:8b-instruct-q4_K_M`
 
 ## Config precedence

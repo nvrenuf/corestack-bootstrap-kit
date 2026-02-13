@@ -8,7 +8,7 @@ Symptoms:
 Fix:
 1. `sudo usermod -aG docker "$USER"`
 2. Log out/in (or `newgrp docker`)
-3. Re-run `./scripts/granite/postcheck.sh`.
+3. Re-run `./scripts/lib/postcheck.sh --bootstrap granite`.
 
 ## Caddy internal cert not trusted
 
@@ -25,7 +25,7 @@ Symptoms:
 - Compose fails to start Caddy.
 
 Fix:
-1. `sudo ss -ltnp | rg ':80|:443'`
+1. `sudo ss -ltnp | grep -E ':80|:443'`
 2. Stop conflicting service.
 3. Re-run bootstrap.
 
@@ -42,5 +42,6 @@ Fix:
 ## n8n or WebUI route unavailable
 
 1. `docker compose -f build/granite/docker-compose.yml ps`
-2. Verify Caddy routes and container names.
-3. Run `./scripts/lib/postcheck.sh --bootstrap granite` for probe summary.
+2. If WebUI fails but n8n works, confirm `WEBUI_PORT=8080` in `~/corestack/corestack.env`.
+3. Verify Caddy routes and container names.
+4. Run `./scripts/lib/postcheck.sh --bootstrap granite` for probe summary.
