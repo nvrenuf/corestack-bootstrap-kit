@@ -79,12 +79,14 @@ Use the repo-root control script for day-to-day lifecycle management:
 Notes:
 - `down` stops/removes containers and networks but keeps volumes/data.
 - `destroy` prompts for confirmation and removes volumes/data (including Postgres data).
+- Launcher includes links for Open WebUI, n8n, and Adminer.
 
 ## Services and ports
 
 - Launcher: `http://localhost:8080`
 - Open WebUI: `http://localhost:3000`
 - n8n: `http://localhost:5678`
+- Adminer (Postgres UI): `http://localhost:8081`
 - Tool Gateway: `http://localhost:8787`
 - Ollama tags: `http://localhost:11434/api/tags`
 - Postgres: `localhost:5432`
@@ -114,6 +116,7 @@ pg_dump "postgresql://corestack:change_me@localhost:5432/corestack" > corestack-
 Security note:
 - keep Postgres bound to trusted local/dev environments only
 - do not expose port `5432` publicly on untrusted networks
+- Adminer on `8081` is a local admin surface; do not expose it publicly
 
 ## Tool Gateway docs
 

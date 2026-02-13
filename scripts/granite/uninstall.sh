@@ -120,6 +120,7 @@ teardown_compose_stack() {
 cleanup_known_resources() {
   local known_containers=(
     corestack-launcher
+    corestack-adminer
     corestack-tool-gateway
     corestack-n8n
     corestack-open-webui

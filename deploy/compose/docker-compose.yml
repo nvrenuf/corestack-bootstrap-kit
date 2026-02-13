@@ -67,6 +67,17 @@ services:
       timeout: 5s
       retries: 10
 
+  adminer:
+    image: adminer:4
+    container_name: corestack-adminer
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: "${POSTGRES_HOST:-postgres}"
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+
 
   tool-gateway:
     build:
