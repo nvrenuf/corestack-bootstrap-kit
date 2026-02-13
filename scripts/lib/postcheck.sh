@@ -27,9 +27,9 @@ ensure_dir "${STACK_DIR}/logs"
 {
   log INFO "Postcheck start bootstrap=${BOOTSTRAP}"
 
-  if docker ps >/dev/null 2>&1; then
+  if run_sudo docker ps >/dev/null 2>&1; then
     log INFO "Docker daemon reachable"
-    docker ps --format 'table {{.Names}}\t{{.Status}}'
+    run_sudo docker ps --format 'table {{.Names}}\t{{.Status}}'
   else
     log WARN "Docker daemon not reachable"
   fi

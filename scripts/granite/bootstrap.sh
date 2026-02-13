@@ -110,7 +110,7 @@ main() {
   cp "${REPO_ROOT}/templates/env/corestack.env.tmpl" "${BUILD_DIR}/corestack.env.rendered"
   envsubst < "${BUILD_DIR}/corestack.env.rendered" > "${BUILD_DIR}/corestack.env"
 
-  docker compose --env-file "${ENV_FILE}" -f "${BUILD_DIR}/docker-compose.yml" up -d
+  run_sudo docker compose --env-file "${ENV_FILE}" -f "${BUILD_DIR}/docker-compose.yml" up -d
 
   "${REPO_ROOT}/scripts/granite/pull-models.sh"
   "${REPO_ROOT}/scripts/granite/skill-scans.sh" "${CORESTACK_HOME}"
