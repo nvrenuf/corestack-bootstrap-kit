@@ -1,0 +1,79 @@
+services:
+  caddy:
+    image: ${CADDY_IMAGE}
+    container_name: corestack-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - open-webui
+      - n8n
+
+  open-webui:
+    image: ${OPEN_WEBUI_IMAGE}
+    container_name: corestack-open-webui
+    restart: unless-stopped
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+    depends_on:
+      - ollama
+
+  n8n:
+    image: ${N8N_IMAGE}
+    container_name: corestack-n8n
+    restart: unless-stopped
+    environment:
+      N8N_PORT: ${N8N_PORT}
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_DATABASE: ${POSTGRES_DB}
+      DB_POSTGRESDB_USER: ${POSTGRES_USER}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      N8N_BASIC_AUTH_ACTIVE: ${N8N_BASIC_AUTH_ACTIVE}
+      N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD}
+    depends_on:
+      - postgres
+
+  ollama:
+    image: ${OLLAMA_IMAGE}
+    container_name: corestack-ollama
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_BIND}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  qdrant:
+    image: ${QDRANT_IMAGE}
+    container_name: corestack-qdrant
+    restart: unless-stopped
+    ports:
+      - "${QDRANT_BIND}:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  postgres:
+    image: ${POSTGRES_IMAGE}
+    container_name: corestack-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_BIND}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  caddy_data:
+  caddy_config:
+  ollama_data:
+  qdrant_data:
+  postgres_data:

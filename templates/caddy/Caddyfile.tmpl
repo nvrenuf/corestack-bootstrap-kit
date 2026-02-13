@@ -1,0 +1,9 @@
+https://localhost {
+  tls internal
+  reverse_proxy open-webui:${WEBUI_PORT}
+}
+
+https://n8n.localhost {
+  tls internal
+  reverse_proxy n8n:${N8N_PORT}
+}

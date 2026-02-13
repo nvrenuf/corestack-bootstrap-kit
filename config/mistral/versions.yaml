@@ -1,0 +1,15 @@
+containers:
+  ollama: ""
+  open_webui: ""
+  qdrant: ""
+  postgres: ""
+  n8n: ""
+  caddy: ""
+models:
+  mistral:
+    - ""
+  embedding:
+    - ""
+notes:
+  status: "scaffold-only"
+  todo: "Pin exact image tags and model variants before enabling bootstrap"
