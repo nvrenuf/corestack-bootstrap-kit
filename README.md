@@ -1,126 +1,96 @@
 # Corestack Bootstrap Kit
 
-Corestack Bootstrap Kit includes a reproducible local stack for Ollama + Open WebUI + n8n, with a lightweight launcher page.
+Corestack Bootstrap Kit provides a local compose stack for Ollama, Open WebUI, n8n, launcher, and the Tool Gateway.
 
-**Quickstart**
-Prereqs: Docker Desktop/Engine with Docker Compose v2.
+## Quickstart
+
+Prerequisites: Docker Engine/Desktop with Compose v2.
 
 ```bash
-git clone https://github.com/nvrenuf/corestack-bootstrap-kit.git corestack-bootstrap-kit
+git clone https://github.com/nvrenuf/corestack-bootstrap-kit.git
 cd corestack-bootstrap-kit
-./scripts/granite/bootstrap-launcher.sh
-```
-
-This single command:
-1. Starts Ollama.
-2. Pulls a chat model and embedding model.
-3. Starts Open WebUI, n8n, and the launcher.
-
-Then import default n8n workflows:
-
-```bash
-./n8n/scripts/import-workflows.sh
-```
-
-**Configuration**
-Default model/env values are in `deploy/compose/.env.example`:
-
-- `CHAT_MODEL=granite3.1-moe:3b-instruct-q4_K_M`
-- `EMBEDDING_MODEL=nomic-embed-text:v1.5`
-- `OLLAMA_BASE_URL=http://host.docker.internal:11434`
-- `OLLAMA_NUM_PARALLEL=1`
-- `WEB_ALLOWLIST=localhost,127.0.0.1,open-webui,ollama,n8n`
-- `WEB_TIMEOUT_MS=10000`
-- `WEB_USER_AGENT=corestack-n8n-tools/1.0`
-- `CACHE_TTL_SECONDS=900`
-- `WEB_MAX_CONTENT_BYTES=200000`
-- `WEB_MIN_INTERVAL_MS=1000`
-
-To override defaults:
-
-```bash
 cp deploy/compose/.env.example deploy/compose/.env
-# edit deploy/compose/.env
+```
+
+Start stack:
+
+```bash
 docker compose --env-file deploy/compose/.env -f deploy/compose/docker-compose.yml up -d
 ```
 
-Open WebUI is configured by env vars (no manual UI setup required):
-- `DEFAULT_MODELS` uses `CHAT_MODEL` for chat.
-- `RAG_EMBEDDING_MODEL` uses `EMBEDDING_MODEL` for embeddings/RAG.
+Set allowlist and restart Tool Gateway:
 
-`nomic-embed-text:v1.5` is embedding-only and must not be used as a chat model.
-
-**Ports**
-
-- `8080` Launcher: `http://localhost:8080`
-- `3000` Open WebUI: `http://localhost:3000`
-- `5678` n8n: `http://localhost:5678`
-- `11434` Ollama API: `http://localhost:11434/api/tags`
-
-**Troubleshooting**
-
-- `400: "nomic-embed-text:v1.5" does not support chat`
-  - Cause: embedding model was selected for chat.
-  - Fix: set `CHAT_MODEL` to a chat-capable model (default: `granite3.1-moe:3b-instruct-q4_K_M`) and restart compose.
-
-- `500: llama runner process has terminated: signal: killed`
-  - Cause: usually memory pressure/OOM.
-  - Fixes:
-    - use a smaller chat model
-    - reduce context window
-    - set parallelism to 1 (`OLLAMA_NUM_PARALLEL=1`)
-    - increase Docker Desktop memory allocation
-
-**Acceptance Tests**
-
-1. Start stack:
 ```bash
-docker compose -f deploy/compose/docker-compose.yml up -d
+WEB_ALLOWLIST=example.com docker compose -f deploy/compose/docker-compose.yml up -d tool-gateway
 ```
-Expected: `corestack-ollama`, `corestack-open-webui`, `corestack-n8n`, and `corestack-launcher` are running.
 
-2. Check launcher:
+Call Tool Gateway fetch:
+
 ```bash
-curl -sSf http://localhost:8080 | head
-```
-Expected: HTML for "Corestack Launcher" is returned.
-
-3. Check container count:
-```bash
-docker ps --format '{{.Names}}' | grep '^corestack-' | sort
-```
-Expected: 4 containers listed.
-
-4. Check models in Ollama:
-```bash
-docker exec corestack-ollama ollama list
-```
-Expected: chat model plus `nomic-embed-text:v1.5` are present.
-
-5. Open WebUI chat sanity:
-Expected: chat works without the `"does not support chat"` error when using `CHAT_MODEL`.
-
-6. n8n tool webhook examples:
-```bash
-curl -sS -X POST http://localhost:5678/webhook/tools/web.fetch \
+curl -sS -X POST http://localhost:8787/tools/web.fetch \
   -H 'Content-Type: application/json' \
-  -d '{"url":"https://example.com","agent":"demo","purpose":"test"}'
-
-curl -sS -X POST http://localhost:5678/webhook/tools/web.search \
-  -H 'Content-Type: application/json' \
-  -d '{"query":"corestack updates","agent":"demo","purpose":"test","max_results":5}'
+  -d '{
+    "agent_id": "demo-agent",
+    "purpose": "quickstart fetch",
+    "inputs": {"url": "https://example.com"}
+  }'
 ```
-Expected: JSON response from each webhook after workflows are imported and active.
 
-**Default n8n Automations**
+Optional: switch Tool Gateway backend to n8n and call again:
 
-- Scaffolding root: `n8n/`
-- Importable workflows: `n8n/workflows/`
-- Templates and prompt files: `n8n/templates/`
-- Guides and helper scripts: `n8n/scripts/`
-- Full docs: `n8n/README.md` and `docs/n8n-automations.md`
-- Scripted importer: `./n8n/scripts/import-workflows.sh` (`seed-workflows.sh` is an alias)
+```bash
+TOOL_BACKEND=n8n \
+N8N_WEB_FETCH_URL=http://n8n:5678/webhook/tools/web.fetch \
+N8N_WEB_SEARCH_URL=http://n8n:5678/webhook/tools/web.search \
+docker compose -f deploy/compose/docker-compose.yml up -d tool-gateway
 
-**Legacy Granite Bootstrap**
+curl -sS -X POST http://localhost:8787/tools/web.fetch \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "agent_id": "demo-agent",
+    "purpose": "n8n backend fetch",
+    "inputs": {"url": "https://example.com"}
+  }'
+```
 
-The original Granite bootstrap flow remains available at `scripts/granite/bootstrap.sh` and related docs under `docs/runbooks/`.
+## Services and ports
+
+- Launcher: `http://localhost:8080`
+- Open WebUI: `http://localhost:3000`
+- n8n: `http://localhost:5678`
+- Tool Gateway: `http://localhost:8787`
+- Ollama tags: `http://localhost:11434/api/tags`
+
+## Tool Gateway docs
+
+- OpenAPI contract: `docs/tool-gateway-openapi.yaml`
+- Contract overview: `docs/tool-gateway.md`
+- Agent tool-calling pattern: `docs/agent-tool-calls.md`
+- Service README: `tool-gateway/README.md`
+
+## n8n tool workflow docs
+
+- Workflow scaffolding: `n8n/README.md`
+- Automation notes: `docs/n8n-automations.md`
+- Workflow files: `n8n/workflows/00-corestack-healthchecks.json`, `n8n/workflows/01-web-fetch-tool.json`, `n8n/workflows/02-web-search-tool.json`
+
+## Acceptance checks
+
+```bash
+# Health
+curl -sS http://localhost:8787/health
+
+# Allowed fetch
+curl -sS -X POST http://localhost:8787/tools/web.fetch \
+  -H 'Content-Type: application/json' \
+  -d '{"agent_id":"demo","purpose":"allow-test","inputs":{"url":"https://example.com"}}'
+
+# Denied fetch (expect HTTP 403)
+curl -i -sS -X POST http://localhost:8787/tools/web.fetch \
+  -H 'Content-Type: application/json' \
+  -d '{"agent_id":"demo","purpose":"deny-test","inputs":{"url":"https://wikipedia.org"}}'
+```
+
+## Legacy Granite bootstrap
+
+Legacy bootstrap scripts remain available in `scripts/granite/`.
