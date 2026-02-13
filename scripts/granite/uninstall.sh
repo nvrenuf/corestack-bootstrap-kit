@@ -22,6 +22,10 @@ usage() {
   cat <<'EOF'
 Usage: ./scripts/granite/uninstall.sh [options]
 
+Preferred lifecycle entrypoint:
+  ./corestack down      # safe stop/remove (keeps volumes)
+  ./corestack destroy   # destructive remove (deletes volumes)
+
 Options:
   --purge-data    Remove named volumes (including corestack-postgres-data) and purge local n8n artifacts under repo n8n/data.
   --remove-volumes Alias for --purge-data.

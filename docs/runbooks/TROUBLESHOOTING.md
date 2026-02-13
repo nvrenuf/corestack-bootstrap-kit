@@ -48,6 +48,6 @@ Fix:
 
 ## Uninstall / reset
 
-1. Stop and remove stack: `./scripts/granite/uninstall.sh`
-2. Full data reset: `./scripts/granite/uninstall.sh --purge`
-3. Remove local runtime files too: `./scripts/granite/uninstall.sh --purge --delete-home`
+1. Stop/remove stack safely: `./corestack down` (or `./scripts/granite/uninstall.sh`)
+2. Full data reset: `./corestack destroy` (or `./scripts/granite/uninstall.sh --purge-data`)
+3. Remove local runtime files too: `./scripts/granite/uninstall.sh --purge-data --delete-home`

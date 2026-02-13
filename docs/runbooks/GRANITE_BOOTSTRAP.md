@@ -57,11 +57,13 @@ See `docs/runbooks/TROUBLESHOOTING.md` for:
 ## Uninstall
 
 ```bash
-# Keep named volumes/data
-./scripts/granite/uninstall.sh
+# Preferred lifecycle commands
+./corestack down      # keep volumes/data
+./corestack destroy   # removes volumes/data after confirmation
 
-# Remove named volumes/data
-./scripts/granite/uninstall.sh --purge
+# Existing uninstall script remains available
+./scripts/granite/uninstall.sh
+./scripts/granite/uninstall.sh --purge-data
 
 # Same script is copied during bootstrap to:
 # ~/corestack/uninstall-granite.sh

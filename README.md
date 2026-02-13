@@ -15,7 +15,7 @@ cp deploy/compose/.env.example deploy/compose/.env
 Start stack:
 
 ```bash
-docker compose --env-file deploy/compose/.env -f deploy/compose/docker-compose.yml up -d
+./corestack up
 ```
 
 Postgres is included by default and persists data in Docker volume `corestack-postgres-data`.
@@ -29,7 +29,7 @@ Run core DB migrations (idempotent):
 Set allowlist and restart Tool Gateway:
 
 ```bash
-WEB_ALLOWLIST=example.com docker compose -f deploy/compose/docker-compose.yml up -d tool-gateway
+WEB_ALLOWLIST=example.com ./corestack up tool-gateway
 ```
 
 Call Tool Gateway fetch:
@@ -60,6 +60,25 @@ curl -sS -X POST http://localhost:8787/tools/web.fetch \
     "inputs": {"url": "https://example.com"}
   }'
 ```
+
+
+## Controlling Corestack
+
+Use the repo-root control script for day-to-day lifecycle management:
+
+```bash
+./corestack up
+./corestack down
+./corestack restart
+./corestack status
+./corestack logs
+./corestack logs tool-gateway
+./corestack destroy
+```
+
+Notes:
+- `down` stops/removes containers and networks but keeps volumes/data.
+- `destroy` prompts for confirmation and removes volumes/data (including Postgres data).
 
 ## Services and ports
 
@@ -106,7 +125,7 @@ Security note:
 ## Testing tools without an agent
 
 ```bash
-WEB_ALLOWLIST=example.com docker compose -f deploy/compose/docker-compose.yml up -d tool-gateway
+WEB_ALLOWLIST=example.com ./corestack up tool-gateway
 
 TOOL_GATEWAY_URL=http://localhost:8787 ./scripts/tool_call.sh health
 TOOL_GATEWAY_URL=http://localhost:8787 ./scripts/tool_call.sh fetch https://example.com "manual fetch test"

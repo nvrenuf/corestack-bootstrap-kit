@@ -25,3 +25,19 @@ This repo assumes bootstrap scripts:
 ## Operator note
 
 If running over SSH, keep terminal open until postcheck completes to capture first-run diagnostics.
+
+
+## Runtime control
+
+Use the repo-root control entrypoint:
+
+```bash
+./corestack up
+./corestack status
+./corestack stop
+./corestack start
+./corestack down
+./corestack destroy
+```
+
+`down` keeps volumes/data. `destroy` removes volumes/data.
