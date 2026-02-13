@@ -48,6 +48,8 @@ main() {
 
   docker compose -f "${COMPOSE_FILE}" up -d
 
+  "${REPO_ROOT}/scripts/corestack-db-init.sh"
+
   cat <<EOF
 Corestack stack is up.
 - Launcher: http://localhost:8080
