@@ -3,8 +3,9 @@
 ## Supported baseline
 
 - Ubuntu 22.04 LTS or 24.04 LTS
-- User with sudo privileges
-- Internet access for apt, Docker images, and model pulls
+- User with sudo privileges (only needed for optional host tuning)
+- Docker Engine installed and running
+- Internet access for Docker images and model pulls
 
 ## Host preparation checklist
 
@@ -16,7 +17,7 @@
 ## Installation model
 
 This repo assumes bootstrap scripts:
-- install dependencies as needed,
+- validate Docker runtime availability,
 - generate configuration into `build/`,
 - write logs to `~/corestack/logs/`,
 - and can be safely re-run.

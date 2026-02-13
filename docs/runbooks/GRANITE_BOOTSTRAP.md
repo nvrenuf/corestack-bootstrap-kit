@@ -1,9 +1,10 @@
-# Runbook: Granite Bootstrap (Ubuntu)
+# Runbook: Granite Bootstrap (Docker-First)
 
 ## Prerequisites
 
-- Fresh Ubuntu 22.04/24.04 host with sudo access
-- Docker engine available (bootstrap will install if missing)
+- Docker Engine/Desktop installed
+- Docker daemon running
+- Docker Compose v2 available (`docker compose version`)
 - At least 16 GB RAM and 40 GB free disk
 - Git + curl installed
 
@@ -18,11 +19,10 @@ cd corestack-bootstrap-kit && \
 ## What bootstrap does
 
 1. Runs preflight validation.
-2. Installs dependencies (`docker`, `ufw`, `chrony`, `gettext-base`, etc.) if needed.
-3. Applies host hardening defaults.
-4. Generates `build/granite/docker-compose.yml` and environment file.
-5. Starts services and pulls Granite models via Ollama.
-6. Runs post-install checks and writes reports.
+2. Verifies Docker runtime availability.
+3. Generates `build/granite/docker-compose.yml` and environment file.
+4. Starts services and pulls Granite models via Ollama.
+5. Runs post-install checks and writes reports.
 
 ## Service URLs
 
@@ -53,3 +53,16 @@ See `docs/runbooks/TROUBLESHOOTING.md` for:
 - Caddy cert trust steps
 - port conflicts
 - stalled model pulls
+
+## Uninstall
+
+```bash
+# Keep named volumes/data
+./scripts/granite/uninstall.sh
+
+# Remove named volumes/data
+./scripts/granite/uninstall.sh --purge
+
+# Same script is copied during bootstrap to:
+# ~/corestack/uninstall-granite.sh
+```

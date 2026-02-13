@@ -8,7 +8,7 @@ source "${SCRIPT_DIR}/../lib/common.sh"
 require_cmd docker
 
 run_ollama() {
-  run_sudo docker exec corestack-ollama ollama "$@"
+  docker exec corestack-ollama ollama "$@"
 }
 
 wait_for_ollama() {
@@ -36,7 +36,7 @@ models=(
 wait_for_ollama
 
 for model in "${models[@]}"; do
-  if run_ollama list | awk '{print $1}' | rg -qx "${model}"; then
+  if run_ollama list | awk '{print $1}' | grep -Fqx "${model}"; then
     log INFO "Model already present, skipping: ${model}"
   else
     log INFO "Pulling model: ${model}"

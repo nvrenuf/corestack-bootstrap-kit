@@ -10,52 +10,49 @@ LOG_DIR="${CORESTACK_HOME}/logs"
 INSTALL_LOG="${LOG_DIR}/install-$(date +%Y%m%d%H%M%S).log"
 BUILD_DIR="${REPO_ROOT}/build/granite"
 ENV_FILE="${CORESTACK_HOME}/corestack.env"
+UNINSTALL_HELPER="${CORESTACK_HOME}/uninstall-granite.sh"
 
 cleanup() {
   log INFO "Bootstrap completed with exit code $?"
 }
 trap cleanup EXIT
 
-install_deps() {
-  run_sudo apt-get update -y
-  local packages=(curl ca-certificates gnupg lsb-release gettext-base jq)
-  for pkg in "${packages[@]}"; do
-    if ! dpkg -s "${pkg}" >/dev/null 2>&1; then
-      run_sudo apt-get install -y "${pkg}"
-    fi
-  done
+require_docker_runtime() {
+  require_cmd docker
 
-  local docker_installed="false"
-  if ! command -v docker >/dev/null 2>&1; then
-    if run_sudo apt-get install -y docker.io; then
-      docker_installed="true"
-    else
-      log WARN "Unable to install docker.io from apt; trying get.docker.com fallback."
-      curl -fsSL https://get.docker.com | run_sudo sh
-      docker_installed="true"
-    fi
-  else
-    docker_installed="true"
-  fi
-
-  if [[ "${docker_installed}" != "true" ]] || ! command -v docker >/dev/null 2>&1; then
-    log ERROR "Docker CLI is unavailable after dependency install."
+  if ! docker compose version >/dev/null 2>&1; then
+    log ERROR "Docker Compose v2 is required. Install/enable Docker Compose and retry."
     return 1
   fi
 
-  if ! docker compose version >/dev/null 2>&1; then
-    run_sudo apt-get install -y docker-compose-v2 || run_sudo apt-get install -y docker-compose-plugin || true
+  if ! docker info >/dev/null 2>&1; then
+    log ERROR "Docker daemon is not reachable. Start Docker and retry."
+    return 1
+  fi
+}
+
+resolve_chat_model() {
+  local default_chat_model="granite3.1-dense:8b-instruct-q4_K_M"
+  local configured_chat_model="${CHAT_MODEL:-${default_chat_model}}"
+
+  if [[ "${configured_chat_model}" == "nomic-embed-text:v1.5" ]]; then
+    log WARN "Configured CHAT_MODEL=${configured_chat_model} is embeddings-only and cannot serve chat."
+    configured_chat_model="${default_chat_model}"
+    log INFO "Falling back CHAT_MODEL to ${configured_chat_model}"
   fi
 
-  if command -v systemctl >/dev/null 2>&1; then
-    if run_sudo systemctl list-unit-files --type=service | awk '{print $1}' | grep -qx "docker.service"; then
-      run_sudo systemctl enable --now docker
+  if docker ps --format '{{.Names}}' | grep -qx 'corestack-ollama'; then
+    if docker exec corestack-ollama ollama list | awk '{print $1}' | grep -Fqx "${configured_chat_model}"; then
+      log INFO "CHAT_MODEL is available in Ollama: ${configured_chat_model}"
     else
-      log WARN "docker.service unit not found; Docker may need manual daemon startup."
+      log WARN "CHAT_MODEL not present in Ollama yet: ${configured_chat_model}"
     fi
   else
-    log WARN "systemctl not found; skipping docker service enablement."
+    log WARN "Skipping CHAT_MODEL presence check because corestack-ollama is not running."
   fi
+
+  CHAT_MODEL="${configured_chat_model}"
+  export CHAT_MODEL
 }
 
 load_pins() {
@@ -88,8 +85,7 @@ main() {
   log INFO "Starting Granite bootstrap"
 
   "${REPO_ROOT}/scripts/lib/preflight.sh"
-  install_deps
-  "${REPO_ROOT}/scripts/granite/hardening.sh"
+  require_docker_runtime
 
   if [[ -f "${ENV_FILE}" ]]; then
     log INFO "Existing env file found; leaving unchanged: ${ENV_FILE}"
@@ -97,6 +93,9 @@ main() {
     cp "${REPO_ROOT}/config/granite/corestack.env.template" "${ENV_FILE}"
     log INFO "Created env file from template: ${ENV_FILE}"
   fi
+
+  install -m 0755 "${REPO_ROOT}/scripts/granite/uninstall.sh" "${UNINSTALL_HELPER}"
+  log INFO "Installed uninstall helper: ${UNINSTALL_HELPER}"
 
   set -a
   # shellcheck disable=SC1090
@@ -116,13 +115,21 @@ main() {
   cp "${REPO_ROOT}/templates/env/corestack.env.tmpl" "${BUILD_DIR}/corestack.env.rendered"
   envsubst < "${BUILD_DIR}/corestack.env.rendered" > "${BUILD_DIR}/corestack.env"
 
-  run_sudo docker compose --env-file "${ENV_FILE}" -f "${BUILD_DIR}/docker-compose.yml" up -d
+  docker compose --env-file "${ENV_FILE}" -f "${BUILD_DIR}/docker-compose.yml" up -d
 
   "${REPO_ROOT}/scripts/granite/pull-models.sh"
+  resolve_chat_model
   "${REPO_ROOT}/scripts/granite/skill-scans.sh" "${CORESTACK_HOME}"
   CORESTACK_HOME="${CORESTACK_HOME}" "${REPO_ROOT}/scripts/lib/postcheck.sh" --bootstrap granite
 
+  local webui_url="https://${PUBLIC_WEBUI_HOST:-localhost}"
+  local n8n_url="https://${PUBLIC_N8N_HOST:-n8n.localhost}"
+
   log INFO "Granite bootstrap finished successfully"
+  log INFO "Open WebUI: ${webui_url}"
+  log INFO "n8n: ${n8n_url}"
+  log INFO "Chat model: ${CHAT_MODEL}"
+  log INFO "Embedding model only (not chat-capable): nomic-embed-text:v1.5"
   log INFO "Install log: ${INSTALL_LOG}"
 }
 

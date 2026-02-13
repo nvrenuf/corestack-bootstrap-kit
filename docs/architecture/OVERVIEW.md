@@ -10,10 +10,10 @@ Corestack Bootstrap Kit standardizes installation workflows for local/customer-h
 
 ## Bootstrap lifecycle
 
-1. **Preflight:** verify host OS, privileges, resources, and network access.
+1. **Preflight:** verify resources, Docker runtime availability, and network access.
 2. **Render:** load pinned config, render templates into `build/`, never mutate templates directly.
-3. **Install + harden:** install required packages, apply host hardening, start services.
-4. **Postcheck:** validate endpoints, daemon state, firewall status, and model availability.
+3. **Deploy:** start services from rendered Compose assets and run model pulls.
+4. **Postcheck:** validate endpoints, daemon state, and model availability.
 5. **Audit trail:** write machine-readable logs and reports.
 
 ## Component map (Granite)

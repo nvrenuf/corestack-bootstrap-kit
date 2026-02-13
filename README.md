@@ -16,6 +16,12 @@ This single command:
 2. Pulls a chat model and embedding model.
 3. Starts Open WebUI, n8n, and the launcher.
 
+Then import default n8n workflows:
+
+```bash
+./n8n/scripts/import-workflows.sh
+```
+
 **Configuration**
 Default model/env values are in `deploy/compose/.env.example`:
 
@@ -27,6 +33,8 @@ Default model/env values are in `deploy/compose/.env.example`:
 - `WEB_TIMEOUT_MS=10000`
 - `WEB_USER_AGENT=corestack-n8n-tools/1.0`
 - `CACHE_TTL_SECONDS=900`
+- `WEB_MAX_CONTENT_BYTES=200000`
+- `WEB_MIN_INTERVAL_MS=1000`
 
 To override defaults:
 
@@ -111,6 +119,7 @@ Expected: JSON response from each webhook after workflows are imported and activ
 - Templates and prompt files: `n8n/templates/`
 - Guides and helper scripts: `n8n/scripts/`
 - Full docs: `n8n/README.md` and `docs/n8n-automations.md`
+- Scripted importer: `./n8n/scripts/import-workflows.sh` (`seed-workflows.sh` is an alias)
 
 **Legacy Granite Bootstrap**
 

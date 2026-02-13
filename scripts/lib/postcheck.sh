@@ -41,24 +41,18 @@ probe_url() {
 {
   log INFO "Postcheck start bootstrap=${BOOTSTRAP}"
 
-  if run_sudo docker ps >/dev/null 2>&1; then
+  if docker ps >/dev/null 2>&1; then
     log INFO "Docker daemon reachable"
-    run_sudo docker ps --format 'table {{.Names}}\t{{.Status}}'
+    docker ps --format 'table {{.Names}}\t{{.Status}}'
   else
     log WARN "Docker daemon not reachable"
-  fi
-
-  if command -v ufw >/dev/null 2>&1; then
-    run_sudo ufw status verbose || true
-  else
-    log WARN "ufw command not found"
   fi
 
   probe_url "https://localhost" && log INFO "WebUI route reachable" || log WARN "WebUI route unreachable"
   probe_url "https://n8n.localhost" && log INFO "n8n route reachable" || log WARN "n8n route unreachable"
 
-  if run_sudo docker ps --format '{{.Names}}' | grep -qx 'corestack-ollama'; then
-    run_sudo docker exec corestack-ollama ollama list || log WARN "Unable to list ollama models from container"
+  if docker ps --format '{{.Names}}' | grep -qx 'corestack-ollama'; then
+    docker exec corestack-ollama ollama list || log WARN "Unable to list ollama models from container"
   elif command -v ollama >/dev/null 2>&1; then
     ollama list || log WARN "Unable to list ollama models"
   else
