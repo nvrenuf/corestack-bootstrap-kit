@@ -1,7 +1,6 @@
 services:
   ollama:
     image: ollama/ollama:0.13.5
-    container_name: corestack-ollama
     restart: unless-stopped
     environment:
       OLLAMA_NUM_PARALLEL: "${OLLAMA_NUM_PARALLEL:-1}"
@@ -12,7 +11,6 @@ services:
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:v0.8.0
-    container_name: corestack-open-webui
     restart: unless-stopped
     depends_on:
       - ollama
@@ -33,7 +31,6 @@ services:
 
   n8n:
     image: docker.n8n.io/n8nio/n8n:2.6.3
-    container_name: corestack-n8n
     restart: unless-stopped
     environment:
       N8N_PORT: "5678"
@@ -53,7 +50,6 @@ services:
 
   postgres:
     image: postgres:16
-    container_name: corestack-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: "${POSTGRES_USER:-corestack}"
@@ -71,7 +67,6 @@ services:
 
   adminer:
     image: adminer:4
-    container_name: corestack-adminer
     restart: unless-stopped
     environment:
       ADMINER_DEFAULT_SERVER: "${POSTGRES_HOST:-postgres}"
@@ -84,7 +79,6 @@ services:
   tool-gateway:
     build:
       context: ../../tool-gateway
-    container_name: corestack-tool-gateway
     restart: unless-stopped
     environment:
       WEB_ALLOWLIST: "${WEB_ALLOWLIST:-}"
@@ -101,7 +95,6 @@ services:
 
   launcher:
     image: nginx:1.27-alpine
-    container_name: corestack-launcher
     restart: unless-stopped
     depends_on:
       - open-webui

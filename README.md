@@ -15,20 +15,14 @@ git clone https://github.com/nvrenuf/corestack-bootstrap-kit.git
 cd corestack-bootstrap-kit
 ```
 
-Start stack:
+Start stack (first run auto-seeds if Ollama model store is empty):
 
 ```bash
 ./corestack up
 ```
 
-Seed models into Ollama:
-
-```bash
-./corestack seed-models
-```
-
-Open WebUI at `http://localhost:3000` and select a model.
-If model list is still empty, use: Settings -> Connections -> Ollama -> Manage -> pull the tag once to register.
+Open WebUI at `http://localhost:3000` — models are seeded automatically on first run by default.
+Use `./corestack up --no-seed` to skip downloads, or `./corestack seed-models` to seed on demand.
 
 Import n8n workflows:
 
@@ -88,6 +82,7 @@ Use the repo-root control script for day-to-day lifecycle management:
 
 ```bash
 ./corestack up
+./corestack up --no-seed
 ./corestack seed-models
 ./corestack doctor
 ./corestack reset
@@ -101,8 +96,9 @@ Use the repo-root control script for day-to-day lifecycle management:
 
 Notes:
 - `up` auto-creates `deploy/compose/.env` from `deploy/compose/.env.example` if missing.
-- `seed-models` pulls `CHAT_MODEL`, `EMBEDDING_MODEL`, and `llama3.2:3b` (unless `CORESTACK_SKIP_LLAMA=true`).
-- `reset` clears stale project containers (`--nuke-volumes` also removes project volumes).
+- `up` runs with `--remove-orphans` and auto-seeds models only when Ollama reports an empty model list.
+- `seed-models` pulls `CHAT_MODEL`, `EMBEDDING_MODEL`, `llama3.2:3b` (unless `CORESTACK_SKIP_LLAMA=true`), and anything listed in `CORESTACK_DEFAULT_MODELS`.
+- `reset` always runs compose `down --remove-orphans`; `--nuke-volumes` also removes project volumes and persisted data.
 - `down` stops/removes containers and networks but keeps volumes/data.
 - `destroy` prompts for confirmation and removes volumes/data (including Postgres data).
 - Launcher includes links for Open WebUI, n8n, Adminer, and Tool Gateway docs.
@@ -201,17 +197,18 @@ sudo systemctl restart docker
 ./corestack doctor
 ```
 
-Container name already in use / stale container state:
+Upgrading from older installs that used static container names:
 
 ```bash
 ./corestack reset
 ./corestack up
 ```
 
-If needed, remove an individual stale container:
+Need a truly clean slate (this deletes models and persisted app data):
 
 ```bash
-docker rm -f corestack-ollama corestack-open-webui corestack-n8n corestack-tool-gateway corestack-launcher corestack-adminer corestack-postgres
+./corestack reset --nuke-volumes
+./corestack up
 ```
 
 ## Uninstall
