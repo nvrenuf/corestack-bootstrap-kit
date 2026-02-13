@@ -20,7 +20,9 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       ENABLE_OLLAMA_API: "true"
-      OLLAMA_BASE_URL: "${OLLAMA_BASE_URL:-http://host.docker.internal:11434}"
+      OLLAMA_BASE_URL: "${OLLAMA_BASE_URL}"
+      MODELS_CACHE_TTL: "${MODELS_CACHE_TTL:-0}"
+      ENABLE_BASE_MODELS_CACHE: "${ENABLE_BASE_MODELS_CACHE:-false}"
       DEFAULT_MODELS: "${CHAT_MODEL:-granite3.1-moe:3b-instruct-q4_K_M}"
       RAG_EMBEDDING_ENGINE: "ollama"
       RAG_EMBEDDING_MODEL: "${EMBEDDING_MODEL:-nomic-embed-text:v1.5}"

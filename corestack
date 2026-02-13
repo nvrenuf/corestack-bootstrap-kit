@@ -3,15 +3,27 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="${CORESTACK_COMPOSE_FILE:-${REPO_ROOT}/deploy/compose/docker-compose.yml}"
+ENV_EXAMPLE_FILE="${REPO_ROOT}/deploy/compose/.env.example"
 DEFAULT_ENV_FILE="${REPO_ROOT}/deploy/compose/.env"
 ENV_FILE="${CORESTACK_ENV_FILE:-${DEFAULT_ENV_FILE}}"
+DEFAULT_PROJECT_NAME="$(basename "${REPO_ROOT}" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-')"
+PROJECT_NAME="${CORESTACK_PROJECT_NAME:-${DEFAULT_PROJECT_NAME}}"
+
+DEFAULT_CHAT_MODEL="granite3.1-moe:3b-instruct-q4_K_M"
+DEFAULT_EMBEDDING_MODEL="nomic-embed-text:v1.5"
+DEFAULT_SANITY_MODEL="llama3.2:3b"
 
 usage() {
   cat <<'USAGE'
 Usage: ./corestack <command> [args]
 
 Commands:
-  up                 Start stack in detached mode
+  up [--seed-models] [compose args...]
+                     Create .env if missing, build, and start stack
+  seed-models        Pull CHAT_MODEL + EMBEDDING_MODEL (+ default sanity model)
+  doctor             Run Docker, DNS, and port diagnostics
+  reset [--nuke-volumes]
+                     Stop/remove project containers; keep volumes by default
   down               Stop/remove containers and networks (keep volumes/data)
   start              Start existing containers
   stop               Stop running containers
@@ -23,19 +35,48 @@ Commands:
 USAGE
 }
 
-require_tools() {
-  if ! command -v docker >/dev/null 2>&1; then
-    echo "ERROR: docker is required" >&2
-    exit 1
-  fi
-  if ! docker compose version >/dev/null 2>&1; then
-    echo "ERROR: docker compose v2 is required" >&2
+log_info() { echo "INFO: $*"; }
+log_warn() { echo "WARN: $*" >&2; }
+log_error() { echo "ERROR: $*" >&2; }
+
+require_cmd() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    log_error "$1 is required"
     exit 1
   fi
 }
 
+require_tools() {
+  require_cmd docker
+  if ! docker compose version >/dev/null 2>&1; then
+    log_error "docker compose v2 is required"
+    exit 1
+  fi
+}
+
+ensure_compose_file() {
+  if [[ ! -f "${COMPOSE_FILE}" ]]; then
+    log_error "compose file not found: ${COMPOSE_FILE}"
+    exit 1
+  fi
+}
+
+ensure_env_file() {
+  if [[ -f "${ENV_FILE}" ]]; then
+    return 0
+  fi
+
+  if [[ ! -f "${ENV_EXAMPLE_FILE}" ]]; then
+    log_error "env file not found (${ENV_FILE}) and template missing (${ENV_EXAMPLE_FILE})"
+    exit 1
+  fi
+
+  cp "${ENV_EXAMPLE_FILE}" "${ENV_FILE}"
+  log_info "Created env file from template: ${ENV_FILE}"
+}
+
 compose_cmd() {
-  local args=( -f "${COMPOSE_FILE}" )
+  local args=( -p "${PROJECT_NAME}" -f "${COMPOSE_FILE}" )
   if [[ -f "${ENV_FILE}" ]]; then
     args=( --env-file "${ENV_FILE}" "${args[@]}" )
   fi
@@ -48,28 +89,267 @@ confirm_destroy() {
   local answer
   read -r answer
   if [[ "${answer}" != "DESTROY" ]]; then
-    echo "Aborted."
+    log_info "Aborted."
     exit 1
+  fi
+}
+
+wait_for_ollama() {
+  local retries="${1:-60}"
+  local delay_seconds="${2:-2}"
+  local attempt
+
+  for ((attempt=1; attempt<=retries; attempt++)); do
+    if curl -fsS "http://localhost:11434/api/tags" >/dev/null 2>&1; then
+      log_info "Ollama API is reachable at http://localhost:11434/api/tags"
+      return 0
+    fi
+    sleep "${delay_seconds}"
+  done
+
+  log_warn "Ollama API did not become ready in time."
+  return 1
+}
+
+get_env_value() {
+  local key="$1"
+  local default_value="$2"
+  local value=""
+
+  if [[ -n "${!key:-}" ]]; then
+    echo "${!key}"
+    return 0
+  fi
+
+  if [[ -f "${ENV_FILE}" ]]; then
+    value="$(awk -F= -v key="${key}" '
+      /^[[:space:]]*#/ { next }
+      $1 == key { v=substr($0, index($0, "=") + 1) }
+      END { print v }
+    ' "${ENV_FILE}")"
+  fi
+
+  if [[ -n "${value}" ]]; then
+    echo "${value}"
+  else
+    echo "${default_value}"
+  fi
+}
+
+pull_ollama_model() {
+  local model="$1"
+  if [[ -z "${model}" ]]; then
+    return 0
+  fi
+  log_info "Pulling Ollama model: ${model}"
+  docker exec -i corestack-ollama ollama pull "${model}"
+}
+
+seed_models() {
+  ensure_env_file
+  require_cmd curl
+
+  compose_cmd up -d ollama
+  wait_for_ollama
+
+  local chat_model embedding_model extra_models skip_llama
+  chat_model="$(get_env_value CHAT_MODEL "${DEFAULT_CHAT_MODEL}")"
+  embedding_model="$(get_env_value EMBEDDING_MODEL "${DEFAULT_EMBEDDING_MODEL}")"
+  extra_models="$(get_env_value CORESTACK_DEFAULT_MODELS "")"
+  skip_llama="$(get_env_value CORESTACK_SKIP_LLAMA "false")"
+
+  declare -a models=()
+  declare -A seen=()
+  local model
+
+  for model in "${chat_model}" "${embedding_model}"; do
+    if [[ -n "${model}" && -z "${seen[${model}]+x}" ]]; then
+      models+=("${model}")
+      seen["${model}"]=1
+    fi
+  done
+
+  if [[ "${skip_llama,,}" != "true" ]]; then
+    if [[ -z "${seen[${DEFAULT_SANITY_MODEL}]+x}" ]]; then
+      models+=("${DEFAULT_SANITY_MODEL}")
+      seen["${DEFAULT_SANITY_MODEL}"]=1
+    fi
+  fi
+
+  if [[ -n "${extra_models}" ]]; then
+    local item trimmed
+    IFS=',' read -r -a extra_array <<< "${extra_models}"
+    for item in "${extra_array[@]}"; do
+      trimmed="$(echo "${item}" | xargs)"
+      if [[ -n "${trimmed}" && -z "${seen[${trimmed}]+x}" ]]; then
+        models+=("${trimmed}")
+        seen["${trimmed}"]=1
+      fi
+    done
+  fi
+
+  for model in "${models[@]}"; do
+    pull_ollama_model "${model}"
+  done
+
+  cat <<EOF
+Model seeding complete.
+- Open WebUI: http://localhost:3000
+- Ollama tags: http://localhost:11434/api/tags
+If the model list is still empty in WebUI, go to Settings -> Connections -> Ollama -> Manage -> pull the tag once to register.
+EOF
+}
+
+check_port_conflicts() {
+  local expected_name="$1"
+  local port="$2"
+
+  local docker_owner
+  docker_owner="$(docker ps --format '{{.Names}} {{.Ports}}' | awk -v p=":${port}->" '$0 ~ p {print $1; exit}')"
+  if [[ -n "${docker_owner}" ]]; then
+    if [[ "${docker_owner}" == "${expected_name}" ]]; then
+      log_info "Port ${port}: bound by expected container (${docker_owner})"
+    else
+      log_warn "Port ${port}: bound by container ${docker_owner} (expected ${expected_name})"
+    fi
+    return 0
+  fi
+
+  if command -v ss >/dev/null 2>&1; then
+    if ss -ltnH 2>/dev/null | awk -v p=":${port}" '$4 ~ p"$" { found=1 } END { exit(found ? 0 : 1) }'; then
+      log_warn "Port ${port}: in use by a non-Docker process."
+      return 0
+    fi
+  elif command -v lsof >/dev/null 2>&1; then
+    if lsof -nP -iTCP:"${port}" -sTCP:LISTEN >/dev/null 2>&1; then
+      log_warn "Port ${port}: in use by a non-Docker process."
+      return 0
+    fi
+  fi
+
+  log_info "Port ${port}: free"
+}
+
+doctor() {
+  require_tools
+  ensure_compose_file
+
+  if docker info >/dev/null 2>&1; then
+    log_info "Docker daemon reachable."
+  else
+    log_error "Docker daemon is not reachable."
+    exit 1
+  fi
+
+  if docker run --rm alpine:3.20 sh -c "nslookup pypi.org >/dev/null 2>&1"; then
+    log_info "Container DNS check passed (pypi.org)."
+  else
+    cat <<'EOF'
+WARN: Container DNS check failed.
+Fix:
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json >/dev/null <<'JSON'
+{
+  "dns": ["1.1.1.1", "8.8.8.8"]
+}
+JSON
+sudo systemctl restart docker
+EOF
+  fi
+
+  check_port_conflicts corestack-ollama 11434
+  check_port_conflicts corestack-open-webui 3000
+  check_port_conflicts corestack-n8n 5678
+  check_port_conflicts corestack-launcher 8080
+  check_port_conflicts corestack-adminer 8081
+  check_port_conflicts corestack-tool-gateway 8787
+  check_port_conflicts corestack-postgres 5432
+}
+
+up_stack() {
+  ensure_env_file
+  require_cmd curl
+
+  local seed_after_up="false"
+  local compose_args=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --seed-models)
+        seed_after_up="true"
+        ;;
+      *)
+        compose_args+=("$1")
+        ;;
+    esac
+    shift
+  done
+
+  compose_cmd up -d --build "${compose_args[@]}"
+  wait_for_ollama || true
+
+  if [[ "${seed_after_up}" == "true" ]]; then
+    seed_models
+  fi
+}
+
+reset_stack() {
+  local nuke_volumes="false"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --nuke-volumes)
+        nuke_volumes="true"
+        ;;
+      *)
+        log_error "Unknown reset option: $1"
+        exit 1
+        ;;
+    esac
+    shift
+  done
+
+  if [[ "${nuke_volumes}" == "true" ]]; then
+    compose_cmd down --remove-orphans -v || true
+  else
+    compose_cmd down --remove-orphans || true
+  fi
+
+  mapfile -t leftover_containers < <(docker ps -aq --filter "label=com.docker.compose.project=${PROJECT_NAME}")
+  if [[ ${#leftover_containers[@]} -gt 0 ]]; then
+    docker rm -f "${leftover_containers[@]}" >/dev/null 2>&1 || true
+    log_info "Removed ${#leftover_containers[@]} leftover project containers."
+  fi
+
+  if [[ "${nuke_volumes}" == "true" ]]; then
+    mapfile -t leftover_volumes < <(docker volume ls -q --filter "label=com.docker.compose.project=${PROJECT_NAME}")
+    if [[ ${#leftover_volumes[@]} -gt 0 ]]; then
+      docker volume rm "${leftover_volumes[@]}" >/dev/null 2>&1 || true
+      log_info "Removed ${#leftover_volumes[@]} project volumes."
+    fi
   fi
 }
 
 main() {
   require_tools
-
-  if [[ ! -f "${COMPOSE_FILE}" ]]; then
-    echo "ERROR: compose file not found: ${COMPOSE_FILE}" >&2
-    exit 1
-  fi
+  ensure_compose_file
 
   local cmd="${1:-help}"
   shift || true
 
   case "${cmd}" in
     up)
-      compose_cmd up -d "$@"
+      up_stack "$@"
+      ;;
+    seed-models)
+      seed_models
+      ;;
+    doctor)
+      doctor
+      ;;
+    reset)
+      reset_stack "$@"
       ;;
     down)
-      compose_cmd down "$@"
+      compose_cmd down --remove-orphans "$@"
       ;;
     start)
       compose_cmd start "$@"
