@@ -18,6 +18,14 @@ Start stack:
 docker compose --env-file deploy/compose/.env -f deploy/compose/docker-compose.yml up -d
 ```
 
+Postgres is included by default and persists data in Docker volume `corestack-postgres-data`.
+
+Run core DB migrations (idempotent):
+
+```bash
+./scripts/corestack-db-init.sh
+```
+
 Set allowlist and restart Tool Gateway:
 
 ```bash
@@ -60,6 +68,33 @@ curl -sS -X POST http://localhost:8787/tools/web.fetch \
 - n8n: `http://localhost:5678`
 - Tool Gateway: `http://localhost:8787`
 - Ollama tags: `http://localhost:11434/api/tags`
+- Postgres: `localhost:5432`
+
+## Postgres setup and verification
+
+Set DB credentials in `deploy/compose/.env` (template in `deploy/compose/.env.example`):
+
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_DB`
+- `POSTGRES_HOST`
+- `POSTGRES_PORT`
+
+Verify schema/tables:
+
+```bash
+psql "postgresql://corestack:change_me@localhost:5432/corestack" -c "\dn" -c "\dt core.*"
+```
+
+Backup example:
+
+```bash
+pg_dump "postgresql://corestack:change_me@localhost:5432/corestack" > corestack-backup.sql
+```
+
+Security note:
+- keep Postgres bound to trusted local/dev environments only
+- do not expose port `5432` publicly on untrusted networks
 
 ## Tool Gateway docs
 
