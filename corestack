@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# DO NOT:
+# - change PROJECT_NAME without migration logic
+# - reintroduce static container_name in docker-compose.yml
+# - use raw docker exec with hardcoded container names
+# - remove auto-seed logic from `up`
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="${CORESTACK_COMPOSE_FILE:-${REPO_ROOT}/deploy/compose/docker-compose.yml}"
 ENV_EXAMPLE_FILE="${REPO_ROOT}/deploy/compose/.env.example"
@@ -318,10 +324,15 @@ reset_stack() {
     shift
   done
 
+  local down_args=( -f "${COMPOSE_FILE}" --project-name "${PROJECT_NAME}" )
+  if [[ -f "${ENV_FILE}" ]]; then
+    down_args=( --env-file "${ENV_FILE}" "${down_args[@]}" )
+  fi
+
   if [[ "${nuke_volumes}" == "true" ]]; then
-    compose_cmd down --remove-orphans -v || true
+    docker compose "${down_args[@]}" down --remove-orphans -v || true
   else
-    compose_cmd down --remove-orphans || true
+    docker compose "${down_args[@]}" down --remove-orphans || true
   fi
 
   docker rm -f \
