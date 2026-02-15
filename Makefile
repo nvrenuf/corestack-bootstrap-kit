@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: lint fmt test smoke
+.PHONY: lint fmt test smoke tool-system-test
 
 lint:
 	./tests/shellcheck.sh
@@ -14,3 +14,7 @@ test: lint
 
 smoke:
 	./tests/smoke_granite.sh
+
+
+tool-system-test:
+	./scripts/tool-system/test.sh
