@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://corestack.dev/schemas/tools/web.fetch.response.schema.json",
+  "title": "web.fetch Response",
+  "oneOf": [
+    {
+      "title": "Success",
+      "allOf": [
+        { "$ref": "./envelope.schema.json" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ok", "data"],
+          "properties": {
+            "ok": { "const": true },
+            "error": { "type": ["null"] },
+            "data": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": ["url", "final_url", "status", "title", "extracted_text", "fetched_at"],
+              "properties": {
+                "url": { "type": "string", "minLength": 1 },
+                "final_url": { "type": "string", "minLength": 1 },
+                "status": { "type": "integer" },
+                "title": { "type": "string" },
+                "extracted_text": { "type": "string" },
+                "fetched_at": { "type": "string", "format": "date-time" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Error",
+      "allOf": [
+        { "$ref": "./envelope.schema.json" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ok", "data", "error"],
+          "properties": {
+            "ok": { "const": false },
+            "data": { "type": "object", "additionalProperties": true },
+            "error": { "$ref": "./error.schema.json" }
+          }
+        }
+      ]
+    }
+  ]
+}
+

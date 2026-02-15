@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://corestack.dev/schemas/tools/web.search.request.schema.json",
+  "title": "web.search Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["agent_id", "purpose", "inputs"],
+  "properties": {
+    "agent_id": { "type": "string", "minLength": 1 },
+    "purpose": { "type": "string", "minLength": 1 },
+    "request_id": { "type": "string", "minLength": 1 },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query"],
+      "properties": {
+        "query": { "type": "string", "minLength": 1 },
+        "max_results": { "type": "integer", "minimum": 1, "maximum": 10, "default": 5 }
+      }
+    }
+  }
+}
+

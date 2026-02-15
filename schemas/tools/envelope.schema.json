@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://corestack.dev/schemas/tools/envelope.schema.json",
+  "title": "Corestack Tool Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ok", "data"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "data": { "type": "object", "additionalProperties": true },
+    "error": {
+      "anyOf": [
+        { "$ref": "./error.schema.json" },
+        { "type": "null" }
+      ]
+    },
+    "source_meta": { "type": "object", "additionalProperties": true },
+    "timings_ms": { "type": "object", "additionalProperties": true },
+    "content_hash": { "type": ["string", "null"] }
+  }
+}
+
