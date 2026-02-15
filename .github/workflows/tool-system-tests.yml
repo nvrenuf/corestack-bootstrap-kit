@@ -1,9 +1,21 @@
 name: tool-system-tests
 
 on:
+  pull_request:
+    paths:
+      - 'tests/tool-system/**'
+      - 'scripts/tool-system/**'
+      - 'schemas/tools/**'
+      - 'docs/tool-system/**'
+      - '.github/workflows/tool-system-tests.yml'
   push:
     branches: [main]
-  pull_request:
+    paths:
+      - 'tests/tool-system/**'
+      - 'scripts/tool-system/**'
+      - 'schemas/tools/**'
+      - '.github/workflows/tool-system-tests.yml'
+  workflow_dispatch:
 
 jobs:
   tool-system-tests:

@@ -1,9 +1,7 @@
 import json
 from pathlib import Path
 
-import pytest
-
-jsonschema = pytest.importorskip("jsonschema")
+import jsonschema
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 
@@ -29,7 +27,7 @@ def _registry() -> Registry:
     return Registry().with_resources(resources)
 
 
-def _validator(schema: dict) -> jsonschema.Validator:
+def _validator(schema: dict):
     return jsonschema.Draft202012Validator(schema, registry=_registry())
 
 
