@@ -54,6 +54,7 @@ if [[ "$MODE" == "docker" ]]; then
       -v "$ROOT_DIR:/workspace:ro" \
       -v "$tmp_dir:/tmp" \
       -w /workspace \
+      --user "$(id -u):$(id -g)" \
       -e PYTHONPYCACHEPREFIX=/tmp/pycache \
       "$IMAGE_NAME" \
       tests/tool-system \
@@ -69,7 +70,7 @@ fi
 if [[ "$MODE" == "local" ]]; then
   export PYTHONPATH="$ROOT_DIR/vendor/python${PYTHONPATH:+:$PYTHONPATH}"
 
-  for mod in pytest jsonschema referencing; do
+  for mod in pytest jsonschema referencing httpx; do
     if ! python3 -c "import $mod" >/dev/null 2>&1; then
       echo "ERROR: missing Python dependency '$mod' in local mode." >&2
       exit 1

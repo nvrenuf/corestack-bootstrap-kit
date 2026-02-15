@@ -9,6 +9,7 @@ WORKDIR /workspace
 RUN python -m pip install --no-cache-dir \
     pytest==8.3.4 \
     jsonschema==4.23.0 \
-    referencing==0.36.2
+    referencing==0.36.2 \
+    httpx==0.28.1
 
 ENTRYPOINT ["python", "-m", "pytest"]
