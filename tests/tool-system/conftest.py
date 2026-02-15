@@ -7,7 +7,9 @@ def pytest_configure() -> None:
     # Allow `import app.*` from `tool-gateway/app/...` without installing a package.
     repo_root = Path(__file__).resolve().parents[2]
     tool_gateway_root = repo_root / "tool-gateway"
+    vendor_python_root = repo_root / "vendor" / "python"
     sys.path.insert(0, str(tool_gateway_root))
+    sys.path.insert(0, str(vendor_python_root))
 
     # Keep tests deterministic.
     os.environ.setdefault("TOOL_BACKEND", "local")

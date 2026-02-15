@@ -27,7 +27,7 @@ def _registry() -> Registry:
     return Registry().with_resources(resources)
 
 
-def _validator(schema: dict) -> jsonschema.Validator:
+def _validator(schema: dict):
     return jsonschema.Draft202012Validator(schema, registry=_registry())
 
 
