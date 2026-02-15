@@ -1,3 +1,4 @@
+import json
 import hashlib
 import time
 from datetime import datetime, timezone
@@ -9,8 +10,8 @@ from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
+from app.core.audit import emit_tool_event
 from app.core.http import fetch_url, post_json
-from app.core.logging import log_event
 from app.core.policy import (
     get_max_bytes,
     get_n8n_web_fetch_url,
@@ -27,6 +28,10 @@ from app.core.schemas import Envelope, ErrorObject, WebFetchRequest, WebSearchRe
 router = APIRouter(prefix="/tools")
 
 
+def _json_size_bytes(obj: Any) -> int:
+    return len(json.dumps(obj, separators=(",", ":"), ensure_ascii=True).encode("utf-8"))
+
+
 def _envelope_error(
     *,
     http_code: int,
@@ -36,6 +41,7 @@ def _envelope_error(
     tool: str,
     backend: str,
     timings: Dict[str, float],
+    audit: Dict[str, Any] | None = None,
 ) -> JSONResponse:
     payload = Envelope(
         ok=False,
@@ -45,7 +51,18 @@ def _envelope_error(
         timings_ms=timings,
         content_hash=None,
     )
-    return JSONResponse(status_code=http_code, content=payload.model_dump())
+    content = payload.model_dump()
+    if audit is not None:
+        emit_tool_event(
+            {
+                **audit,
+                "http_status": http_code,
+                "duration_ms": float(timings.get("total", 0.0)),
+                "bytes_out": _json_size_bytes(content),
+                "error_code": code,
+            }
+        )
+    return JSONResponse(status_code=http_code, content=content)
 
 
 def _normalize_n8n_fetch_response(raw: Dict[str, Any], backend: str, elapsed_ms: float) -> Envelope:
@@ -83,7 +100,15 @@ def _normalize_n8n_search_response(raw: Dict[str, Any], backend: str, elapsed_ms
     )
 
 
-def _check_rate_limit(tool: str, backend: str, started: float) -> JSONResponse | None:
+def _check_rate_limit(
+    tool: str,
+    backend: str,
+    started: float,
+    *,
+    bytes_in: int,
+    requester: str | None,
+    correlation_id: str | None,
+) -> JSONResponse | None:
     limit_per_minute = get_rate_limit_per_minute()
     if rate_limiter.allow(tool, limit_per_minute):
         return None
@@ -96,6 +121,17 @@ def _check_rate_limit(tool: str, backend: str, started: float) -> JSONResponse |
         tool=tool,
         backend=backend,
         timings={"total": elapsed},
+        audit={
+            "tool_name": tool,
+            "decision": "deny",
+            "reason_code": "RATE_LIMITED",
+            "domain": "",
+            "url": None,
+            "bytes_in": bytes_in,
+            "requester": requester,
+            "correlation_id": correlation_id,
+            "upstream": backend,
+        },
     )
 
 
@@ -121,6 +157,7 @@ def _upstream_error_code(http_code: int) -> str:
 async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
     started = time.perf_counter()
     backend = get_tool_backend()
+    bytes_in = _json_size_bytes(payload)
 
     try:
         req = WebFetchRequest.model_validate(payload)
@@ -133,9 +170,27 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
             tool="web.fetch",
             backend=backend,
             timings={"total": 0.0},
+            audit={
+                "tool_name": "web.fetch",
+                "decision": "deny",
+                "reason_code": "BAD_REQUEST",
+                "domain": "",
+                "url": None,
+                "bytes_in": bytes_in,
+                "requester": payload.get("agent_id"),
+                "correlation_id": payload.get("request_id"),
+                "upstream": backend,
+            },
         )
 
-    limited = _check_rate_limit("web.fetch", backend, started)
+    limited = _check_rate_limit(
+        "web.fetch",
+        backend,
+        started,
+        bytes_in=bytes_in,
+        requester=req.agent_id,
+        correlation_id=req.request_id,
+    )
     if limited:
         return limited
 
@@ -150,21 +205,21 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
             tool="web.fetch",
             backend=backend,
             timings={"total": 0.0},
+            audit={
+                "tool_name": "web.fetch",
+                "decision": "deny",
+                "reason_code": "BAD_REQUEST",
+                "domain": "",
+                "url": req.inputs.url,
+                "bytes_in": bytes_in,
+                "requester": req.agent_id,
+                "correlation_id": req.request_id,
+                "upstream": backend,
+            },
         )
 
     if not is_allowed_host(hostname):
-        elapsed = (time.perf_counter() - started) * 1000
-        log_event(
-            {
-                "request_id": req.request_id,
-                "agent_id": req.agent_id,
-                "tool": "web.fetch",
-                "url": req.inputs.url,
-                "decision": "deny",
-                "status_code": 403,
-                "elapsed_ms": round(elapsed, 2),
-            }
-        )
+        elapsed = round((time.perf_counter() - started) * 1000, 2)
         return _envelope_error(
             http_code=status.HTTP_403_FORBIDDEN,
             code="POLICY_DENIED",
@@ -172,7 +227,19 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
             details={"hostname": hostname},
             tool="web.fetch",
             backend=backend,
-            timings={"total": round(elapsed, 2)},
+            timings={"total": elapsed},
+            audit={
+                "tool_name": "web.fetch",
+                "decision": "deny",
+                "reason_code": "POLICY_DENIED",
+                "domain": hostname,
+                "url": req.inputs.url,
+                "bytes_in": bytes_in,
+                "bytes_out": 0,
+                "requester": req.agent_id,
+                "correlation_id": req.request_id,
+                "upstream": backend,
+            },
         )
 
     try:
@@ -189,8 +256,8 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
                 headers=_n8n_headers(),
                 max_response_bytes=get_max_bytes(),
             )
-            elapsed = (time.perf_counter() - started) * 1000
-            envelope = _normalize_n8n_fetch_response(raw, backend, round(elapsed, 2))
+            elapsed = round((time.perf_counter() - started) * 1000, 2)
+            envelope = _normalize_n8n_fetch_response(raw, backend, elapsed)
             status_code = 200
         else:
             fetch_started = time.perf_counter()
@@ -225,7 +292,7 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
             )
             status_code = 200
     except httpx.TimeoutException:
-        elapsed = (time.perf_counter() - started) * 1000
+        elapsed = round((time.perf_counter() - started) * 1000, 2)
         return _envelope_error(
             http_code=status.HTTP_504_GATEWAY_TIMEOUT,
             code="UPSTREAM_TIMEOUT",
@@ -233,7 +300,18 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
             details=None,
             tool="web.fetch",
             backend=backend,
-            timings={"total": round(elapsed, 2), "fetch": round(elapsed, 2)},
+            timings={"total": elapsed, "fetch": elapsed},
+            audit={
+                "tool_name": "web.fetch",
+                "decision": "deny",
+                "reason_code": "UPSTREAM_TIMEOUT",
+                "domain": hostname,
+                "url": req.inputs.url,
+                "bytes_in": bytes_in,
+                "requester": req.agent_id,
+                "correlation_id": req.request_id,
+                "upstream": backend,
+            },
         )
     except httpx.HTTPStatusError as exc:
         elapsed = round((time.perf_counter() - started) * 1000, 2)
@@ -250,9 +328,20 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
             tool="web.fetch",
             backend=backend,
             timings={"total": elapsed},
+            audit={
+                "tool_name": "web.fetch",
+                "decision": "deny",
+                "reason_code": _upstream_error_code(exc.response.status_code),
+                "domain": hostname,
+                "url": req.inputs.url,
+                "bytes_in": bytes_in,
+                "requester": req.agent_id,
+                "correlation_id": req.request_id,
+                "upstream": backend,
+            },
         )
     except ValueError as exc:
-        elapsed = (time.perf_counter() - started) * 1000
+        elapsed = round((time.perf_counter() - started) * 1000, 2)
         return _envelope_error(
             http_code=status.HTTP_502_BAD_GATEWAY,
             code="UPSTREAM_TOO_LARGE",
@@ -260,10 +349,21 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
             details={"error": str(exc)},
             tool="web.fetch",
             backend=backend,
-            timings={"total": round(elapsed, 2)},
+            timings={"total": elapsed},
+            audit={
+                "tool_name": "web.fetch",
+                "decision": "deny",
+                "reason_code": "UPSTREAM_TOO_LARGE",
+                "domain": hostname,
+                "url": req.inputs.url,
+                "bytes_in": bytes_in,
+                "requester": req.agent_id,
+                "correlation_id": req.request_id,
+                "upstream": backend,
+            },
         )
     except Exception as exc:  # noqa: BLE001
-        elapsed = (time.perf_counter() - started) * 1000
+        elapsed = round((time.perf_counter() - started) * 1000, 2)
         return _envelope_error(
             http_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             code="INTERNAL_ERROR",
@@ -271,27 +371,46 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
             details={"error": str(exc)},
             tool="web.fetch",
             backend=backend,
-            timings={"total": round(elapsed, 2)},
+            timings={"total": elapsed},
+            audit={
+                "tool_name": "web.fetch",
+                "decision": "deny",
+                "reason_code": "INTERNAL_ERROR",
+                "domain": hostname,
+                "url": req.inputs.url,
+                "bytes_in": bytes_in,
+                "requester": req.agent_id,
+                "correlation_id": req.request_id,
+                "upstream": backend,
+            },
         )
 
-    log_event(
+    content = envelope.model_dump()
+    emit_tool_event(
         {
-            "request_id": req.request_id,
-            "agent_id": req.agent_id,
-            "tool": "web.fetch",
-            "url": req.inputs.url,
+            "tool_name": "web.fetch",
             "decision": "allow",
-            "status_code": status_code,
-            "elapsed_ms": round((time.perf_counter() - started) * 1000, 2),
+            "reason_code": "OK",
+            "domain": hostname,
+            "url": req.inputs.url,
+            "http_status": status_code,
+            "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+            "bytes_in": bytes_in,
+            "bytes_out": _json_size_bytes(content),
+            "requester": req.agent_id,
+            "correlation_id": req.request_id,
+            "upstream": backend,
+            "error_code": None,
         }
     )
-    return JSONResponse(status_code=status_code, content=envelope.model_dump())
+    return JSONResponse(status_code=status_code, content=content)
 
 
 @router.post("/web.search")
 async def web_search(payload: Dict[str, Any]) -> JSONResponse:
     started = time.perf_counter()
     backend = get_tool_backend()
+    bytes_in = _json_size_bytes(payload)
 
     try:
         req = WebSearchRequest.model_validate(payload)
@@ -304,9 +423,27 @@ async def web_search(payload: Dict[str, Any]) -> JSONResponse:
             tool="web.search",
             backend=backend,
             timings={"total": 0.0},
+            audit={
+                "tool_name": "web.search",
+                "decision": "deny",
+                "reason_code": "BAD_REQUEST",
+                "domain": "",
+                "url": None,
+                "bytes_in": bytes_in,
+                "requester": payload.get("agent_id"),
+                "correlation_id": payload.get("request_id"),
+                "upstream": backend,
+            },
         )
 
-    limited = _check_rate_limit("web.search", backend, started)
+    limited = _check_rate_limit(
+        "web.search",
+        backend,
+        started,
+        bytes_in=bytes_in,
+        requester=req.agent_id,
+        correlation_id=req.request_id,
+    )
     if limited:
         return limited
 
@@ -337,6 +474,17 @@ async def web_search(payload: Dict[str, Any]) -> JSONResponse:
                 tool="web.search",
                 backend=backend,
                 timings={"total": round((time.perf_counter() - started) * 1000, 2)},
+                audit={
+                    "tool_name": "web.search",
+                    "decision": "deny",
+                    "reason_code": "UPSTREAM_TIMEOUT",
+                    "domain": "",
+                    "url": None,
+                    "bytes_in": bytes_in,
+                    "requester": req.agent_id,
+                    "correlation_id": req.request_id,
+                    "upstream": backend,
+                },
             )
         except httpx.HTTPStatusError as exc:
             detail = None
@@ -352,6 +500,17 @@ async def web_search(payload: Dict[str, Any]) -> JSONResponse:
                 tool="web.search",
                 backend=backend,
                 timings={"total": round((time.perf_counter() - started) * 1000, 2)},
+                audit={
+                    "tool_name": "web.search",
+                    "decision": "deny",
+                    "reason_code": _upstream_error_code(exc.response.status_code),
+                    "domain": "",
+                    "url": None,
+                    "bytes_in": bytes_in,
+                    "requester": req.agent_id,
+                    "correlation_id": req.request_id,
+                    "upstream": backend,
+                },
             )
         except ValueError as exc:
             return _envelope_error(
@@ -362,6 +521,17 @@ async def web_search(payload: Dict[str, Any]) -> JSONResponse:
                 tool="web.search",
                 backend=backend,
                 timings={"total": round((time.perf_counter() - started) * 1000, 2)},
+                audit={
+                    "tool_name": "web.search",
+                    "decision": "deny",
+                    "reason_code": "UPSTREAM_TOO_LARGE",
+                    "domain": "",
+                    "url": None,
+                    "bytes_in": bytes_in,
+                    "requester": req.agent_id,
+                    "correlation_id": req.request_id,
+                    "upstream": backend,
+                },
             )
         except Exception as exc:  # noqa: BLE001
             return _envelope_error(
@@ -372,6 +542,17 @@ async def web_search(payload: Dict[str, Any]) -> JSONResponse:
                 tool="web.search",
                 backend=backend,
                 timings={"total": round((time.perf_counter() - started) * 1000, 2)},
+                audit={
+                    "tool_name": "web.search",
+                    "decision": "deny",
+                    "reason_code": "INTERNAL_ERROR",
+                    "domain": "",
+                    "url": None,
+                    "bytes_in": bytes_in,
+                    "requester": req.agent_id,
+                    "correlation_id": req.request_id,
+                    "upstream": backend,
+                },
             )
     else:
         elapsed = round((time.perf_counter() - started) * 1000, 2)
@@ -389,15 +570,22 @@ async def web_search(payload: Dict[str, Any]) -> JSONResponse:
         )
         status_code = 200
 
-    log_event(
+    content = envelope.model_dump()
+    emit_tool_event(
         {
-            "request_id": req.request_id,
-            "agent_id": req.agent_id,
-            "tool": "web.search",
-            "query": req.inputs.query,
-            "decision": "allow",
-            "status_code": status_code,
-            "elapsed_ms": round((time.perf_counter() - started) * 1000, 2),
+            "tool_name": "web.search",
+            "decision": "allow" if envelope.ok else "deny",
+            "reason_code": "OK" if envelope.ok else (envelope.error.code if envelope.error else "ERROR"),
+            "domain": "",
+            "url": None,
+            "http_status": status_code,
+            "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+            "bytes_in": bytes_in,
+            "bytes_out": _json_size_bytes(content),
+            "requester": req.agent_id,
+            "correlation_id": req.request_id,
+            "upstream": backend,
+            "error_code": None if envelope.ok else (envelope.error.code if envelope.error else "ERROR"),
         }
     )
-    return JSONResponse(status_code=status_code, content=envelope.model_dump())
+    return JSONResponse(status_code=status_code, content=content)

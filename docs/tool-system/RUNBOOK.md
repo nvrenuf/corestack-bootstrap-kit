@@ -61,6 +61,24 @@ Precedence and behavior:
 3. Deny-by-default: if the allowlist is empty after loading, all requests are denied.
 4. Wildcard is explicit opt-in only: `WEB_ALLOWLIST=*` allows all hostnames (intended for permissive profiles only).
 
+## Audit Logging
+
+Tool Gateway emits JSONL audit events for tool invocations (policy decisions, upstream completion, and errors).
+
+Default: events are written to stdout (one JSON object per line).
+
+To write to a file instead, set:
+- `AUDIT_LOG_PATH=/path/to/audit.jsonl`
+
+Example event (single line):
+```json
+{"timestamp":"2026-01-01T00:00:00+00:00","tool_name":"web.fetch","decision":"deny","reason_code":"POLICY_DENIED","domain":"example.com","url":"https://example.com","http_status":403,"duration_ms":1.23,"bytes_in":123,"bytes_out":456,"requester":"demo-agent","correlation_id":"req-123","upstream":"local","error_code":"POLICY_DENIED"}
+```
+
+Retention guidance:
+- If logging to stdout: rely on your runtime log driver (Docker logging, systemd journal, cloud log ingestion) and configure retention/rotation there.
+- If logging to a file via `AUDIT_LOG_PATH`: use filesystem rotation (e.g., logrotate) and a retention policy appropriate to your security/compliance requirements.
+
 ## Local dev runner
 
 Use:

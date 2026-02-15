@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://corestack.dev/schemas/audit/tool_event.schema.json",
+  "title": "Corestack Tool Audit Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "timestamp",
+    "tool_name",
+    "decision",
+    "reason_code",
+    "domain",
+    "http_status",
+    "duration_ms",
+    "bytes_in",
+    "bytes_out",
+    "requester",
+    "correlation_id",
+    "upstream"
+  ],
+  "properties": {
+    "timestamp": { "type": "string", "minLength": 1 },
+    "tool_name": { "type": "string", "minLength": 1 },
+    "decision": { "type": "string", "enum": ["allow", "deny"] },
+    "reason_code": { "type": "string", "minLength": 1 },
+    "domain": { "type": "string" },
+    "url": { "type": ["string", "null"] },
+    "http_status": { "type": "integer", "minimum": 100, "maximum": 599 },
+    "duration_ms": { "type": "number", "minimum": 0 },
+    "bytes_in": { "type": "integer", "minimum": 0 },
+    "bytes_out": { "type": "integer", "minimum": 0 },
+    "requester": { "type": ["string", "null"] },
+    "correlation_id": { "type": ["string", "null"] },
+    "upstream": { "type": "string", "minLength": 1 },
+    "error_code": { "type": ["string", "null"] }
+  }
+}
+
