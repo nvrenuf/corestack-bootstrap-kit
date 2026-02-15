@@ -15,8 +15,10 @@ Corestack Tool Gateway is a policy-aware API layer for agent tool calls.
 - `WEB_TIMEOUT_MS` request timeout in milliseconds (default `8000`)
 - `WEB_MAX_BYTES` max response bytes processed (default `1500000`)
 - `TOOL_BACKEND` `local` or `n8n` (default `local`)
-- `N8N_WEB_FETCH_URL` required when `TOOL_BACKEND=n8n`
-- `N8N_WEB_SEARCH_URL` required when `TOOL_BACKEND=n8n`
+- `N8N_WEB_FETCH_URL` default `http://n8n:5678/webhook/tools/web.fetch`
+- `N8N_WEB_SEARCH_URL` default `http://n8n:5678/webhook/tools/web.search`
+- `TOOL_SHARED_SECRET` optional shared secret forwarded as `X-Tool-Secret`
+- `TOOL_RATE_LIMIT_PER_MINUTE` per-tool in-memory rate limit (default `120`)
 
 ## Logging
 

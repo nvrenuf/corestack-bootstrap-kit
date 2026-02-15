@@ -6,8 +6,10 @@ These are backend tool endpoints for agent/orchestrator flows, not end-user auto
 ## Included workflows
 
 - `00-corestack-healthchecks.json`
-- `01-web-fetch-tool.json`
-- `02-web-search-tool.json`
+- `01-web-fetch-tool.json` (legacy)
+- `02-web-search-tool.json` (legacy)
+- `web.fetch.json` (Milestone 1 E2E)
+- `web.search.json` (Milestone 1 E2E)
 
 ## Import workflows
 
@@ -16,7 +18,7 @@ These are backend tool endpoints for agent/orchestrator flows, not end-user auto
 docker compose -f deploy/compose/docker-compose.yml up -d n8n
 ```
 2. Open `http://localhost:5678`.
-3. Import files from `n8n/workflows/` in order: `00`, `01`, `02`.
+3. Import `web.fetch.json` and `web.search.json` for Milestone 1 E2E (or legacy `01`/`02` if needed).
 4. Activate imported workflows.
 
 Optional scripted import:

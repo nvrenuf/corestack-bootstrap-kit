@@ -15,9 +15,12 @@ from app.core.policy import (
     get_max_bytes,
     get_n8n_web_fetch_url,
     get_n8n_web_search_url,
+    get_rate_limit_per_minute,
     get_timeout_ms,
     get_tool_backend,
+    get_tool_shared_secret,
     is_allowed_host,
+    rate_limiter,
 )
 from app.core.schemas import Envelope, ErrorObject, WebFetchRequest, WebSearchRequest
 
@@ -80,6 +83,40 @@ def _normalize_n8n_search_response(raw: Dict[str, Any], backend: str, elapsed_ms
     )
 
 
+def _check_rate_limit(tool: str, backend: str, started: float) -> JSONResponse | None:
+    limit_per_minute = get_rate_limit_per_minute()
+    if rate_limiter.allow(tool, limit_per_minute):
+        return None
+    elapsed = round((time.perf_counter() - started) * 1000, 2)
+    return _envelope_error(
+        http_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        code="RATE_LIMITED",
+        message="Tool rate limit exceeded.",
+        details={"limit_per_minute": limit_per_minute},
+        tool=tool,
+        backend=backend,
+        timings={"total": elapsed},
+    )
+
+
+def _n8n_headers() -> Dict[str, str]:
+    headers: Dict[str, str] = {}
+    shared_secret = get_tool_shared_secret()
+    if shared_secret:
+        headers["X-Tool-Secret"] = shared_secret
+    return headers
+
+
+def _upstream_error_code(http_code: int) -> str:
+    if http_code == 401:
+        return "UNAUTHORIZED"
+    if http_code == 429:
+        return "UPSTREAM_RATE_LIMITED"
+    if 400 <= http_code < 500:
+        return "UPSTREAM_BAD_REQUEST"
+    return "UPSTREAM_ERROR"
+
+
 @router.post("/web.fetch")
 async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
     started = time.perf_counter()
@@ -97,6 +134,10 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
             backend=backend,
             timings={"total": 0.0},
         )
+
+    limited = _check_rate_limit("web.fetch", backend, started)
+    if limited:
+        return limited
 
     parsed = urlparse(req.inputs.url)
     hostname = (parsed.hostname or "").lower()
@@ -136,19 +177,8 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
 
     try:
         if backend == "n8n":
-            n8n_url = get_n8n_web_fetch_url()
-            if not n8n_url:
-                return _envelope_error(
-                    http_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    code="NOT_CONFIGURED",
-                    message="N8N_WEB_FETCH_URL is required when TOOL_BACKEND=n8n.",
-                    details=None,
-                    tool="web.fetch",
-                    backend=backend,
-                    timings={"total": 0.0},
-                )
             raw = await post_json(
-                n8n_url,
+                get_n8n_web_fetch_url(),
                 {
                     "url": req.inputs.url,
                     "agent_id": req.agent_id,
@@ -156,6 +186,8 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
                     "request_id": req.request_id,
                 },
                 get_timeout_ms(),
+                headers=_n8n_headers(),
+                max_response_bytes=get_max_bytes(),
             )
             elapsed = (time.perf_counter() - started) * 1000
             envelope = _normalize_n8n_fetch_response(raw, backend, round(elapsed, 2))
@@ -203,6 +235,33 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
             backend=backend,
             timings={"total": round(elapsed, 2), "fetch": round(elapsed, 2)},
         )
+    except httpx.HTTPStatusError as exc:
+        elapsed = round((time.perf_counter() - started) * 1000, 2)
+        detail = None
+        try:
+            detail = exc.response.json()
+        except ValueError:
+            detail = {"text": exc.response.text}
+        return _envelope_error(
+            http_code=exc.response.status_code,
+            code=_upstream_error_code(exc.response.status_code),
+            message="Upstream request failed.",
+            details=detail,
+            tool="web.fetch",
+            backend=backend,
+            timings={"total": elapsed},
+        )
+    except ValueError as exc:
+        elapsed = (time.perf_counter() - started) * 1000
+        return _envelope_error(
+            http_code=status.HTTP_502_BAD_GATEWAY,
+            code="UPSTREAM_TOO_LARGE",
+            message="Upstream response exceeded byte limit.",
+            details={"error": str(exc)},
+            tool="web.fetch",
+            backend=backend,
+            timings={"total": round(elapsed, 2)},
+        )
     except Exception as exc:  # noqa: BLE001
         elapsed = (time.perf_counter() - started) * 1000
         return _envelope_error(
@@ -247,21 +306,14 @@ async def web_search(payload: Dict[str, Any]) -> JSONResponse:
             timings={"total": 0.0},
         )
 
+    limited = _check_rate_limit("web.search", backend, started)
+    if limited:
+        return limited
+
     if backend == "n8n":
-        n8n_url = get_n8n_web_search_url()
-        if not n8n_url:
-            return _envelope_error(
-                http_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                code="NOT_CONFIGURED",
-                message="N8N_WEB_SEARCH_URL is required when TOOL_BACKEND=n8n.",
-                details=None,
-                tool="web.search",
-                backend=backend,
-                timings={"total": 0.0},
-            )
         try:
             raw = await post_json(
-                n8n_url,
+                get_n8n_web_search_url(),
                 {
                     "query": req.inputs.query,
                     "max_results": req.inputs.max_results,
@@ -270,6 +322,8 @@ async def web_search(payload: Dict[str, Any]) -> JSONResponse:
                     "request_id": req.request_id,
                 },
                 get_timeout_ms(),
+                headers=_n8n_headers(),
+                max_response_bytes=get_max_bytes(),
             )
             elapsed = round((time.perf_counter() - started) * 1000, 2)
             envelope = _normalize_n8n_search_response(raw, backend, elapsed)
@@ -280,6 +334,31 @@ async def web_search(payload: Dict[str, Any]) -> JSONResponse:
                 code="UPSTREAM_TIMEOUT",
                 message="Upstream request timed out.",
                 details=None,
+                tool="web.search",
+                backend=backend,
+                timings={"total": round((time.perf_counter() - started) * 1000, 2)},
+            )
+        except httpx.HTTPStatusError as exc:
+            detail = None
+            try:
+                detail = exc.response.json()
+            except ValueError:
+                detail = {"text": exc.response.text}
+            return _envelope_error(
+                http_code=exc.response.status_code,
+                code=_upstream_error_code(exc.response.status_code),
+                message="Upstream request failed.",
+                details=detail,
+                tool="web.search",
+                backend=backend,
+                timings={"total": round((time.perf_counter() - started) * 1000, 2)},
+            )
+        except ValueError as exc:
+            return _envelope_error(
+                http_code=status.HTTP_502_BAD_GATEWAY,
+                code="UPSTREAM_TOO_LARGE",
+                message="Upstream response exceeded byte limit.",
+                details={"error": str(exc)},
                 tool="web.search",
                 backend=backend,
                 timings={"total": round((time.perf_counter() - started) * 1000, 2)},

@@ -1,0 +1,132 @@
+{
+  "name": "web.fetch",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tools/web.fetch",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-fetch",
+      "name": "Webhook tools/web.fetch",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [220, 280]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$env.TOOL_SHARED_SECRET || ''}}",
+              "operation": "equal",
+              "value2": "={{$json.headers['x-tool-secret'] || ''}}"
+            }
+          ]
+        }
+      },
+      "id": "if-secret",
+      "name": "Secret matches?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [460, 280]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\"code\": \"UNAUTHORIZED\", \"message\": \"Invalid X-Tool-Secret\"} }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "respond-unauthorized",
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [700, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || {};\nconst url = String(body.url || '').trim();\nif (!/^https?:\\/\\//i.test(url)) {\n  return [{ json: { code: 'BAD_REQUEST', message: 'url must use http/https' } }];\n}\nreturn [{ json: {\n  url,\n  agent_id: body.agent_id || 'unknown-agent',\n  purpose: body.purpose || 'unspecified',\n  request_id: body.request_id || null\n} }];"
+      },
+      "id": "prepare",
+      "name": "Prepare Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 180]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$json.url}}",
+        "options": {
+          "timeout": "={{Number($env.WEB_TIMEOUT_MS || 8000)}}",
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "string",
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "http-fetch",
+      "name": "HTTP Fetch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [940, 180]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = String($json.body || '');\nconst titleMatch = body.match(/<title[^>]*>([^<]+)<\\/title>/i);\nconst title = titleMatch ? titleMatch[1].trim() : '';\nconst extracted_text = body.replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 12000);\nreturn [{ json: {\n  url: $json.url,\n  final_url: $json.url,\n  status: Number($json.statusCode || 0),\n  title,\n  extracted_text,\n  fetched_at: new Date().toISOString()\n} }];"
+      },
+      "id": "format",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, 180]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-ok",
+      "name": "Respond 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [1420, 180]
+    }
+  ],
+  "connections": {
+    "Webhook tools/web.fetch": {
+      "main": [[{ "node": "Secret matches?", "type": "main", "index": 0 }]]
+    },
+    "Secret matches?": {
+      "main": [
+        [{ "node": "Prepare Request", "type": "main", "index": 0 }],
+        [{ "node": "Respond 401", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prepare Request": {
+      "main": [[{ "node": "HTTP Fetch", "type": "main", "index": 0 }]]
+    },
+    "HTTP Fetch": {
+      "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]]
+    },
+    "Format Response": {
+      "main": [[{ "node": "Respond 200", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

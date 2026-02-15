@@ -46,9 +46,17 @@ async def fetch_url(url: str, timeout_ms: int, max_bytes: int, user_agent: str) 
         )
 
 
-async def post_json(url: str, payload: dict, timeout_ms: int) -> dict:
+async def post_json(
+    url: str,
+    payload: dict,
+    timeout_ms: int,
+    headers: dict | None = None,
+    max_response_bytes: int | None = None,
+) -> dict:
     timeout = httpx.Timeout(timeout_ms / 1000.0)
     async with httpx.AsyncClient(timeout=timeout) as client:
-        response = await client.post(url, json=payload)
+        response = await client.post(url, json=payload, headers=headers)
+        if max_response_bytes is not None and len(response.content) > max_response_bytes:
+            raise ValueError(f"Upstream response exceeds {max_response_bytes} bytes.")
         response.raise_for_status()
         return response.json()
