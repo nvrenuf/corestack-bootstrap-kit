@@ -125,16 +125,26 @@ Use the reproducible Docker test runner:
 ```
 
 Behavior:
-- Builds `scripts/tool-system/Dockerfile.test` once (or reuses an existing local image).
-- Runs tests inside the pinned image so test execution itself does not rely on `pip install`.
-- Fails if pytest reports skipped tests (including schema validation skips).
+- Builds `tests/tool-system/Dockerfile` (Docker layer cache keeps rebuilds fast).
+- Runs pytest inside the pinned image, mounting the repository read-only and writing only to a temporary `/tmp` mount.
+- Produces a JUnit report and fails if **any** tests are skipped (schema validation is mandatory in this path).
 
-Local fallback (no Docker available):
+Developer-only local fallback (not used by CI):
 ```bash
 ./scripts/tool-system/test.sh local
 ```
-This mode prepends `vendor/python` to `PYTHONPATH` so schema-test dependencies are available without network access.
+This mode requires local installs of `pytest`, `jsonschema`, and `referencing`.
+
+Prerequisites:
+- Docker (required for the reproducible/offline path).
 
 Notes for restricted/no-internet hosts:
-- If the image is already present locally, docker-mode tests run fully offline.
-- If Docker is not available, local mode uses vendored Python modules from `vendor/python`.
+- As long as the test image is already cached on the machine, `./scripts/tool-system/test.sh` runs with no pip network access.
+
+## Compose project naming for multi-pack execution
+
+When running multiple CoreStack packs side-by-side, use a unique Docker Compose project name per pack via either:
+- `docker compose -p <project-name> ...`, or
+- `COMPOSE_PROJECT_NAME=<project-name> docker compose ...`
+
+Compose prefixes resources (containers, networks, volumes) by project name, which prevents collisions across simultaneous pack runs.

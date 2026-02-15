@@ -2,18 +2,14 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-IMAGE_NAME="${TOOL_SYSTEM_TEST_IMAGE:-corestack-tool-system-tests:py310}"
+IMAGE_NAME="${TOOL_SYSTEM_TEST_IMAGE:-corestack-tool-system-tests:py311}"
 MODE="${1:-${TOOL_SYSTEM_TEST_MODE:-docker}}"
 if [[ $# -gt 0 ]]; then
   shift
 fi
 
-run_pytest() {
-  local junit
-  junit="$(mktemp)"
-
-  pytest tests/tool-system --junitxml "$junit" "$@"
-
+check_skips() {
+  local junit="$1"
   python3 - "$junit" <<'PY'
 import sys
 import xml.etree.ElementTree as ET
@@ -45,18 +41,27 @@ cd "$ROOT_DIR"
 
 if [[ "$MODE" == "docker" ]]; then
   if ! command -v docker >/dev/null 2>&1; then
-    echo "WARN: docker is not available; falling back to local mode with vendored dependencies." >&2
+    echo "WARN: docker is not available; falling back to local mode." >&2
     MODE="local"
   else
-    if ! docker image inspect "$IMAGE_NAME" >/dev/null 2>&1; then
-      docker build -f scripts/tool-system/Dockerfile.test -t "$IMAGE_NAME" .
-    fi
+    docker build -f tests/tool-system/Dockerfile -t "$IMAGE_NAME" .
+
+    tmp_dir="$(mktemp -d)"
+    trap 'rm -rf "$tmp_dir"' EXIT
 
     docker run --rm \
-      -v "$ROOT_DIR:/workspace" \
+      --read-only \
+      -v "$ROOT_DIR:/workspace:ro" \
+      -v "$tmp_dir:/tmp" \
       -w /workspace \
+      -e PYTHONPYCACHEPREFIX=/tmp/pycache \
       "$IMAGE_NAME" \
-      "./scripts/tool-system/test.sh local"
+      tests/tool-system \
+      --junitxml /tmp/pytest.junit.xml \
+      -o cache_dir=/tmp/pytest-cache \
+      "$@"
+
+    check_skips "$tmp_dir/pytest.junit.xml"
     exit 0
   fi
 fi
@@ -71,7 +76,15 @@ if [[ "$MODE" == "local" ]]; then
     fi
   done
 
-  run_pytest "$@"
+  tmp_dir="$(mktemp -d)"
+  trap 'rm -rf "$tmp_dir"' EXIT
+
+  pytest tests/tool-system \
+    --junitxml "$tmp_dir/pytest.junit.xml" \
+    -o cache_dir="$tmp_dir/pytest-cache" \
+    "$@"
+
+  check_skips "$tmp_dir/pytest.junit.xml"
   exit 0
 fi
 
