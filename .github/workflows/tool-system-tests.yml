@@ -1,0 +1,14 @@
+name: tool-system-tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tool-system-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run reproducible tool-system tests
+        run: ./scripts/tool-system/test.sh

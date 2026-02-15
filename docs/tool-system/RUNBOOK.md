@@ -109,8 +109,32 @@ Fix:
 - JSON Schemas: `schemas/tools/*.schema.json`
 - Contract overview: `docs/tool-system/TOOL_SCHEMAS.md`
 
-Run tests:
+Run all tool-system tests (schema enforcement enabled):
 ```bash
-python3 -m pip install -r tool-gateway/requirements.txt -r tool-gateway/requirements-dev.txt
-pytest tests/tool-system
+./scripts/tool-system/test.sh
 ```
+
+The script runs pytest and fails if any schema validation test is skipped.
+
+## Offline / restricted network test execution
+
+Use the reproducible Docker test runner:
+
+```bash
+./scripts/tool-system/test.sh
+```
+
+Behavior:
+- Builds `scripts/tool-system/Dockerfile.test` once (or reuses an existing local image).
+- Runs tests inside the pinned image so test execution itself does not rely on `pip install`.
+- Fails if pytest reports skipped tests (including schema validation skips).
+
+Local fallback (no Docker available):
+```bash
+./scripts/tool-system/test.sh local
+```
+This mode prepends `vendor/python` to `PYTHONPATH` so schema-test dependencies are available without network access.
+
+Notes for restricted/no-internet hosts:
+- If the image is already present locally, docker-mode tests run fully offline.
+- If Docker is not available, local mode uses vendored Python modules from `vendor/python`.
