@@ -1,0 +1,108 @@
+services:
+  ollama:
+    image: ollama/ollama:0.13.5
+    restart: unless-stopped
+    environment:
+      OLLAMA_NUM_PARALLEL: "${OLLAMA_NUM_PARALLEL:-1}"
+    ports:
+      - "${PORT_OLLAMA:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.8.0
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    environment:
+      ENABLE_OLLAMA_API: "true"
+      OLLAMA_BASE_URL: "${OLLAMA_BASE_URL:-http://ollama:11434}"
+      DEFAULT_MODELS: "${CHAT_MODEL:-granite3.1-moe:3b-instruct-q4_K_M}"
+      RAG_EMBEDDING_ENGINE: "ollama"
+      RAG_EMBEDDING_MODEL: "${EMBEDDING_MODEL:-nomic-embed-text:v1.5}"
+    ports:
+      - "${PORT_OPEN_WEBUI:-3000}:8080"
+    volumes:
+      - open_webui_data:/app/backend/data
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:2.6.3
+    restart: unless-stopped
+    environment:
+      N8N_PORT: "5678"
+      WEB_ALLOWLIST: "${WEB_ALLOWLIST:-localhost,127.0.0.1}"
+      WEB_TIMEOUT_MS: "${WEB_TIMEOUT_MS:-10000}"
+      WEB_USER_AGENT: "${WEB_USER_AGENT:-corestack-n8n-tools/1.0}"
+      CACHE_TTL_SECONDS: "${CACHE_TTL_SECONDS:-900}"
+      WEB_MAX_CONTENT_BYTES: "${WEB_MAX_CONTENT_BYTES:-200000}"
+      WEB_MIN_INTERVAL_MS: "${WEB_MIN_INTERVAL_MS:-1000}"
+    ports:
+      - "${PORT_N8N:-5678}:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ../../n8n/data:/data
+      - ../../n8n/templates:/opt/corestack/n8n/templates:ro
+      - ../../n8n/workflows:/opt/corestack/n8n/workflows:ro
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-corestack}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-change_me}"
+      POSTGRES_DB: "${POSTGRES_DB:-corestack}"
+    ports:
+      - "${PORT_POSTGRES:-5432}:5432"
+    volumes:
+      - corestack-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer:4
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: "${POSTGRES_HOST:-postgres}"
+    ports:
+      - "${PORT_ADMINER:-8081}:8080"
+    depends_on:
+      - postgres
+
+  tool-gateway:
+    build:
+      context: ../../tool-gateway
+    restart: unless-stopped
+    environment:
+      WEB_ALLOWLIST: "${WEB_ALLOWLIST:-localhost,127.0.0.1}"
+      WEB_ALLOWLIST_FILE: "${WEB_ALLOWLIST_FILE:-}"
+      WEB_TIMEOUT_MS: "${WEB_TIMEOUT_MS:-8000}"
+      WEB_MAX_BYTES: "${WEB_MAX_BYTES:-1500000}"
+      TOOL_BACKEND: "${TOOL_BACKEND:-local}"
+      N8N_WEB_FETCH_URL: "${N8N_WEB_FETCH_URL:-}"
+      N8N_WEB_SEARCH_URL: "${N8N_WEB_SEARCH_URL:-}"
+    ports:
+      - "${PORT_TOOL_GATEWAY:-8787}:8787"
+    depends_on:
+      - n8n
+
+  launcher:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - open-webui
+      - n8n
+      - ollama
+    ports:
+      - "${PORT_LAUNCHER:-8080}:80"
+    volumes:
+      - ../../launcher:/usr/share/nginx/html:ro
+
+volumes:
+  ollama_data:
+  open_webui_data:
+  n8n_data:
+  corestack-postgres-data:
+

@@ -28,6 +28,9 @@ def is_allowed_host(hostname: str) -> bool:
     allowlist = load_allowlist()
     if not allowlist:
         return False
+    # Explicit wildcard opt-in (used for the "marketing" deployment profile).
+    if "*" in allowlist:
+        return True
     return hostname.lower() in allowlist
 
 
