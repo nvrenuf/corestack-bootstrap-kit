@@ -45,29 +45,32 @@ cd "$ROOT_DIR"
 
 if [[ "$MODE" == "docker" ]]; then
   if ! command -v docker >/dev/null 2>&1; then
-    echo "ERROR: docker is required for docker mode" >&2
-    exit 1
-  fi
+    echo "WARN: docker is not available; falling back to local mode with vendored dependencies." >&2
+    MODE="local"
+  else
+    if ! docker image inspect "$IMAGE_NAME" >/dev/null 2>&1; then
+      docker build -f scripts/tool-system/Dockerfile.test -t "$IMAGE_NAME" .
+    fi
 
-  if ! docker image inspect "$IMAGE_NAME" >/dev/null 2>&1; then
-    docker build -f scripts/tool-system/Dockerfile.test -t "$IMAGE_NAME" .
+    docker run --rm \
+      -v "$ROOT_DIR:/workspace" \
+      -w /workspace \
+      "$IMAGE_NAME" \
+      "./scripts/tool-system/test.sh local"
+    exit 0
   fi
-
-  docker run --rm \
-    -v "$ROOT_DIR:/workspace" \
-    -w /workspace \
-    "$IMAGE_NAME" \
-    "./scripts/tool-system/test.sh local $*"
-  exit 0
 fi
 
 if [[ "$MODE" == "local" ]]; then
+  export PYTHONPATH="$ROOT_DIR/vendor/python${PYTHONPATH:+:$PYTHONPATH}"
+
   for mod in pytest jsonschema referencing; do
     if ! python3 -c "import $mod" >/dev/null 2>&1; then
-      echo "ERROR: missing Python dependency '$mod' in local mode. Use docker mode or install from vendored wheels." >&2
+      echo "ERROR: missing Python dependency '$mod' in local mode." >&2
       exit 1
     fi
   done
+
   run_pytest "$@"
   exit 0
 fi

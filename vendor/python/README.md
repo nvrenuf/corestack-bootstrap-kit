@@ -1,5 +1,9 @@
-# Python wheelhouse placeholder
+# Python offline test dependencies
 
-`vendor/python/` is reserved for optional vendored wheels if you want a fully local (non-Docker) test flow.
+This directory contains vendored Python modules used by `scripts/tool-system/test.sh` in `local` mode.
 
-The supported default path is the Docker test runner in `scripts/tool-system/test.sh`, which keeps runtime testing independent from `pip install` at test execution time.
+## Included
+- `jsonschema` (minimal API subset used by tool-system tests)
+- `referencing` (minimal API subset used by tool-system tests)
+
+The default path remains Docker mode (`./scripts/tool-system/test.sh`) for cross-machine consistency. The local mode prepends `vendor/python` to `PYTHONPATH` so schema tests can run in restricted/no-internet environments without downloading packages at test time.

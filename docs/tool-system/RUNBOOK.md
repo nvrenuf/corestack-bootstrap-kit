@@ -129,6 +129,12 @@ Behavior:
 - Runs tests inside the pinned image so test execution itself does not rely on `pip install`.
 - Fails if pytest reports skipped tests (including schema validation skips).
 
+Local fallback (no Docker available):
+```bash
+./scripts/tool-system/test.sh local
+```
+This mode prepends `vendor/python` to `PYTHONPATH` so schema-test dependencies are available without network access.
+
 Notes for restricted/no-internet hosts:
-- If the image is already present locally, tests run fully offline.
-- If the image is not present, build it once in a connected environment and then transfer/cache it for offline use.
+- If the image is already present locally, docker-mode tests run fully offline.
+- If Docker is not available, local mode uses vendored Python modules from `vendor/python`.
