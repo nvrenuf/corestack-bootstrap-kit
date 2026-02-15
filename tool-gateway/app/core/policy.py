@@ -1,7 +1,9 @@
 import os
+import time
+from collections import deque
 from functools import lru_cache
 from pathlib import Path
-from typing import Set
+from typing import Deque, Dict, Set
 
 
 def _parse_allowlist(raw: str) -> Set[str]:
@@ -47,8 +49,35 @@ def get_tool_backend() -> str:
 
 
 def get_n8n_web_fetch_url() -> str:
-    return os.getenv("N8N_WEB_FETCH_URL", "").strip()
+    return os.getenv("N8N_WEB_FETCH_URL", "http://n8n:5678/webhook/tools/web.fetch").strip()
 
 
 def get_n8n_web_search_url() -> str:
-    return os.getenv("N8N_WEB_SEARCH_URL", "").strip()
+    return os.getenv("N8N_WEB_SEARCH_URL", "http://n8n:5678/webhook/tools/web.search").strip()
+
+
+def get_tool_shared_secret() -> str:
+    return os.getenv("TOOL_SHARED_SECRET", "").strip()
+
+
+def get_rate_limit_per_minute() -> int:
+    return max(1, int(os.getenv("TOOL_RATE_LIMIT_PER_MINUTE", "120")))
+
+
+class RateLimiter:
+    def __init__(self) -> None:
+        self._events: Dict[str, Deque[float]] = {}
+
+    def allow(self, key: str, limit_per_minute: int) -> bool:
+        now = time.monotonic()
+        window_start = now - 60.0
+        bucket = self._events.setdefault(key, deque())
+        while bucket and bucket[0] < window_start:
+            bucket.popleft()
+        if len(bucket) >= limit_per_minute:
+            return False
+        bucket.append(now)
+        return True
+
+
+rate_limiter = RateLimiter()

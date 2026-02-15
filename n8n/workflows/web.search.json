@@ -1,0 +1,193 @@
+{
+  "name": "web.search",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tools/web.search",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-search",
+      "name": "Webhook tools/web.search",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$env.TOOL_SHARED_SECRET || ''}}",
+              "operation": "equal",
+              "value2": "={{$json.headers['x-tool-secret'] || ''}}"
+            }
+          ]
+        }
+      },
+      "id": "if-secret",
+      "name": "Secret matches?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\"code\": \"UNAUTHORIZED\", \"message\": \"Invalid X-Tool-Secret\"} }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "respond-unauthorized",
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [680, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || {};\nconst query = String(body.query || '').trim();\nconst max_results = Math.min(Math.max(Number(body.max_results || 5), 1), 10);\nif (!query) {\n  return [{ json: { code: 'BAD_REQUEST', message: 'query is required' } }];\n}\nreturn [{ json: { query, max_results } }];"
+      },
+      "id": "validate",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$env.SEARCH_API_URL || ''}}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{$env.SEARCH_API_KEY || ''}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "if-configured",
+      "name": "Provider configured?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [920, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\"code\": \"CONFIG_MISSING\", \"message\": \"SEARCH_API_URL and SEARCH_API_KEY must be set\", \"http_status\": 500} }}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "respond-config",
+      "name": "Respond CONFIG_MISSING",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [1160, 380]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.SEARCH_API_URL}}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{$json.query}}"
+            },
+            {
+              "name": "limit",
+              "value": "={{$json.max_results}}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{'Bearer ' + $env.SEARCH_API_KEY}}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": "={{Number($env.WEB_TIMEOUT_MS || 8000)}}",
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "http-search",
+      "name": "Provider Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1160, 180]
+    },
+    {
+      "parameters": {
+        "jsCode": "const responseResults = Array.isArray($json.results) ? $json.results : [];\nconst results = responseResults.slice(0, 10).map((r) => ({\n  title: String(r.title || ''),\n  url: String(r.url || r.link || ''),\n  snippet: String(r.snippet || r.description || ''),\n  source: String(r.source || 'provider'),\n  published_at: r.published_at || null\n}));\nreturn [{ json: { query: $json.query || '', results, searched_at: new Date().toISOString() } }];"
+      },
+      "id": "format",
+      "name": "Format Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 180]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-ok",
+      "name": "Respond 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [1640, 180]
+    }
+  ],
+  "connections": {
+    "Webhook tools/web.search": {
+      "main": [[{ "node": "Secret matches?", "type": "main", "index": 0 }]]
+    },
+    "Secret matches?": {
+      "main": [
+        [{ "node": "Validate Input", "type": "main", "index": 0 }],
+        [{ "node": "Respond 401", "type": "main", "index": 0 }]
+      ]
+    },
+    "Validate Input": {
+      "main": [[{ "node": "Provider configured?", "type": "main", "index": 0 }]]
+    },
+    "Provider configured?": {
+      "main": [
+        [{ "node": "Provider Request", "type": "main", "index": 0 }],
+        [{ "node": "Respond CONFIG_MISSING", "type": "main", "index": 0 }]
+      ]
+    },
+    "Provider Request": {
+      "main": [[{ "node": "Format Results", "type": "main", "index": 0 }]]
+    },
+    "Format Results": {
+      "main": [[{ "node": "Respond 200", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

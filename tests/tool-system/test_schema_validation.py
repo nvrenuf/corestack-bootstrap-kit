@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
 
-import jsonschema
+import pytest
+
+jsonschema = pytest.importorskip("jsonschema")
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 
