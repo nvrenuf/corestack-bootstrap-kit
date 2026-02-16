@@ -1,0 +1,8 @@
+{
+  "pack_id": "example-pack",
+  "pack_version": "0.1.0",
+  "required_corestack_version": ">=0.1.0",
+  "name": "Example Pack",
+  "description": "Template pack demonstrating the Pack Contract v1 layout."
+}
+

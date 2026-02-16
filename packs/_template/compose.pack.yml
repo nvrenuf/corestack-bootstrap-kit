@@ -1,0 +1,8 @@
+services:
+  example:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      # Do not hardcode host ports. Use env interpolation and document the policy in .env.example.
+      - "${EXAMPLE_HTTP_PORT}:80"
+
