@@ -122,11 +122,17 @@ Install from local path:
 Run a pack:
 
 ```bash
+# Base stack starts once (project: corestack)
+./corestack up
+
+# Pack lifecycle is separate and pack-only (project: corestack-<pack-id>)
 ./corestack up <pack-id>
 ./corestack status <pack-id>
 ./corestack logs <pack-id>
 ./corestack down <pack-id>
 ```
+
+Pack commands operate only on `packs/<pack-id>/compose.pack.yml` with `packs/<pack-id>/.env`.
 
 ## Services and ports
 

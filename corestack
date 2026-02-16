@@ -14,6 +14,7 @@ DEFAULT_ENV_FILE="${REPO_ROOT}/deploy/compose/.env"
 ENV_FILE="${CORESTACK_ENV_FILE:-${DEFAULT_ENV_FILE}}"
 PROJECT_NAME="${CORESTACK_PROJECT_NAME:-corestack}"
 PACKS_DIR="${REPO_ROOT}/packs"
+DRY_RUN="${CORESTACK_DRY_RUN:-false}"
 
 DEFAULT_CHAT_MODEL="granite3.1-moe:3b-instruct-q4_K_M"
 DEFAULT_EMBEDDING_MODEL="nomic-embed-text:v1.5"
@@ -27,7 +28,7 @@ Commands:
   up [--no-seed] [--seed-models] [compose args...]
                      Create .env if missing, build, and start stack
   up <pack-id> [compose args...]
-                     Start an installed pack (docker compose -p corestack-<pack-id>)
+                     Start only an installed pack's services (docker compose -p corestack-<pack-id>)
   seed-models        Pull CHAT_MODEL + EMBEDDING_MODEL (+ default sanity model)
   doctor             Run Docker, DNS, and port diagnostics
   reset [--nuke-volumes]
@@ -64,11 +65,64 @@ require_cmd() {
 }
 
 require_tools() {
+  if is_dry_run; then
+    return 0
+  fi
   require_cmd docker
   if ! docker compose version >/dev/null 2>&1; then
     log_error "docker compose v2 is required"
     exit 1
   fi
+}
+
+is_dry_run() {
+  local normalized
+  normalized="$(printf '%s' "${DRY_RUN}" | tr '[:upper:]' '[:lower:]')"
+  case "${normalized}" in
+    1|true|yes|on)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+run_docker_compose() {
+  if is_dry_run; then
+    echo "DRY_RUN_COMPOSE_ARGS_BEGIN"
+    printf "%s\n" "$@"
+    echo "DRY_RUN_COMPOSE_ARGS_END"
+    return 0
+  fi
+  docker compose "$@"
+}
+
+compose_files_for_mode() {
+  local mode="$1"
+  local pack_id="${2:-}"
+  case "${mode}" in
+    base)
+      printf "%s\n" "${COMPOSE_FILE}"
+      ;;
+    pack)
+      printf "%s\n" "$(pack_dir "${pack_id}")/compose.pack.yml"
+      ;;
+    *)
+      log_error "unknown compose mode: ${mode}"
+      exit 1
+      ;;
+  esac
+}
+
+ensure_compose_files() {
+  local compose_file
+  for compose_file in "$@"; do
+    if [[ ! -f "${compose_file}" ]]; then
+      log_error "compose file not found: ${compose_file}"
+      exit 1
+    fi
+  done
 }
 
 pack_project_name() {
@@ -113,23 +167,21 @@ pack_ensure_env() {
 pack_compose_cmd() {
   local pack_id="$1"
   shift
-  local dir compose env project
+  local dir env project compose_file
+  local compose_path
+  local -a compose_files args
   dir="$(pack_dir "${pack_id}")"
-  compose="${dir}/compose.pack.yml"
   env="${dir}/.env"
   project="$(pack_project_name "${pack_id}")"
+  compose_path="$(compose_files_for_mode "pack" "${pack_id}")"
+  compose_files=( "${compose_path}" )
+  ensure_compose_files "${compose_files[@]}"
 
-  if [[ ! -f "${compose}" ]]; then
-    log_error "pack compose file not found: ${compose}"
-    exit 1
-  fi
-  ensure_compose_file
-  docker compose \
-    -f "${COMPOSE_FILE}" \
-    -f "${compose}" \
-    --env-file "${env}" \
-    -p "${project}" \
-    "$@"
+  args=( --env-file "${env}" -p "${project}" )
+  for compose_file in "${compose_files[@]}"; do
+    args+=( -f "${compose_file}" )
+  done
+  run_docker_compose "${args[@]}" "$@"
 }
 
 pack_list() {
@@ -264,10 +316,11 @@ pack_logs() {
 }
 
 ensure_compose_file() {
-  if [[ ! -f "${COMPOSE_FILE}" ]]; then
-    log_error "compose file not found: ${COMPOSE_FILE}"
-    exit 1
-  fi
+  local compose_path
+  local -a compose_files
+  compose_path="$(compose_files_for_mode "base")"
+  compose_files=( "${compose_path}" )
+  ensure_compose_files "${compose_files[@]}"
 }
 
 ensure_env_file() {
@@ -285,11 +338,21 @@ ensure_env_file() {
 }
 
 compose_cmd() {
-  local args=( -p "${PROJECT_NAME}" -f "${COMPOSE_FILE}" )
+  local -a compose_files args
+  local compose_file
+  local compose_path
+  compose_path="$(compose_files_for_mode "base")"
+  compose_files=( "${compose_path}" )
+  ensure_compose_files "${compose_files[@]}"
+
+  args=( -p "${PROJECT_NAME}" )
+  for compose_file in "${compose_files[@]}"; do
+    args+=( -f "${compose_file}" )
+  done
   if [[ -f "${ENV_FILE}" ]]; then
     args=( --env-file "${ENV_FILE}" "${args[@]}" )
   fi
-  docker compose "${args[@]}" "$@"
+  run_docker_compose "${args[@]}" "$@"
 }
 
 confirm_destroy() {

@@ -61,11 +61,11 @@ Installed packs live at:
 Corestack executes packs with project isolation:
 
 - compose project name: `corestack-<pack-id>`
-- compose merge order: base compose + pack compose
+- base stack is started independently with `./corestack up` (project `corestack`)
+- pack lifecycle commands (`up/down/status/logs <pack-id>`) run pack services only
 
 ```bash
 docker compose \
-  -f deploy/compose/docker-compose.yml \
   -f packs/<id>/compose.pack.yml \
   --env-file packs/<id>/.env \
   -p corestack-<id> <cmd>
