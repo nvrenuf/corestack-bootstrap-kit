@@ -483,7 +483,7 @@ up_stack() {
 
   local seed_after_up="false"
   local no_seed="false"
-  local compose_args=()
+  local -a compose_args=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --no-seed)
@@ -499,7 +499,7 @@ up_stack() {
     shift
   done
 
-  compose_cmd up -d --build --remove-orphans "${compose_args[@]}"
+  compose_cmd up -d --build --remove-orphans "${compose_args[@]+"${compose_args[@]}"}"
   wait_for_ollama || true
 
   if [[ "${seed_after_up}" == "false" && "${no_seed}" == "false" ]]; then
