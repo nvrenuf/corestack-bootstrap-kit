@@ -40,6 +40,8 @@ Commands:
   status             Show container status
   status <pack-id>   Show status for an installed pack
   logs [service...]  Follow logs (tail 200), optional service filters
+  logs <pack-id> [service optional]
+                     Follow logs for an installed pack
   destroy            Destructive: down -v after explicit confirmation
   pack list          List installed packs
   pack install <path-or-git-url>
@@ -94,15 +96,18 @@ pack_validate_dir() {
 
 pack_ensure_env() {
   local dir="$1"
+  local had_env="false"
   if [[ -f "${dir}/.env" ]]; then
-    return 0
+    had_env="true"
   fi
-  if [[ ! -f "${dir}/.env.example" ]]; then
-    log_error "pack missing .env.example: ${dir}"
+  if python3 "${REPO_ROOT}/scripts/packs/pack_contract.py" ensure-env "${dir}" >/dev/null; then
+    if [[ "${had_env}" != "true" ]]; then
+      log_info "Created pack env file from template: ${dir}/.env"
+    fi
+  else
+    log_error "failed to ensure pack env file for ${dir}"
     exit 1
   fi
-  cp "${dir}/.env.example" "${dir}/.env"
-  log_info "Created pack env file from template: ${dir}/.env"
 }
 
 pack_compose_cmd() {
@@ -118,7 +123,13 @@ pack_compose_cmd() {
     log_error "pack compose file not found: ${compose}"
     exit 1
   fi
-  docker compose --env-file "${env}" -p "${project}" -f "${compose}" "$@"
+  ensure_compose_file
+  docker compose \
+    -f "${COMPOSE_FILE}" \
+    -f "${compose}" \
+    --env-file "${env}" \
+    -p "${project}" \
+    "$@"
 }
 
 pack_list() {
@@ -129,7 +140,7 @@ pack_list() {
     id="$(basename "${d}")"
     [[ "${id}" == "_template" ]] && continue
     if python3 "${REPO_ROOT}/scripts/packs/pack_contract.py" validate "${d}" >/dev/null 2>&1; then
-      printf "%s\t%s\n" "${id}" "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], "r", encoding="utf-8")).get("pack_version",""))' "${d}/pack.json")"
+      printf "%s\t%s\n" "${id}" "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], "r", encoding="utf-8")).get("version",""))' "${d}/pack.json")"
     else
       printf "%s\t%s\n" "${id}" "INVALID"
     fi
@@ -240,6 +251,16 @@ pack_status() {
   pack_validate_dir "${dir}"
   pack_ensure_env "${dir}"
   pack_compose_cmd "${pack_id}" ps "$@"
+}
+
+pack_logs() {
+  local pack_id="$1"
+  shift || true
+  local dir
+  dir="$(pack_dir "${pack_id}")"
+  pack_validate_dir "${dir}"
+  pack_ensure_env "${dir}"
+  pack_compose_cmd "${pack_id}" logs --follow --tail 200 "$@"
 }
 
 ensure_compose_file() {
@@ -613,9 +634,16 @@ main() {
       fi
       ;;
     logs)
-      require_tools
-      ensure_compose_file
-      compose_cmd logs --follow --tail 200 "$@"
+      if [[ $# -gt 0 && "${1}" != -* ]] && is_installed_pack "${1}"; then
+        require_tools
+        local pack_id="$1"
+        shift
+        pack_logs "${pack_id}" "$@"
+      else
+        require_tools
+        ensure_compose_file
+        compose_cmd logs --follow --tail 200 "$@"
+      fi
       ;;
     destroy)
       require_tools

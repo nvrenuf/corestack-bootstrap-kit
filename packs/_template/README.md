@@ -1,13 +1,15 @@
-# Example Pack (Template)
+# Corestack Pack Template
 
-This is a template pack that demonstrates the Pack Contract v1 structure.
+This folder is a minimal contract example only.
 
-Files:
-- `pack.json`: pack metadata (required)
-- `compose.pack.yml`: Docker Compose file for the pack (required)
-- `.env.example`: environment template (required)
+Required files in every pack repo:
+
+- `pack.json`
+- `compose.pack.yml`
+- `.env.example`
 
 Notes:
-- Do not use `container_name:` in the compose file.
-- Do not hardcode host ports. Use env vars like `"${EXAMPLE_HTTP_PORT}:80"` and document how to derive them with `PORT_OFFSET`.
 
+- Use env vars for host ports (no hardcoded host ports).
+- Do not use `container_name` in compose.
+- Keep pack logic in separate repos; this template exists only to demonstrate structure.

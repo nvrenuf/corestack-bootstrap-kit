@@ -1,8 +1,16 @@
 {
-  "pack_id": "example-pack",
-  "pack_version": "0.1.0",
+  "id": "template-pack",
+  "name": "Corestack Template Pack",
+  "version": "0.1.0",
+  "description": "Reference-only template showing the Corestack pack contract.",
   "required_corestack_version": ">=0.1.0",
-  "name": "Example Pack",
-  "description": "Template pack demonstrating the Pack Contract v1 layout."
+  "ports": {
+    "offset_required": true,
+    "exposed": [
+      "TEMPLATE_HTTP_PORT"
+    ]
+  },
+  "services": [
+    "template-web: placeholder HTTP endpoint"
+  ]
 }
-

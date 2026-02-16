@@ -1,98 +1,87 @@
-# Packs (Contract v1)
+# Corestack Packs
 
-This repository supports "packs": self-contained feature bundles that can be installed, run, and removed in a consistent way via the `./corestack` CLI.
+A **pack** is an installable add-on repository that extends Corestack runtime behavior without changing Corestack core code.
 
-## Pack Directory Layout
+## Required Files (Pack Repository)
 
-Each pack is a directory containing the following required files:
+Every pack repository must contain:
 
-- `pack.json` (required)
-- `compose.pack.yml` (required)
-- `.env.example` (required)
+- `pack.json`
+- `compose.pack.yml`
+- `.env.example`
 
-Optional files/directories:
+## Optional Folders
 
-- `README.md`
-- `n8n/workflows/` (n8n workflow exports)
-- `templates/` (content/templates used by the pack)
-- `schemas/` (JSON Schemas for pack-specific tool contracts)
-- `ui/tiles.json` (launcher/UI integration metadata)
+A pack may also include:
 
-## pack.json (Contract)
+- `n8n/workflows/`
+- `templates/`
+- `schemas/`
+- `ui/`
 
-`pack.json` must be valid JSON and include:
+## pack.json Required Fields
 
-- `pack_id` (string): stable identifier used for installation path and compose project naming. Recommended pattern: lowercase letters, digits, and dashes (example: `tool-system`).
-- `pack_version` (string): pack release version (example: `1.0.0`).
-- `required_corestack_version` (string): minimum compatible CoreStack version (example: `>=0.1.0`).
+`pack.json` must validate against `schemas/packs/pack.schema.json` and include these required fields:
 
-Additional recommended fields (optional):
+- `id`
+- `name`
+- `version`
+- `description`
+- `required_corestack_version`
+- `ports`: `{ "offset_required": true, "exposed": [...] }`
+- `services`: `[ ... ]` (human-readable service descriptions)
 
-- `name` (string)
-- `description` (string)
-- `author` (string)
+## Port Policy
 
-## Installation Location
+Packs must not hardcode host ports. Host ports must be expressed through environment variables and a `PORT_OFFSET` strategy.
 
-Installed packs live under:
+- Required: `.env.example` declares `PORT_OFFSET`
+- Required: compose port mappings use env interpolation for host ports
 
-- `./packs/<pack-id>/`
-
-The pack template lives at:
-
-- `./packs/_template/` (not an installed pack)
-
-## Compose Contract (compose.pack.yml)
-
-Packs must be runnable with Docker Compose v2 and follow these rules:
-
-- Compose project name is enforced by CoreStack:
-  - `corestack-<pack-id>`
-- No static container names:
-  - `container_name:` is forbidden (it breaks multi-pack simultaneous runs).
-- Ports must be configurable via environment variables:
-  - Do not hardcode host ports like `"8080:80"`.
-  - Use env interpolation for host ports, e.g. `"${PACK_HTTP_PORT}:80"`.
-
-## Port Policy (PORT_OFFSET)
-
-Packs must declare `PORT_OFFSET` in `.env.example`. Packs should expose all host ports via environment variables and document how to derive them using `PORT_OFFSET`.
-
-Rationale: multi-pack runs need a predictable way to avoid port collisions without editing compose files.
-
-Example `.env.example` snippet:
-
-```dotenv
-# This pack uses a base of 18000. When running multiple packs, offset all ports.
-PORT_OFFSET=0
-
-# Suggested convention: base + PORT_OFFSET, computed by the operator.
-PACK_HTTP_PORT=18080
-```
-
-Example `compose.pack.yml` snippet:
+Example:
 
 ```yaml
-services:
-  pack-service:
-    ports:
-      - "${PACK_HTTP_PORT}:80"
+ports:
+  - "${PACK_HTTP_PORT}:8080"
 ```
 
-## CLI Lifecycle
+## Prohibited Compose Settings
 
-Commands:
+- `container_name` is prohibited in `compose.pack.yml`
 
-- `./corestack pack list`
-- `./corestack pack install <path-or-git-url>`
-- `./corestack pack remove <pack-id>`
-- `./corestack up <pack-id>`
-- `./corestack down <pack-id>`
-- `./corestack status <pack-id>`
+Reason: static container names break multi-pack concurrency and compose project isolation.
 
-Behavior:
+## Runtime Isolation
 
-- Install validates `pack.json` + required files.
-- Install creates `packs/<id>/.env` from `.env.example` if missing.
-- `up/down/status` enforce `-p corestack-<pack-id>` so multiple packs can run simultaneously.
+Installed packs live at:
 
+- `./packs/<pack-id>/`
+- `./corestack pack install` copies pack sources into that directory.
+
+Corestack executes packs with project isolation:
+
+- compose project name: `corestack-<pack-id>`
+- compose merge order: base compose + pack compose
+
+```bash
+docker compose \
+  -f deploy/compose/docker-compose.yml \
+  -f packs/<id>/compose.pack.yml \
+  --env-file packs/<id>/.env \
+  -p corestack-<id> <cmd>
+```
+
+## Multi-Pack Safety Checks
+
+Corestack fails fast when validating a pack if:
+
+- `compose.pack.yml` contains `container_name:`
+- `compose.pack.yml` appears to define literal host ports instead of env-based host ports
+
+Heuristic limitation: port validation uses a line-based pattern check for common `HOST:CONTAINER` shorthand entries and may not catch every advanced YAML form.
+
+## Security Notes
+
+- Do not commit secrets into pack repositories.
+- Use `.env` and n8n credentials/secrets for runtime secret material.
+- Tool/network allowlists default to secure deny-by-default behavior; packs must opt in explicitly.

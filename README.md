@@ -103,6 +103,31 @@ Notes:
 - `destroy` prompts for confirmation and removes volumes/data (including Postgres data).
 - Launcher includes links for Open WebUI, n8n, Adminer, and Tool Gateway docs.
 
+## Packs
+
+Corestack can install and run external pack repositories. Installed packs are stored in `./packs/<pack-id>/`.
+
+Install from git URL:
+
+```bash
+./corestack pack install https://github.com/example-org/example-pack.git
+```
+
+Install from local path:
+
+```bash
+./corestack pack install /path/to/local-pack-repo
+```
+
+Run a pack:
+
+```bash
+./corestack up <pack-id>
+./corestack status <pack-id>
+./corestack logs <pack-id>
+./corestack down <pack-id>
+```
+
 ## Services and ports
 
 - Launcher: `http://localhost:8080`
