@@ -24,6 +24,7 @@ def test_run_topic_offline_generates_report_files(tmp_path):
     env = os.environ.copy()
     env["MODE"] = "offline"
     env["FSRA_OUTPUT_BASE"] = str(tmp_path)
+    env["PYTHON_BIN"] = "python3"
 
     command = [
         "bash",

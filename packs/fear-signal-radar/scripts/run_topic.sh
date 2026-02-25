@@ -8,13 +8,39 @@ MODE="${MODE:-offline}"
 PACK_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT_BASE="${FSRA_OUTPUT_BASE:-${PACK_ROOT}/outputs}"
 
+resolve_python_bin() {
+  if [[ -n "${PYTHON_BIN:-}" ]]; then
+    if command -v "${PYTHON_BIN}" >/dev/null 2>&1; then
+      printf '%s\n' "${PYTHON_BIN}"
+      return 0
+    fi
+    echo "PYTHON_BIN is set but not executable in PATH: ${PYTHON_BIN}" >&2
+    exit 2
+  fi
+
+  if command -v python >/dev/null 2>&1; then
+    printf '%s\n' "python"
+    return 0
+  fi
+
+  if command -v python3 >/dev/null 2>&1; then
+    printf '%s\n' "python3"
+    return 0
+  fi
+
+  echo "Python interpreter not found. Set PYTHON_BIN or install python3." >&2
+  exit 2
+}
+
+PYTHON_BIN="$(resolve_python_bin)"
+
 if [[ -z "${TOPIC_ID}" ]]; then
   echo "Usage: scripts/run_topic.sh <TOPIC_ID> [TIME_WINDOW_DAYS] [RUN_ID]" >&2
   exit 2
 fi
 
 if [[ -z "${RUN_ID}" ]]; then
-  RUN_ID="$(python - <<'PY'
+  RUN_ID="$("${PYTHON_BIN}" - <<'PY'
 from uuid import uuid4
 print(uuid4())
 PY
@@ -28,7 +54,7 @@ fi
 
 export PYTHONPATH="${PACK_ROOT}:${PYTHONPATH:-}"
 
-signal_count="$(python - <<PY
+signal_count="$("${PYTHON_BIN}" - <<PY
 from uuid import UUID
 from fsra.loader.source_data_loader import load_source_data
 print(len(load_source_data(UUID("${RUN_ID}"))))
@@ -52,7 +78,7 @@ if [[ "${MODE}" == "online" ]]; then
     -d "{\"topic_id\":\"${TOPIC_ID}\",\"time_window_days\":${TIME_WINDOW_DAYS}}" >/dev/null
 fi
 
-python -m fsra.synthesizer.synthesizer_agent \
+"${PYTHON_BIN}" -m fsra.synthesizer.synthesizer_agent \
   --topic-id "${TOPIC_ID}" \
   --run-id "${RUN_ID}" \
   --time-window-days "${TIME_WINDOW_DAYS}" \
