@@ -68,7 +68,7 @@ BEGIN
     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'ingest_api') THEN
         CREATE ROLE ingest_api LOGIN PASSWORD 'ingest_api_pw';
     END IF;
-    ALTER ROLE ingest_api LOGIN PASSWORD 'ingest_api_pw';
+    ALTER ROLE ingest_api LOGIN INHERIT PASSWORD 'ingest_api_pw';
 END$$;
 
 DO $$
@@ -76,7 +76,7 @@ BEGIN
     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'synth_api') THEN
         CREATE ROLE synth_api LOGIN PASSWORD 'synth_api_pw';
     END IF;
-    ALTER ROLE synth_api LOGIN PASSWORD 'synth_api_pw';
+    ALTER ROLE synth_api LOGIN INHERIT PASSWORD 'synth_api_pw';
 END$$;
 
 DO $$
@@ -102,8 +102,8 @@ REVOKE ALL PRIVILEGES ON TABLE radar_runs FROM ingest_api;
 REVOKE ALL PRIVILEGES ON TABLE signal_items FROM synth_api;
 REVOKE ALL PRIVILEGES ON TABLE radar_runs FROM synth_api;
 
-GRANT INSERT ON TABLE signal_items TO ingest_writer;
-GRANT INSERT, UPDATE ON TABLE radar_runs TO ingest_writer;
+GRANT INSERT ON TABLE public.signal_items TO ingest_writer;
+GRANT INSERT, UPDATE ON TABLE public.radar_runs TO ingest_writer;
 
-GRANT SELECT ON TABLE signal_items TO synth_reader;
-GRANT SELECT ON TABLE radar_runs TO synth_reader;
+GRANT SELECT ON TABLE public.signal_items TO synth_reader;
+GRANT SELECT ON TABLE public.radar_runs TO synth_reader;
