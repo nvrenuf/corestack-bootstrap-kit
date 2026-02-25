@@ -74,3 +74,34 @@ def test_synth_service_login_permissions(admin_conn, postgres_db):
                 ("work-money", "reddit", "post", "https://example.com/c", "reader-hash-2"),
             )
         assert insert_error.value.sqlstate == "42501"
+
+
+def test_service_login_roles_inherit_privilege_roles(admin_conn):
+    apply_migration(admin_conn)
+
+    role_flags = dict(
+        admin_conn.execute(
+            """
+            SELECT rolname, rolinherit
+            FROM pg_roles
+            WHERE rolname IN ('ingest_api', 'synth_api')
+            """
+        ).fetchall()
+    )
+    assert role_flags["ingest_api"] is True
+    assert role_flags["synth_api"] is True
+
+    memberships = {
+        (member, role)
+        for member, role in admin_conn.execute(
+            """
+            SELECT m.rolname AS member_name, r.rolname AS role_name
+            FROM pg_auth_members am
+            JOIN pg_roles r ON r.oid = am.roleid
+            JOIN pg_roles m ON m.oid = am.member
+            WHERE m.rolname IN ('ingest_api', 'synth_api')
+            """
+        ).fetchall()
+    }
+    assert ("ingest_api", "ingest_writer") in memberships
+    assert ("synth_api", "synth_reader") in memberships

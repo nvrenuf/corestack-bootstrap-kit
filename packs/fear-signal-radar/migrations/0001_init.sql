@@ -68,7 +68,7 @@ BEGIN
     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'ingest_api') THEN
         CREATE ROLE ingest_api LOGIN PASSWORD 'ingest_api_pw';
     END IF;
-    ALTER ROLE ingest_api LOGIN INHERIT PASSWORD 'ingest_api_pw';
+    ALTER ROLE ingest_api LOGIN PASSWORD 'ingest_api_pw';
 END$$;
 
 DO $$
@@ -76,8 +76,11 @@ BEGIN
     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'synth_api') THEN
         CREATE ROLE synth_api LOGIN PASSWORD 'synth_api_pw';
     END IF;
-    ALTER ROLE synth_api LOGIN INHERIT PASSWORD 'synth_api_pw';
+    ALTER ROLE synth_api LOGIN PASSWORD 'synth_api_pw';
 END$$;
+
+ALTER ROLE ingest_api INHERIT;
+ALTER ROLE synth_api INHERIT;
 
 DO $$
 BEGIN
