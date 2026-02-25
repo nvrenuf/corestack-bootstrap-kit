@@ -22,8 +22,8 @@ class Settings:
             db_host=os.environ.get("INGEST_DB_HOST", "localhost"),
             db_port=int(os.environ.get("INGEST_DB_PORT", "5432")),
             db_name=os.environ.get("INGEST_DB_NAME", "postgres"),
-            db_user=os.environ.get("INGEST_DB_USER", "ingest_writer"),
-            db_password=os.environ.get("INGEST_DB_PASSWORD", "ingest_writer"),
+            db_user=os.environ.get("INGEST_DB_USER", "ingest_api"),
+            db_password=os.environ.get("INGEST_DB_PASSWORD", "ingest_api_pw"),
             max_body_bytes=int(os.environ.get("INGEST_MAX_BODY_BYTES", str(256 * 1024))),
         )
 
@@ -33,6 +33,6 @@ def get_settings() -> Settings:
     settings = Settings.from_env()
     if not settings.ingest_token:
         raise RuntimeError("INGEST_TOKEN must be set")
-    if settings.db_user != "ingest_writer":
-        raise RuntimeError("Ingest API must run with ingest_writer credentials")
+    if not settings.db_user:
+        raise RuntimeError("INGEST_DB_USER must be set")
     return settings

@@ -33,10 +33,10 @@ def _conn_as_role(postgres_db, user: str, password: str) -> psycopg.Connection:
     return psycopg.connect(**kwargs)
 
 
-def test_ingest_writer_permissions(admin_conn, postgres_db):
+def test_ingest_service_login_permissions(admin_conn, postgres_db):
     apply_migration(admin_conn)
 
-    with _conn_as_role(postgres_db, "ingest_writer", "ingest_writer_pw") as ingest_conn:
+    with _conn_as_role(postgres_db, "ingest_api", "ingest_api_pw") as ingest_conn:
         ingest_conn.execute(
             """
             INSERT INTO signal_items (topic_id, platform, content_type, url, hash)
@@ -50,7 +50,7 @@ def test_ingest_writer_permissions(admin_conn, postgres_db):
         assert select_error.value.sqlstate == "42501"
 
 
-def test_synth_reader_permissions(admin_conn, postgres_db):
+def test_synth_service_login_permissions(admin_conn, postgres_db):
     apply_migration(admin_conn)
 
     admin_conn.execute(
@@ -61,7 +61,7 @@ def test_synth_reader_permissions(admin_conn, postgres_db):
         ("work-money", "news", "article", "https://example.com/b", "reader-hash-1"),
     )
 
-    with _conn_as_role(postgres_db, "synth_reader", "synth_reader_pw") as synth_conn:
+    with _conn_as_role(postgres_db, "synth_api", "synth_api_pw") as synth_conn:
         count = synth_conn.execute("SELECT COUNT(*) FROM signal_items").fetchone()[0]
         assert count >= 1
 

@@ -77,7 +77,7 @@ def test_stored_hash_matches_sha256_rule(client, auth_headers, signal_payload, a
 
 
 def test_service_uses_ingest_writer_and_insert_first_dedupe(app, client, auth_headers, signal_payload):
-    assert app.state.settings.db_user == "ingest_writer"
+    assert app.state.settings.db_user == "ingest_api"
 
     payload = dict(signal_payload)
     payload["source_id"] = "insert-first-no-select"

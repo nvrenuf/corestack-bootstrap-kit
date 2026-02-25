@@ -64,8 +64,8 @@ def ingest_env(postgres_db, migrated_db, monkeypatch):
     monkeypatch.setenv("INGEST_DB_HOST", parsed.hostname or "localhost")
     monkeypatch.setenv("INGEST_DB_PORT", str(parsed.port or 5432))
     monkeypatch.setenv("INGEST_DB_NAME", parsed.path.lstrip("/"))
-    monkeypatch.setenv("INGEST_DB_USER", "ingest_writer")
-    monkeypatch.setenv("INGEST_DB_PASSWORD", "ingest_writer")
+    monkeypatch.setenv("INGEST_DB_USER", "ingest_api")
+    monkeypatch.setenv("INGEST_DB_PASSWORD", "ingest_api_pw")
     monkeypatch.setenv("INGEST_MAX_BODY_BYTES", str(256 * 1024))
 
 
