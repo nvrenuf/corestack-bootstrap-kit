@@ -34,18 +34,6 @@ def _conn_kwargs_from_url(conn_url: str) -> dict[str, object]:
 @pytest.fixture()
 def postgres_container():
     with PostgresContainer("postgres:16-alpine") as container:
-        conn_url = container.get_connection_url().replace(
-            "postgresql+psycopg2://", "postgresql://", 1
-        )
-        parsed = urlparse(conn_url)
-        os.environ["INGEST_TOKEN"] = "test-ingest-token"
-        os.environ["INGEST_DB_HOST"] = parsed.hostname or "localhost"
-        os.environ["INGEST_DB_PORT"] = str(parsed.port or 5432)
-        os.environ["INGEST_DB_NAME"] = parsed.path.lstrip("/")
-        os.environ["INGEST_DB_USER"] = "ingest_api"
-        os.environ["INGEST_DB_PASSWORD"] = "ingest_api_pw"
-        os.environ["INGEST_MAX_BODY_BYTES"] = str(256 * 1024)
-        os.environ["MAX_BODY_BYTES"] = str(256 * 1024)
         yield container
 
 
@@ -72,6 +60,32 @@ def migrated_db(admin_conn):
 
 @pytest.fixture()
 def ingest_env(postgres_container, migrated_db):
+    conn_url = postgres_container.get_connection_url().replace(
+        "postgresql+psycopg2://", "postgresql://", 1
+    )
+    parsed = urlparse(conn_url)
+
+    privilege_row = migrated_db.execute(
+        """
+        SELECT
+          has_table_privilege('ingest_api', 'public.signal_items', 'INSERT') AS can_insert_signal,
+          has_table_privilege('ingest_api', 'public.radar_runs', 'UPDATE') AS can_update_runs
+        """
+    ).fetchone()
+    if not privilege_row or not privilege_row[0] or not privilege_row[1]:
+        raise RuntimeError(
+            "Grants not applied; ingest_api lacks privileges; migration not executed as admin or wrong container."
+        )
+
+    os.environ["INGEST_TOKEN"] = "test-ingest-token"
+    os.environ["INGEST_DB_HOST"] = parsed.hostname or "localhost"
+    os.environ["INGEST_DB_PORT"] = str(parsed.port or 5432)
+    os.environ["INGEST_DB_NAME"] = parsed.path.lstrip("/")
+    os.environ["INGEST_DB_USER"] = "ingest_api"
+    os.environ["INGEST_DB_PASSWORD"] = "ingest_api_pw"
+    os.environ["INGEST_MAX_BODY_BYTES"] = str(256 * 1024)
+    os.environ["MAX_BODY_BYTES"] = str(256 * 1024)
+
     assert os.environ.get("INGEST_DB_HOST"), "INGEST_DB_HOST was not injected"
 
 
