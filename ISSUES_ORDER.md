@@ -147,6 +147,7 @@ Goal: Make Corestack enterprise-deployable and sellable with procurement-ready p
 ## Fear Signal Radar (STA) — Pack: fear-signal-radar
 
 Current pack version: **0.1.0**
+Status: NOT STARTED
 
 ### 0.1.0 MVP Execution Order
 

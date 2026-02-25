@@ -19,6 +19,17 @@ Security Requirements:
 - All text fields are sanitized and normalized before hashing and storage.
 - Request size and per-item caps are enforced server-side.
 - Fetch logging metadata (collector id, source URL, fetched_at) is mandatory per accepted item.
+
+### Database Role Separation
+
+- Postgres must define separate roles:
+  - `ingest_writer` (INSERT only on signal_items; INSERT/UPDATE limited to radar_runs)
+  - `synth_reader` (SELECT only; no INSERT/UPDATE/DELETE)
+- Ingest API must use `ingest_writer` credentials.
+- Synthesizer must use `synth_reader` credentials.
+- Collectors must have NO database credentials and no direct DB network access.
+- Verify via test query that ingest role cannot SELECT from signal_items.
+- Verify via test query that synth_reader cannot INSERT into signal_items.
 Acceptance Criteria (testable bullets):
 - `services/ingest-api/` exists with endpoint implementation and request schema validation.
 - Endpoint rejects unauthenticated requests with `401` and malformed payloads with `400`.
@@ -26,6 +37,9 @@ Acceptance Criteria (testable bullets):
 - Endpoint returns deterministic dedupe behavior: duplicate `content_hash` yields `200`/`202` with `deduped_count >= 1` and no duplicate DB row.
 - Sanitization strips or escapes control characters and HTML tags from text fields before persistence.
 - Integration test fixture proves collectors cannot perform read operations through ingest route(s).
+- Attempting SELECT using ingest role fails.
+- Attempting INSERT using synth_reader role fails.
+- Collectors cannot establish TCP connection to Postgres container.
 Implementation Notes:
 - Use service-level auth token scoped to collector identities.
 - Keep request and response schema files under `services/ingest-api/schemas/`.

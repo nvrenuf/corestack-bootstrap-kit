@@ -19,6 +19,19 @@ Security Requirements:
 - Document sanitization, size caps, dedupe, and fetch logging controls.
 - Include incident response steps for allowlist violations and repeated fetch failures.
 - Avoid publishing secrets or raw credential examples.
+
+### Version Governance Policy
+
+- Any change affecting:
+  - database schema
+  - ingest API contract
+  - SignalItem schema
+  - Radar Report schema
+  - scoring formula
+  - clustering logic
+- MUST increment the pack VERSION file following semantic versioning.
+- MUST include an entry in CHANGELOG.md.
+- Pull requests that modify the above without version bump are invalid.
 Acceptance Criteria (testable bullets):
 - `packs/fear-signal-radar/README.md` exists.
 - README includes sections: `How to run`, `Environment variables`, `Egress model`, `Logging`, `Troubleshooting`, `Security model`.
@@ -26,6 +39,9 @@ Acceptance Criteria (testable bullets):
 - README lists required env vars with descriptions and no secret literal values.
 - Troubleshooting section includes at least 5 concrete failure cases with checks/actions.
 - Security model section explicitly states collector write-only and no direct internet constraints.
+- README documents version bump rules.
+- CHANGELOG contains current 0.1.0 entry.
+- VERSION file matches latest CHANGELOG version.
 Implementation Notes:
 - Keep command examples copy-paste ready.
 - Link to topic config and schema paths.

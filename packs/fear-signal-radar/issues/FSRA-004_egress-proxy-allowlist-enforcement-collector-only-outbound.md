@@ -19,6 +19,8 @@ Security Requirements:
 - Fetch logging must include destination domain, path, status code, bytes, and latency.
 - Enforce strict allowlist and deny-by-default behavior.
 - Apply centralized rate limiting and timeout caps.
+- No Corestack-internal service (postgres, ingest-api, synthesizer) may have default route to internet.
+- DNS resolution for collectors must be routed through proxy-controlled path where possible.
 Acceptance Criteria (testable bullets):
 - `services/egress-proxy/` (or documented equivalent path) exists with policy configuration files.
 - Requests to non-allowlisted domains are blocked with explicit deny response.
@@ -26,6 +28,16 @@ Acceptance Criteria (testable bullets):
 - Per-collector and global rate limits are enforced and test-covered.
 - Logs capture domain, method, response status, bytes transferred, and request duration for every outbound attempt.
 - Collector integration docs show all outbound calls routed through proxy endpoint.
+- Direct outbound HTTP(S) from collector container (bypassing egress-proxy) fails.
+- Direct outbound HTTP(S) from ingest-api container fails.
+- Direct outbound HTTP(S) from synthesizer container fails.
+- Egress-proxy rejects requests to non-allowlisted domains with explicit log entry.
+- All outbound collector traffic is observable in proxy logs with:
+  - url
+  - timestamp
+  - status
+  - duration
+  - bytes transferred
 Implementation Notes:
 - Align domain allowlist structure with topic config `allowed_domains`.
 - Keep policy files declarative to support audits.

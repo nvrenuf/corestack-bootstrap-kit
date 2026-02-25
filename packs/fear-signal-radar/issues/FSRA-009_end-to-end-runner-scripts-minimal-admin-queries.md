@@ -26,10 +26,19 @@ Acceptance Criteria (testable bullets):
 - `run_topic.sh` exits non-zero when required env vars are missing.
 - Scripts redact secrets from logged command output.
 - README/runbook references these scripts and expected arguments.
+- If any collector returns non-200 from ingest, runner exits non-zero.
+- If radar_run status is not "ok" at finish, runner exits non-zero.
+- If zero signals are ingested across all platforms, runner exits non-zero.
+- Collector container must exit non-zero if:
+  - fetch failures exceed threshold
+  - ingest POST failures exceed threshold
+- radar_runs.status must be set to "error" if collector aborts prematurely.
 Implementation Notes:
 - Keep scripts POSIX shell compatible where possible.
 - Provide `set -euo pipefail` and explicit error messages.
 - Admin queries should be read-only.
+- Shell scripts must use `set -euo pipefail`.
+- Non-zero exit codes must propagate through docker compose or orchestration layer.
 Deliverables (file paths):
 - scripts/run_topic.sh
 - scripts/export_report.sh
