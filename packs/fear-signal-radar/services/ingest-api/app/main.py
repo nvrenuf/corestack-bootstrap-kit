@@ -39,6 +39,13 @@ def create_app() -> FastAPI:
     logger = get_logger()
     settings = get_settings()
     app.state.settings = settings
+    log_ingest_event(
+        logger,
+        event="ingest_startup",
+        db_user=settings.db_user,
+        db_host=settings.db_host,
+        db_port=settings.db_port,
+    )
 
     @app.middleware("http")
     async def body_limit_and_request_id(request: Request, call_next):
