@@ -1,0 +1,6 @@
+services:
+  hello-web:
+    image: nginx:alpine
+    ports:
+      - "${PORT_HELLO}:80"
+    restart: unless-stopped

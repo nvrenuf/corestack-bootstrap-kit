@@ -1,0 +1,12 @@
+{
+  "id": "marketing",
+  "name": "Marketing Pack",
+  "version": "0.0.1",
+  "required_corestack_version": ">=0.1.0",
+  "description": "Validation scaffold pack for Corestack runtime with a hello-web nginx service.",
+  "ports": {
+    "offset_required": true,
+    "exposed": ["PORT_HELLO"]
+  },
+  "services": ["hello-web"]
+}
