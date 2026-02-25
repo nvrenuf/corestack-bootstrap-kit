@@ -1,0 +1,33 @@
+name: Fear Signal Radar Schema Tests
+
+on:
+  push:
+    paths:
+      - 'packs/fear-signal-radar/**'
+      - '.github/workflows/fear-signal-radar-schema-tests.yml'
+  pull_request:
+    paths:
+      - 'packs/fear-signal-radar/**'
+      - '.github/workflows/fear-signal-radar-schema-tests.yml'
+
+jobs:
+  topic-config-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        working-directory: packs/fear-signal-radar
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest jsonschema PyYAML
+
+      - name: Run topic config schema tests
+        working-directory: packs/fear-signal-radar
+        run: python -m pytest -q tests/test_topic_config_schema.py

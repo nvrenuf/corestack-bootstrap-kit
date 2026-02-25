@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from jsonschema import Draft202012Validator
+from jsonschema import Draft7Validator
 from jsonschema.exceptions import ValidationError
 
 PACK_DIR = Path(__file__).resolve().parents[1]
@@ -28,20 +28,44 @@ def _load_topic() -> dict:
 
 def _validate(config: dict) -> None:
     schema = _load_schema()
-    validator = Draft202012Validator(schema)
-    errors = sorted(validator.iter_errors(config), key=lambda e: e.path)
+    validator = Draft7Validator(schema)
+    errors = sorted(validator.iter_errors(config), key=lambda e: list(e.path))
     if errors:
         raise ValidationError(errors[0].message)
 
 
 def test_schema_validates_correct_topic() -> None:
-    topic = _load_topic()
-    _validate(topic)
+    _validate(_load_topic())
 
 
-def test_missing_required_field_fails() -> None:
+@pytest.mark.parametrize(
+    "missing_key",
+    [
+        "topic_id",
+        "pillar",
+        "description",
+        "keywords_primary",
+        "platforms_enabled",
+        "scoring_weights",
+    ],
+)
+def test_missing_required_field_fails(missing_key: str) -> None:
     topic = deepcopy(_load_topic())
-    topic.pop("topic_id", None)
+    topic.pop(missing_key, None)
+    with pytest.raises(ValidationError):
+        _validate(topic)
+
+
+def test_description_min_length_enforced() -> None:
+    topic = deepcopy(_load_topic())
+    topic["description"] = "too short"
+    with pytest.raises(ValidationError):
+        _validate(topic)
+
+
+def test_keywords_primary_min_items_enforced() -> None:
+    topic = deepcopy(_load_topic())
+    topic["keywords_primary"] = []
     with pytest.raises(ValidationError):
         _validate(topic)
 
@@ -60,6 +84,13 @@ def test_missing_scoring_weight_field_fails() -> None:
         _validate(topic)
 
 
+def test_scoring_weights_range_enforced() -> None:
+    topic = deepcopy(_load_topic())
+    topic["scoring_weights"]["volume"] = 10
+    with pytest.raises(ValidationError):
+        _validate(topic)
+
+
 def test_additional_property_rejected() -> None:
     topic = deepcopy(_load_topic())
     topic["unexpected"] = "nope"
@@ -67,27 +98,48 @@ def test_additional_property_rejected() -> None:
         _validate(topic)
 
 
-def test_reddit_requires_subreddits() -> None:
+def test_optional_fields_can_be_omitted() -> None:
+    topic = deepcopy(_load_topic())
+    for key in [
+        "keywords_secondary",
+        "news_queries",
+        "rss_feeds",
+        "time_window_days",
+        "language",
+        "exclusions",
+    ]:
+        topic.pop(key, None)
+    _validate(topic)
+
+
+def test_reddit_requires_non_empty_subreddits() -> None:
     topic = deepcopy(_load_topic())
     assert "reddit" in topic["platforms_enabled"]
-    topic.pop("subreddits", None)
+
+    topic_missing = deepcopy(topic)
+    topic_missing.pop("subreddits", None)
     with pytest.raises(ValidationError):
-        _validate(topic)
+        _validate(topic_missing)
+
+    topic_empty = deepcopy(topic)
+    topic_empty["subreddits"] = []
+    with pytest.raises(ValidationError):
+        _validate(topic_empty)
 
 
-def test_youtube_requires_queries() -> None:
+def test_youtube_requires_non_empty_queries() -> None:
     topic = deepcopy(_load_topic())
     assert "youtube" in topic["platforms_enabled"]
-    topic.pop("youtube_queries", None)
-    with pytest.raises(ValidationError):
-        _validate(topic)
 
-
-def test_scoring_weights_range_enforced() -> None:
-    topic = deepcopy(_load_topic())
-    topic["scoring_weights"]["volume"] = 10
+    topic_missing = deepcopy(topic)
+    topic_missing.pop("youtube_queries", None)
     with pytest.raises(ValidationError):
-        _validate(topic)
+        _validate(topic_missing)
+
+    topic_empty = deepcopy(topic)
+    topic_empty["youtube_queries"] = []
+    with pytest.raises(ValidationError):
+        _validate(topic_empty)
 
 
 def test_no_duplicate_platforms() -> None:

@@ -1,7 +1,8 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://corestack.local/packs/fear-signal-radar/schemas/topic_config.schema.json",
-  "title": "FSRA TopicConfig",
+  "title": "Fear Signal Radar TopicConfig",
+  "description": "Strict topic configuration contract for FSRA collectors and scoring.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -9,24 +10,24 @@
     "pillar",
     "description",
     "keywords_primary",
-    "keywords_secondary",
     "platforms_enabled",
-    "time_window_days",
-    "language",
     "scoring_weights"
   ],
   "properties": {
     "topic_id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Unique topic identifier"
     },
     "pillar": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "The strategy pillar this topic belongs to"
     },
     "description": {
       "type": "string",
-      "minLength": 10
+      "minLength": 10,
+      "description": "Human-readable topic description"
     },
     "keywords_primary": {
       "type": "array",
@@ -34,15 +35,17 @@
       "items": {
         "type": "string",
         "minLength": 1
-      }
+      },
+      "description": "Primary search keywords"
     },
     "keywords_secondary": {
       "type": "array",
-      "minItems": 1,
+      "default": [],
       "items": {
         "type": "string",
         "minLength": 1
-      }
+      },
+      "description": "Secondary search keywords"
     },
     "platforms_enabled": {
       "type": "array",
@@ -50,50 +53,70 @@
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "enum": ["reddit", "youtube", "news"]
-      }
+        "enum": [
+          "reddit",
+          "youtube",
+          "news"
+        ]
+      },
+      "description": "Enabled collector platforms"
     },
     "subreddits": {
       "type": "array",
-      "minItems": 1,
+      "default": [],
       "items": {
         "type": "string",
         "minLength": 1
-      }
+      },
+      "description": "Required when reddit is enabled"
     },
     "youtube_queries": {
       "type": "array",
-      "minItems": 1,
+      "default": [],
       "items": {
         "type": "string",
         "minLength": 1
-      }
+      },
+      "description": "Required when youtube is enabled"
     },
     "news_queries": {
       "type": "array",
-      "minItems": 1,
+      "default": [],
       "items": {
         "type": "string",
         "minLength": 1
-      }
+      },
+      "description": "Search queries for news collection"
     },
     "rss_feeds": {
       "type": "array",
-      "minItems": 1,
+      "default": [],
       "items": {
         "type": "string",
         "minLength": 1
-      }
+      },
+      "description": "RSS feed URLs"
     },
     "time_window_days": {
       "type": "integer",
       "minimum": 1,
-      "default": 7
+      "default": 7,
+      "description": "Lookback window for collection"
     },
     "language": {
       "type": "string",
+      "default": "en",
       "minLength": 1,
-      "default": "en"
+      "description": "Language code"
+    },
+    "exclusions": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Keywords to suppress from scoring"
     },
     "scoring_weights": {
       "type": "object",
@@ -126,13 +149,6 @@
           "maximum": 5
         }
       }
-    },
-    "exclusions": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      }
     }
   },
   "allOf": [
@@ -144,10 +160,20 @@
               "const": "reddit"
             }
           }
-        }
+        },
+        "required": [
+          "platforms_enabled"
+        ]
       },
       "then": {
-        "required": ["subreddits"]
+        "required": [
+          "subreddits"
+        ],
+        "properties": {
+          "subreddits": {
+            "minItems": 1
+          }
+        }
       }
     },
     {
@@ -158,10 +184,20 @@
               "const": "youtube"
             }
           }
-        }
+        },
+        "required": [
+          "platforms_enabled"
+        ]
       },
       "then": {
-        "required": ["youtube_queries"]
+        "required": [
+          "youtube_queries"
+        ],
+        "properties": {
+          "youtube_queries": {
+            "minItems": 1
+          }
+        }
       }
     }
   ]
