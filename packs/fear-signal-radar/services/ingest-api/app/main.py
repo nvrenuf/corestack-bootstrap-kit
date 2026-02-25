@@ -100,6 +100,7 @@ def create_app() -> FastAPI:
 
         log_ingest_event(
             logger,
+            event="ingest_signal",
             request_id=request.state.request_id,
             collector_id=x_collector_id or "unknown",
             topic_id=payload.topic_id,
@@ -107,6 +108,7 @@ def create_app() -> FastAPI:
             url=sanitized_url,
             status=response_status,
             dedupe=dedupe_status,
+            duplicate_flag=not created,
             duration_ms=duration_ms,
             bytes_in=getattr(request.state, "bytes_in", 0),
         )

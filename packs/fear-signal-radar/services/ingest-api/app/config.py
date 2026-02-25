@@ -13,7 +13,7 @@ class Settings:
     db_name: str
     db_user: str
     db_password: str
-    max_body_bytes: int = 1024 * 1024
+    max_body_bytes: int = 256 * 1024
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -24,7 +24,7 @@ class Settings:
             db_name=os.environ.get("INGEST_DB_NAME", "postgres"),
             db_user=os.environ.get("INGEST_DB_USER", "ingest_writer"),
             db_password=os.environ.get("INGEST_DB_PASSWORD", "ingest_writer"),
-            max_body_bytes=int(os.environ.get("INGEST_MAX_BODY_BYTES", str(1024 * 1024))),
+            max_body_bytes=int(os.environ.get("INGEST_MAX_BODY_BYTES", str(256 * 1024))),
         )
 
 

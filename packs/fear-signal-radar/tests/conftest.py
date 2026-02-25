@@ -11,7 +11,7 @@ import pytest
 from testcontainers.postgres import PostgresContainer
 
 PACK_DIR = Path(__file__).resolve().parents[1]
-MIGRATION_PATH = PACK_DIR / "migrations" / "001_init.sql"
+MIGRATION_PATH = PACK_DIR / "migrations" / "0001_init.sql"
 SERVICE_ROOT = PACK_DIR / "services" / "ingest-api"
 DOCKER_SOCKET = Path.home() / ".docker" / "run" / "docker.sock"
 

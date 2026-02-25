@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 import hashlib
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -106,3 +107,38 @@ def test_hash_uses_normalized_url_when_source_id_missing(client, auth_headers, s
         (response.json()["id"],),
     ).fetchone()
     assert row[0] == expected_hash
+
+
+def test_dedupe_never_uses_select_queries(monkeypatch, app, client, auth_headers, signal_payload):
+    from app import main as main_module
+    from app import db as db_module
+
+    original_open_conn = main_module.open_conn
+
+    class GuardConn:
+        def __init__(self, inner):
+            self._inner = inner
+
+        def execute(self, query, *args, **kwargs):
+            sql = str(query).lstrip().upper()
+            if sql.startswith("SELECT"):
+                raise AssertionError("SELECT is forbidden in dedupe path")
+            return self._inner.execute(query, *args, **kwargs)
+
+        def __getattr__(self, name):
+            return getattr(self._inner, name)
+
+    @contextmanager
+    def guarded_open_conn(settings):
+        with original_open_conn(settings) as conn:
+            yield GuardConn(conn)
+
+    monkeypatch.setattr(main_module, "open_conn", guarded_open_conn)
+
+    payload = dict(signal_payload)
+    payload["source_id"] = "no-select-dedupe"
+    first = client.post("/ingest/signal", json=payload, headers=auth_headers)
+    second = client.post("/ingest/signal", json=payload, headers=auth_headers)
+
+    assert first.status_code == 201
+    assert second.status_code == 200
