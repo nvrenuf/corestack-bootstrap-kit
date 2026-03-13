@@ -22,6 +22,10 @@ export const AUDIT_EVENT_TYPES = {
   TOOL_DECISIONED: "tool.execution.decisioned",
   TOOL_RESULT: "tool.execution.result",
   TOOL_INVALID_REQUEST: "tool.execution.invalid_request",
+  MODEL_REQUESTED: "model.execution.requested",
+  MODEL_DECISIONED: "model.execution.decisioned",
+  MODEL_RESULT: "model.execution.result",
+  MODEL_RESTRICTION_BLOCKED: "model.execution.restriction_blocked",
   EVIDENCE_MUTATED: "evidence.object.mutated",
   APPROVAL_PLACEHOLDER: "approval.lifecycle.placeholder",
   APPROVAL_CREATED: "approval.lifecycle.created",
@@ -49,6 +53,7 @@ export function validateAuditEvent(event) {
     "decision_id",
     "approval_id",
     "policy_decision_id",
+    "model_id",
   ];
 
   if (!supportedRefs.some((key) => event.correlation[key] != null)) {

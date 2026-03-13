@@ -102,3 +102,16 @@ Implemented durable approval objects with stable identifiers, run/workflow/case/
 Completed in thin-slice MVP scope.
 
 Implemented minimal run/workflow approval checkpoints using existing policy decision semantics plus core-owned approvals queue/detail UI surfaces with approve/deny actions that resume or terminate gated runs and persist audit trail transitions.
+
+
+## Issues to close when model execution hook PR merges
+
+- #TBD — Issue 6.2: Add model execution logging and external-provider restriction hooks
+
+### Close note to paste for Issue 6.2
+
+Completed in thin-slice MVP scope.
+
+Implemented structured model execution audit hooks (`model.execution.requested`, `model.execution.decisioned`, `model.execution.result`, and `model.execution.restriction_blocked`) with run/workflow/case/actor/model correlation and route-decision compatibility, plus external-provider restriction blocking hooks for local-only/policy-disallowed execution paths (commit `current branch head`, PR TBD).
+
+Keeping broad provider integrations and full inference orchestration out of scope for subsequent issues.

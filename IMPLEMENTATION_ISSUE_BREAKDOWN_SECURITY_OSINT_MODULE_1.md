@@ -669,6 +669,10 @@ Ensure model use is auditable and policy-governed from the first slice.
 
 - core-owned
 
+##### Status
+
+- completed (thin core-owned execution hooks for structured model execution audit events, route correlation, and external-provider restriction blocking landed)
+
 ##### Status target
 
 - MVP
@@ -728,7 +732,7 @@ Deliver the narrowest real workflow that proves the platform direction.
 - Issue 3.3
 - Issue 4.3
 - Issue 5.2
-- Issue 6.2
+- Issue 6.2 (completed thin slice)
 - Issue 7.1
 
 ##### Acceptance criteria
