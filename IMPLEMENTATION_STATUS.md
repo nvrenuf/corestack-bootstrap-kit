@@ -12,12 +12,13 @@
 - [x] Define and implement minimum case object and run-to-case linkage (`821abc0`, PR #28)
 - [x] Define policy decision contract for governed actions (`0a8d76a`, PR #28)
 - [x] Implement `web.fetch` and `web.search` tool contracts and schemas (`2046ecd`, PR #28)
-- [x] Define the minimum evidence, artifact, and finding objects (`492f359`, PR pending)
-- [x] Implement artifact storage linkage and metadata persistence (`69e72a7`, PR pending)
+- [x] Define the minimum evidence, artifact, and finding objects (`492f359`, PR #31)
 
 ## In-progress issues
 
 - [ ] Implement a minimal tool gateway with policy enforcement and audit hooks — scaffolding landed (`31c49b4`, PR #29), but full enforcement acceptance criteria remain open.
+- [ ] Implement artifact storage linkage and metadata persistence — thin linkage landed (`69e72a7`, PR #32), but full lifecycle and hardening acceptance criteria remain open.
+- [ ] Implement structured audit/event logging for runs, tools, evidence, and approvals — taxonomy and persistence acceptance criteria remain open.
 
 ## Next recommended issue
 
@@ -31,6 +32,6 @@
 ## Notes / blockers
 
 - Issue 4.1 completed with a thin core-owned evidence model (evidence item, artifact, finding) including run/case linkage, provenance basics, lifecycle states, and audit reference hooks.
-- Issue 4.2 completed by adding thin artifact storage metadata persistence, normalized `storageRef` shape, run/case linkage validation, and artifact/evidence reference integrity checks.
+- Issue 4.2 has thin artifact storage metadata persistence landed (normalized `storageRef`, run/case linkage validation, artifact/evidence reference checks), but remains in progress for full lifecycle/hardening acceptance criteria.
 - Local repository does not contain a `main` branch ref; reconciliation was performed against the current integration branch (`work`) and its merged PR commits.
 - Tool gateway hardening items (full allowlist/rate-limit/payload limit behavior) should remain tracked as incomplete until acceptance criteria are fully met.
