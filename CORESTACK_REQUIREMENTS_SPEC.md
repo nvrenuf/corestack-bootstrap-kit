@@ -38,7 +38,7 @@ If packs or runtime packs are used later, they are implementation or deployment 
 - policy enforcement and approvals/HITL
 - open-weight-first model management and routing
 - evidence, case, artifact, and finding management
-- audit logging and forensic reconstruction support
+- structured audit/event trail capability (see `AUDIT_EVENT_MODEL.md`) and forensic reconstruction support
 - self-hosted-first deployment and operations
 
 ### Out of scope
@@ -123,6 +123,7 @@ If packs or runtime packs are used later, they are implementation or deployment 
 - The engine shall support step types for ingest, tool, model, policy check, review, approval, evidence write, and export.
 - Runs shall support explicit states including in-progress, blocked, failed, completed, and resumable paths.
 - Runs shall link to cases, evidence, artifacts, approvals, and audit events.
+- The canonical event schema and correlation expectations are defined in `AUDIT_EVENT_MODEL.md`.
 - The engine shall expose step-level status and failure detail to the control plane.
 
 #### Minimum MVP requirements

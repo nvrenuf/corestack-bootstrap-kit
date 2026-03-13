@@ -232,6 +232,8 @@ Outputs:
 
 Provide reusable structured event capture for review, investigation reconstruction, and operations.
 
+This contract follows the platform-wide model defined in `AUDIT_EVENT_MODEL.md`.
+
 #### Required inputs/outputs
 
 Inputs:
@@ -359,6 +361,8 @@ Artifact storage stores large payloads, fetched snapshots, normalized artifacts,
 ### Audit/event log
 
 The audit/event log stores structured events for user actions, workflow execution, tool calls, policy decisions, model routing, approval actions, evidence mutations, and exports.
+
+Event taxonomy and correlation rules are canonicalized in `AUDIT_EVENT_MODEL.md`.
 
 ### Module services
 
