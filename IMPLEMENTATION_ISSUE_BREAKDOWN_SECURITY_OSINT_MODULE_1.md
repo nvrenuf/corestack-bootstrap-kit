@@ -606,7 +606,7 @@ Make approvals actionable in the operator experience.
 
 ### Epic 6: Model routing baseline
 
-#### Issue 6.1: Define and implement the model registry and local-first routing contract
+#### Issue 6.1: Define and implement the model registry and local-first routing contract [x] (current branch head, PR TBD)
 
 ##### Purpose
 
@@ -633,6 +633,10 @@ Create the minimum shared model path for Module 1 workflow steps.
 ##### Ownership
 
 - core-owned
+
+##### Status
+
+- completed (thin core-owned model registry and local-first routing contract with policy/audit compatibility hooks landed)
 
 ##### Status target
 

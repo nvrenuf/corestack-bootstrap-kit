@@ -9,6 +9,7 @@ GitHub issue editing is not available in this environment (`gh` CLI is unavailab
 ## Issues to close now
 
 - #17 — Define tool schemas: web.fetch + web.search
+- #9 — Implement model management and routing layer (Issue 6.1 thin-slice baseline)
 
 ### Close note to paste for #17
 
@@ -17,6 +18,14 @@ Completed in thin-slice MVP scope.
 Implemented and merged in PR #28 with commit `2046ecd` (tool request/response contracts and schema validation foundations for `web.fetch` and `web.search`).
 
 Closing this implementation issue as complete for minimum acceptance criteria; broader policy/tooling hardening remains tracked in #4, #18, and #21.
+
+### Close note to paste for #9
+
+Completed for MVP Issue 6.1 thin-slice scope.
+
+Implemented a core-owned model registry and local-first routing contract with stable model identifiers, model kind/provider metadata, availability and trust tags, policy-compatible provider restriction hooks, structured route-result/error shapes, and audit-compatible routing decision records (commit `current branch head`, PR TBD).
+
+Keeping advanced execution logging/fallback orchestration and broader provider integrations tracked under Issue 6.2 and subsequent model-routing work.
 
 ## Issues to mark in progress
 
@@ -49,7 +58,6 @@ Structured audit/event logging scaffolding for runs, tools, evidence/artifacts/f
 - #2 — Define and implement Corestack control plane architecture
 - #4 — Design and build policy engine and tool gating
 - #10 — Build workflow engine and orchestration layer
-- #9 — Implement model management and routing layer
 - #12 — Define product surface area: UI/UX, admin, and day-2 operations
 - #16 — Epic: Controlled Internet Access (Tool Gateway + n8n)
 - #18 — Tool Gateway enforcement layer
