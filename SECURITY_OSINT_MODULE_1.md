@@ -4,125 +4,216 @@
 
 ### What Security/OSINT Module 1 is
 
-Security/OSINT Module 1 is the first domain module for Corestack. It defines the minimum investigative capability the Corestack desktop/control plane must support for security operations and open-source intelligence work.
+Security/OSINT Module 1 is the first domain module for Corestack. It defines the minimum investigation-oriented capability the Corestack desktop/control plane must support for security operations and open-source intelligence work.
 
-Its purpose is to drive the first reusable platform abstractions for:
+It exists to validate the first reusable platform abstractions for:
 
-- alert and intake handling
-- investigative workflow execution
-- controlled tool use against internal and external sources
-- evidence and case object creation
+- alert and investigation intake
+- governed workflow execution
+- controlled tool and connector access
+- evidence and case creation with provenance
 - policy-governed model use
-- human approvals and auditability
-- export of investigation outputs
+- approvals and human review
+- exportable investigation outputs
 
-Module 1 is not just a feature bundle. It is the reference module used to shape control plane contracts, workflow semantics, UI surfaces, audit requirements, and issue execution order for the rest of the platform.
+This module should drive architecture, UI, workflow semantics, evidence objects, and issue sequencing for the rest of the platform.
 
 ### Who it is for
 
-Security/OSINT Module 1 is for teams that need a single operator-facing control plane to:
+Security/OSINT Module 1 is for security teams and operators who need one governed workspace for:
 
-- triage security alerts
-- investigate entities, infrastructure, and external reporting using OSINT
-- collect and preserve evidence with provenance
-- generate reviewable outputs for incidents and cases
-
-The primary deployment assumption is self-hosted, security-conscious teams that prefer local or controlled execution over SaaS-first architectures.
+- alert triage
+- investigation and enrichment
+- OSINT-based entity research
+- evidence capture and review
+- incident reporting and export
 
 ### What it is not
 
 Security/OSINT Module 1 is not:
 
 - a general-purpose SIEM replacement
-- a full SOAR product with broad autonomous remediation
-- a malware detonation platform
-- a threat intel platform with full feed management and scoring
-- a separate product or separate OS build
-- a marketing dashboard module
+- a full SOAR platform with broad automated response
+- a malware sandbox or detonation environment
+- a separate product or separate operating shell
+- a threat intel platform with broad feed management and scoring
+- a marketing or demo-specific module
 
-It should stay narrowly scoped to the first investigation-oriented workflows that force the right Corestack platform boundaries.
+## 2. Implementation rule
 
-## 2. Primary users
+Corestack remains one desktop/control plane product.
+
+Security/OSINT Module 1 must consume and validate reusable platform contracts rather than introducing one-off vertical infrastructure. The default rule is:
+
+- core owns reusable workflow, policy, approval, evidence, audit, model routing, and UI shell behavior
+- Module 1 owns domain workflows, domain views, domain-specific data extensions, and domain connector usage
+
+If Module 1 appears to require a private subsystem, that should be treated as a signal that the corresponding core platform contract is incomplete and needs refinement.
+
+## 3. Primary users
 
 ### SOC analyst
 
-- Starts from alerts, artifacts, or leads.
-- Needs fast triage, enrichment, evidence capture, and clear escalation paths.
+#### Core goals
+
+- triage alerts quickly
+- determine whether escalation is needed
+- attach evidence and produce defensible findings
+
+#### Main actions
+
+- open alert-driven investigations
+- review enrichment and summary output
+- attach or review evidence
+- disposition or escalate cases
+
+#### What they need from the platform
+
+- fast access to runs and cases
+- visible blockers, denials, and pending approvals
+- evidence-linked findings
+- clear case status and disposition paths
 
 ### IR lead
 
-- Oversees active incidents and investigation quality.
-- Needs approval controls, evidence integrity, timeline reconstruction, and exportable case packages.
+#### Core goals
+
+- oversee active investigations
+- maintain evidence quality and review discipline
+- approve major incident actions and exports
+
+#### Main actions
+
+- review high-severity cases
+- inspect findings, timelines, and evidence coverage
+- approve escalations, exports, and exceptions
+- reassign or direct investigation work
+
+#### What they need from the platform
+
+- case-centric review views
+- approval queues with sufficient context
+- export readiness signals
+- audit visibility for high-risk actions
 
 ### Threat hunter
 
-- Starts from hypotheses, weak signals, or suspicious infrastructure.
-- Needs entity-centric pivots, enrichment workflows, and repeatable correlation.
+#### Core goals
+
+- pursue hypotheses across signals and entities
+- correlate weak indicators into actionable findings
+- pivot quickly across related evidence
+
+#### Main actions
+
+- initiate entity investigations
+- search and pivot across evidence, artifacts, and entities
+- save hypotheses, notes, and findings
+
+#### What they need from the platform
+
+- entity-aware investigations
+- relationship visibility
+- rapid access to prior runs and evidence
+- policy-safe enrichment and collection paths
 
 ### OSINT investigator
 
-- Starts from names, domains, handles, IPs, hashes, or documents.
-- Needs controlled external collection, provenance capture, note-taking, and structured findings.
+#### Core goals
+
+- investigate external entities and infrastructure using controlled sources
+- preserve provenance for collected material
+- separate evidence-backed observations from unresolved hypotheses
+
+#### Main actions
+
+- run search/fetch/enrichment workflows
+- collect and review source artifacts
+- produce evidence-linked observations and notes
+
+#### What they need from the platform
+
+- controlled web/OSINT collection
+- source and artifact provenance
+- easy case and evidence linkage
+- exportable investigation outputs
 
 ### Security manager
 
-- Reviews outcomes rather than conducting every step directly.
-- Needs workflow visibility, approval controls, case summaries, and auditable exports.
+#### Core goals
 
-## 3. First 3 end-to-end workflows
+- understand case status and investigation quality
+- review major approvals and exceptions
+- consume exportable outputs without re-running technical work
 
-These are the initial reference workflows for Module 1. They should drive workflow engine primitives, UI layout, evidence storage, approvals, and audit taxonomy.
+#### Main actions
+
+- review case summaries
+- inspect high-risk approvals and overrides
+- review exported evidence packs and management summaries
+
+#### What they need from the platform
+
+- concise top-level case visibility
+- auditable approval history
+- clear review and export surfaces
+- confidence that outputs are evidence-backed
+
+## 4. First 3 end-to-end workflows
+
+These workflows are the reference flows for Module 1 and should directly drive workflow engine design, object design, UI surfaces, and issue refinement.
 
 ### Workflow 1: Alert triage and investigation
 
 #### Trigger/input
 
-- Ingested alert from log/alert connector
-- Manual analyst-created alert intake
-- Existing case receives a new linked alert
+- alert from a log/alert connector
+- manual analyst-created alert intake
+- new alert attached to an existing case
 
-Minimum input object:
+Minimum input:
 
 - alert id
 - source system
 - timestamp
 - severity
-- title/summary
-- raw event or normalized alert payload
+- title or summary
+- raw or normalized payload
 - initial entities if known
 
-#### Steps
+#### Workflow steps
 
-1. Create or attach to a case/run.
-2. Normalize alert payload and extract candidate entities.
-3. Enrich entities with internal context and allowed external lookups.
-4. Correlate related alerts/artifacts already present in Corestack.
-5. Produce an investigation summary with confidence notes and recommended disposition.
-6. Route to human review for disposition.
-7. On approval, finalize findings, evidence links, and next-action output.
+1. Create a run and create or attach to a case.
+2. Normalize the alert payload.
+3. Extract candidate entities and relevant context.
+4. Execute allowed enrichment and external lookups through governed paths.
+5. Correlate results with prior evidence, artifacts, and related runs.
+6. Draft a triage summary and recommended disposition.
+7. Route to approval or review if policy requires it.
+8. Finalize case and run state.
 
 #### Tools used
 
 - log/alert ingestion connector
-- web.search
-- web.fetch
-- enrichment connectors for domain/IP/hash/user context
-- artifact storage writer
+- `web.search`
+- `web.fetch`
+- enrichment connectors
+- artifact storage
 - case/report export tool
 - optional ticket/case handoff connector
 
 #### Model usage
 
-- Local/open-weight model for entity extraction, summarization, clustering, and analyst-facing draft output
-- Optional secondary model for higher-context synthesis only if policy permits
-- Deterministic or rule-based validators for schema checks, evidence-link presence, and disposition completeness
+- local/open-weight model for extraction and summary drafting
+- optional secondary provider only where policy permits
+- deterministic validation for schema and evidence-link completeness where available
 
 #### Human approval points
 
-- Approve external connector use if policy requires elevated access
-- Approve incident escalation or case severity increase
-- Approve final disposition when workflow confidence is below threshold or policy demands review
-- Approve outbound handoff/export to external ticketing or reporting systems
+- escalation when policy or severity requires review
+- connector scope exceptions if policy requires approval
+- final disposition when confidence or policy threshold requires it
+- external export or handoff
 
 #### Outputs
 
@@ -130,481 +221,584 @@ Minimum input object:
 - recommended disposition
 - linked entities
 - finding set
-- updated case status
-- optional escalation package
+- updated case state
 
 #### Evidence created
 
-- alert record snapshot
+- alert snapshot
 - normalized alert artifact
-- enrichment result artifacts
-- analyst/model notes with provenance
-- finding records linked to supporting evidence
-- case timeline entries
+- enrichment artifacts
+- findings and notes
+- timeline entries
 
 #### Logs/audit requirements
 
 - alert ingest event
-- workflow start/step/finish events
-- tool requests and policy decisions
+- workflow start/step/failure/completion events
+- tool and connector execution events
+- policy decisions
 - model routing decisions
-- approvals, denials, overrides
+- approval decisions
 - evidence creation and mutation events
-- export/handoff events
 
 #### Failure conditions
 
-- alert payload cannot be normalized
-- required enrichment connector unavailable
-- policy denies needed tool access
-- evidence cannot be written or linked
-- output lacks enough support for disposition
-- approval timeout on required decision gate
+- alert cannot be normalized
+- required connector is unavailable
+- policy denies required collection
+- evidence cannot be stored or linked
+- output does not meet minimum support for disposition
 
 #### Success criteria
 
-- alert is dispositioned or escalated with explicit rationale
-- all material claims are linked to evidence
-- investigation path is reconstructable from logs and case timeline
-- output is reviewable without re-running the workflow
+- alert is dispositioned or escalated with rationale
+- material claims are linked to evidence
+- investigation path is reconstructable
 
 ### Workflow 2: OSINT entity investigation
 
 #### Trigger/input
 
-- Manual investigation request
-- Entity pivot from alert triage
-- Imported target list for domains, IPs, people, organizations, usernames, emails, hashes, or documents
+- manual investigation request
+- pivot from an alert or case
+- imported target list
 
-Minimum input object:
+Minimum input:
 
 - investigation request id
 - entity type
 - seed value
-- request purpose
-- allowed connector/tool scope
+- purpose
+- allowed scope
 
-#### Steps
+#### Workflow steps
 
-1. Open a new investigation run or attach to an existing case.
-2. Validate entity type and policy-allowed collection scope.
-3. Query allowed internal and external sources for baseline context.
-4. Extract and normalize related entities, artifacts, and claims.
-5. Correlate observations across sources and deduplicate repeated evidence.
-6. Draft an investigator summary that separates evidence-backed claims from unresolved hypotheses.
-7. Present findings and evidence graph for human review.
-8. On approval, persist findings and export or hand off as needed.
+1. Create a run and create or attach to a case.
+2. Validate requested scope against policy.
+3. Execute allowed search, fetch, and enrichment steps.
+4. Extract and normalize sources, entities, and claims.
+5. Deduplicate and correlate observations.
+6. Draft an investigator summary that separates evidence-backed observations from unresolved hypotheses.
+7. Route to approval where required.
+8. Persist findings, notes, and optional export state.
 
 #### Tools used
 
-- web.search
-- web.fetch
+- `web.search`
+- `web.fetch`
 - enrichment connectors
-- artifact storage writer
+- artifact storage
 - case/report export tool
 - optional ticket/case handoff connector
 
 #### Model usage
 
-- Local/open-weight model for extraction, summarization, relationship suggestion, and note drafting
-- Optional retrieval or embedding support for source clustering and similarity search if implemented in Corestack core
-- Policy-controlled secondary provider only for steps that exceed local model capability
+- local/open-weight model for extraction, clustering assistance, summary drafting, and relationship suggestion
+- optional external provider only where policy allows
 
 #### Human approval points
 
-- Approve broadened search scope beyond initial target or connector policy
-- Approve high-risk external collection categories if later supported
-- Approve final findings before export or case closure
+- broadened search scope where policy requires it
+- later-added higher-risk external collection categories
+- final export or closure where policy requires it
 
 #### Outputs
 
 - entity profile
-- linked entities and infrastructure map
-- summarized observations
-- finding set with confidence and support
+- structured findings
 - investigator notes
+- exportable summary where requested
 
 #### Evidence created
 
-- source records with fetch metadata
-- content snapshots or extracted metadata artifacts
-- normalized entity records
+- source records
+- fetched artifacts and metadata snapshots
+- entity records
 - relationship records
-- claim/finding records with supporting evidence links
-- investigation timeline entries
+- findings, notes, and timeline entries
 
 #### Logs/audit requirements
 
-- search/fetch requests and normalized responses
+- search/fetch request and response events
+- connector usage events
 - policy allow/deny events
-- model routing and prompt class metadata
-- provenance records for every persisted source-derived artifact
-- review and approval actions
+- model routing and execution metadata
+- provenance capture for persisted source-derived artifacts
+- approval and export events
 
 #### Failure conditions
 
-- target is ambiguous and cannot be disambiguated
-- source collection fails or returns low-value/noisy data
-- unsupported entity type for requested workflow path
+- target cannot be disambiguated
+- policy blocks required collection
+- sources return insufficient or unusable data
 - provenance cannot be established for collected material
-- findings exceed confidence policy without enough supporting evidence
+- findings are not adequately supported
 
 #### Success criteria
 
-- investigator can answer the initial question with evidence-linked findings
-- related entities are captured in structured form
-- unsupported claims remain clearly marked as unresolved or speculative
-- exported output preserves provenance and review state
+- the initial question is answered or explicitly marked unresolved
+- provenance is preserved across collected materials
+- unsupported claims remain clearly separated from supported findings
 
 ### Workflow 3: Incident evidence pack generation
 
 #### Trigger/input
 
-- Existing case marked ready for reporting
+- existing case marked ready for reporting
 - IR lead requests an evidence pack
-- Escalation or external handoff requires a structured export
+- export or handoff action requires formal packaging
 
-Minimum input object:
+Minimum input:
 
 - case id
 - report purpose
+- evidence scope
 - target time range
-- included evidence scope
 - export destination or output type
 
-#### Steps
+#### Workflow steps
 
-1. Load case, findings, artifacts, approvals, and timeline events.
-2. Validate evidence completeness and unresolved gaps.
-3. Assemble a draft incident timeline and supporting evidence index.
-4. Generate a report package with summaries, findings, artifacts, and provenance references.
-5. Route package to reviewer for approval.
-6. Freeze approved package metadata and export.
-7. Record export event and retention requirements.
+1. Load case, findings, evidence, artifacts, approvals, and timeline.
+2. Validate completeness and identify unresolved gaps.
+3. Assemble chronology and supporting evidence references.
+4. Draft the report package and manifest.
+5. Route the package for review and approval.
+6. Freeze approved package metadata.
+7. Export and record release metadata.
 
 #### Tools used
 
-- artifact storage reader/writer
+- artifact storage read/write
 - case/report export tool
-- optional ticket/case handoff connector
+- optional external handoff connector
 
 #### Model usage
 
-- Local/open-weight model for report drafting, chronology summarization, and executive summary generation
-- Deterministic packaging logic for manifest generation, checksums, and export validation
-- No model should fabricate missing facts; missing evidence must remain marked as missing
+- local/open-weight model for chronology summarization and report drafting
+- deterministic packaging logic for manifest and integrity references
+- no model-generated content may silently fill missing evidence
 
 #### Human approval points
 
-- Approve final report language and scope
-- Approve external export/handoff
-- Approve redactions if policy or privacy controls require them
+- final report approval
+- redaction approval where policy requires it
+- external export or handoff approval
 
 #### Outputs
 
-- incident evidence pack manifest
-- analyst-facing detailed report
+- evidence pack manifest
+- analyst-facing report
 - management-facing summary
 - export bundle reference
 
 #### Evidence created
 
 - immutable export manifest
-- checksums or content hashes for included artifacts
-- report artifact versions
-- approval record for release
-- export receipt / handoff record
+- report artifacts
+- approval linkage
+- export receipt or handoff record
 
 #### Logs/audit requirements
 
-- package generation request
-- evidence inclusion/exclusion decisions
-- redaction actions
-- final approval and export events
-- artifact hash capture
+- package-generation events
+- evidence inclusion or exclusion decisions
+- redaction events
+- approval decisions
+- export events
 
 #### Failure conditions
 
-- required evidence missing or inaccessible
+- required evidence is missing or inaccessible
 - report contains unsupported statements
-- redaction policy conflicts with requested export scope
-- export target unavailable
-- approval denied or expired
+- requested export conflicts with policy or redaction requirements
+- export target is unavailable
 
 #### Success criteria
 
-- package is complete enough for review or handoff without ad hoc reconstruction
-- every included statement maps to supporting evidence or is explicitly marked as analyst assessment
-- package contents and release path are auditable and reproducible
+- package is reviewable without ad hoc reconstruction
+- included statements map to evidence or explicit analyst assessment
+- export history is reconstructable
 
-## 4. Required platform capabilities exercised by Module 1
+## 5. Platform contracts exercised by Module 1
+
+### Workflow/run contract
+
+#### Purpose
+
+Provide reusable execution semantics for workflow definitions, run states, step execution, and linkage to cases and evidence.
+
+#### What core owns
+
+- run object lifecycle
+- step execution model
+- resumability and failure states
+- run-to-case and run-to-audit linkage
+
+#### What Module 1 expects
+
+- explicit step types for ingest, tool, model, review, approval, evidence, and export
+- resumable runs
+- linked artifacts and evidence references
+
+### Tool execution contract
+
+#### Purpose
+
+Provide a governed, normalized path for tool and connector invocation.
+
+#### What core owns
+
+- shared request/response schemas
+- normalized errors
+- execution metadata
+- governed transport and routing
+
+#### What Module 1 expects
+
+- policy-safe access to `web.fetch`, `web.search`, and connector-backed actions
+- stable response envelopes
+- correlation to runs, cases, and evidence
+
+### Policy/gating contract
+
+#### Purpose
+
+Provide reusable runtime decisions for whether an action is allowed, denied, or approval-gated.
+
+#### What core owns
+
+- policy definition and evaluation
+- reason codes
+- limit enforcement metadata
+- approval-required signaling
+
+#### What Module 1 expects
+
+- default-deny behavior for external collection
+- step-level restrictions for connectors, models, and export
+- predictable policy outcomes that workflows can surface to users
+
+### Approval/HITL contract
+
+#### Purpose
+
+Provide reusable approval objects, state transitions, escalations, overrides, and user-facing review paths.
+
+#### What core owns
+
+- approval object schema
+- approval queue and state machine
+- escalation and override semantics
+- auditability of approval actions
+
+#### What Module 1 expects
+
+- ability to gate escalation, export, exceptions, and selected dispositions
+- sufficient context on the approval object to support investigator review
+
+### Evidence/case contract
+
+#### Purpose
+
+Provide canonical objects for cases, evidence, artifacts, findings, notes, entities, relationships, and export metadata.
+
+#### What core owns
+
+- core object definitions
+- provenance fields
+- lifecycle hooks
+- object linkage rules
+
+#### What Module 1 expects
+
+- first-class support for case, evidence item, artifact, finding, source, note, relationship, and export package
+- chain-of-custody and derived-from linkage
+
+### Model routing contract
+
+#### Purpose
+
+Provide reusable selection and invocation of local or external models under policy constraints.
+
+#### What core owns
+
+- model registry
+- provider adapters
+- routing policy and logging
+- fallback behavior
+
+#### What Module 1 expects
+
+- local/open-weight default routing
+- step-level capability requests for extraction, reasoning, and summarization
+- policy-enforced provider restrictions
+
+### Audit/logging contract
+
+#### Purpose
+
+Provide reusable structured event capture for security review, reconstruction, and operations.
+
+#### What core owns
+
+- event taxonomy
+- event persistence model
+- correlation and integrity strategy
+- retention and redaction rules
+
+#### What Module 1 expects
+
+- workflow, tool, policy, model, approval, evidence, and export events
+- searchable correlation across runs and cases
+
+### Module extension contract
+
+#### Purpose
+
+Provide the reusable mechanism for modules to add workflows, views, connectors, and schema extensions without duplicating core infrastructure.
+
+#### What core owns
+
+- lifecycle and registration model
+- extension points
+- compatibility validation
+- restrictions on what modules may override
+
+#### What Module 1 expects
+
+- ability to register Security/OSINT workflows, views, and connector usage
+- no requirement to provide a private shell, policy engine, or workflow runtime
+
+## 6. Required platform capabilities exercised by Module 1
 
 ### Control plane surfaces
 
-Module 1 requires the Corestack desktop/control plane to expose:
+Module 1 requires:
 
-- launcher entry for Security/OSINT module
-- investigation run view
-- case view
-- evidence/artifact browser
-- approvals queue
-- policy decision visibility
-- model routing visibility
-- connector administration
-- audit/log search
-- export/handoff status view
-
-These surfaces should be part of one Corestack control plane, not separate apps.
+- launcher/module entry
+- runs
+- approvals
+- cases/evidence
+- files/artifacts
+- logs/audit
+- policies
+- models
+- connectors
 
 ### Workflow engine needs
 
-The workflow engine must support:
-
-- ingest, enrich, correlate, analyze, review, approve, export step types
+- ingest, tool, model, review, approval, evidence, and export steps
 - resumable runs
-- branching based on policy or confidence
-- human review checkpoints
-- evidence attachment at any step
-- failure state capture with retry/review paths
-- run-to-case linking
+- blocked/failure state handling
+- linkage of outputs to case and evidence objects
 
 ### Model routing needs
 
-The model layer must support:
-
-- step-level model selection
-- local/open-weight default routing
-- optional external provider routing under policy
-- model capability tags such as extraction, summarization, reasoning, report drafting
-- routing logs with rationale and policy inputs
-- hard blocks for data classes not allowed off-box
+- local/open-weight default path
+- optional external path under policy
+- logged routing decisions
+- step-level capability selection
 
 ### Policy engine needs
 
-The policy engine must support:
-
-- default-deny tool and connector access
-- allowlists for external domains and sources
-- model routing restrictions by workflow step and data class
-- approval-required actions for export, external providers, or sensitive collection
-- rate, byte, and timeout limits
-- tenant-agnostic now, but structured so future tenancy can scope policies cleanly
+- tool and connector gating
+- model routing restrictions
+- export restrictions
+- approval-required decisions
+- allowlists and execution limits
 
 ### Evidence/case model needs
 
-The core model must support:
-
-- case
-- run
+- core case
 - evidence item
 - artifact
-- source
-- entity
-- relationship
 - finding
 - note
-- approval
-- export package
-
-Objects must support provenance, review state, timestamps, authorship, and linkage across workflow runs.
+- entity
+- relationship
+- timeline event
+- export package linkage
 
 ### Sandbox/gatekeeper needs
 
-Module 1 requires:
-
-- centralized tool gateway for external access
+- centralized tool gateway for external collection
 - least-privilege connector execution
-- no direct arbitrary internet access from general agents
-- policy-enforced allowlist and limits
-- separate execution path for collectors/connectors versus case/model logic
-- credential isolation for external connectors
+- no unmanaged internet access from module workflows
+- restricted secret scope and execution boundaries
 
 ### Audit/forensics needs
 
-Module 1 requires:
+- structured event taxonomy
+- correlation ids across runs, approvals, tools, and cases
+- provenance and chain-of-custody support
+- exportable investigation reconstruction
 
-- append-only or integrity-protected audit streams
-- event taxonomy for tool, model, workflow, approval, policy, evidence, export, and user actions
-- correlation ids across runs, tools, cases, and approvals
-- reconstructable case timeline
-- exportable audit bundle for investigations
+## 7. Required tool classes and connectors
 
-## 5. Required tool classes and connectors
-
-Keep this to the minimum required for Module 1.
+Keep this minimal and architecture-driving.
 
 ### Web/OSINT fetch/search
 
-- `web.search`
 - `web.fetch`
-- provider-backed search/fetch through the Tool Gateway and workflow engine
+- `web.search`
 
 ### Log/alert ingestion
 
-- normalized alert intake connector
-- manual alert upload/input path
+- alert intake connector
+- manual intake path
 
 ### Artifact storage
 
-- object/artifact storage for snapshots, reports, manifests, and normalized payloads
+- artifact write/read path for snapshots, reports, and manifests
 
 ### Case/report export
 
-- markdown/json export at minimum
+- report generation and export path
 - evidence pack manifest export
 
 ### Optional ticket/case handoff
 
-- one optional connector path for handing off a case or incident summary to an external system
+- one optional external handoff connector class
 
 ### Enrichment tools
 
-- minimum enrichment set for domains, IPs, URLs, hashes, users, and entities
-- implemented as pluggable connectors behind policy gates
+- minimum enrichment connectors for entities relevant to Module 1 workflows
 
-## 6. Approval and HITL model for Module 1
+## 8. Approval and HITL model for Module 1
 
-### Can be automatic
+### What can be automatic
 
 - alert normalization
-- entity extraction
-- allowed enrichment against pre-approved tools/connectors
+- baseline entity extraction
+- policy-allowed search/fetch/enrichment
 - draft note and summary generation
-- evidence object creation for raw collected artifacts
-- internal correlation and duplicate detection
-- draft report assembly before release
+- evidence object creation from workflow outputs
+- timeline and artifact creation
 
-### Must require approval
+### What must require human approval
 
-- any external export or handoff
-- any use of non-approved external model/provider
-- severity escalation when policy requires manager or IR lead review
-- final disposition for incidents above configured threshold
+- external export or handoff
+- policy override or scope exception
+- incident escalation where policy requires it
 - final release of incident evidence packs
-- policy override or exception-based connector use
+- selected final dispositions where confidence or severity requires review
 
-### Conditional approval
+### Who can approve
 
-These may be automatic in low-risk policies and approval-gated in stricter deployments:
+- SOC analyst may resolve low-risk actions only where policy permits
+- IR lead approves incident escalations, major dispositions, and evidence pack release
+- security manager approves high-risk exceptions, major exports, or business-impacting escalations
+- platform admin approves policy or connector exceptions where the approval concerns platform governance rather than investigation content
 
-- external OSINT collection beyond baseline connectors
-- broadened search scope from a seed entity to related parties
-- redaction decisions for export
-- case closure on low-severity triage outcomes
+### What gets logged
 
-## 7. Evidence and case expectations
+- approval request creation
+- requester, approver, subject, rationale, scope, and expiration
+- state transitions: approved, denied, changes requested, escalated, expired, overridden
+- linked case, run, policy, and export references
+- override rationale and authority when used
+
+## 9. Evidence and case expectations
 
 ### Minimum evidence objects
 
-Module 1 should assume the following minimum objects exist:
-
-- source
-- artifact
+- case
 - evidence item
+- artifact
+- source
 - finding
+- note
 - entity
 - relationship
-- note
-- case
-- case timeline event
-- approval record
-- export package manifest
+- timeline event
+- approval linkage
+- export package or manifest
 
 ### Minimum provenance required
 
 Every evidence-bearing object should carry at least:
 
-- object id
-- case id and/or run id
-- source type
-- acquisition method
-- collector/tool/connector id
-- actor type: user, workflow, tool, model, connector
-- timestamp(s)
-- content hash or equivalent integrity field where applicable
-- parent/derived-from references
+- stable id
+- linked case id and/or run id
+- source or acquisition method
+- tool or connector used
+- actor type
+- created timestamp
+- parent or derived-from reference where applicable
 - policy decision reference where applicable
-- review state
+- integrity metadata where available
 
-### Minimum case expectations
+### Case expectations
 
-A case should be able to answer:
+A case should answer:
 
-- what triggered the case
-- what evidence was collected
-- what claims/findings were made
-- which tools/models/connectors were used
-- which approvals occurred
+- what triggered the work
+- what runs were executed
+- what evidence exists
+- what findings were produced
+- what approvals occurred
 - what was exported
-- whether the chain of actions is reconstructable
+- whether the full path is reconstructable
 
-## 8. Model strategy for Module 1
+## 10. Model strategy for Module 1
 
-Module 1 should align to these platform rules:
+Module 1 shall align to these platform rules:
 
 - open-weight-first
 - self-hosted-first
 - pluggable providers
 - policy-governed routing
 
-### Operational meaning
+Operational meaning:
 
-- Local/open-weight models are the default path for extraction, summarization, clustering, and report drafting.
-- External providers are optional adapters, not a required dependency.
-- Routing decisions must consider data sensitivity, workflow step, allowed provider class, latency, and cost.
-- Steps that involve raw evidence, potentially sensitive incident data, or regulated data classes should default to self-hosted execution unless policy explicitly allows otherwise.
-- Module logic should depend on capability classes, not hard-coded vendors.
+- local/open-weight models are the default path for extraction, reasoning support, and summarization
+- external providers are optional and never the default architecture
+- provider selection must remain policy-governed and auditable
+- workflows must express capability requirements rather than vendor-specific dependencies
 
-## 9. MVP boundaries
+## 11. MVP boundaries
 
 ### In Module 1 MVP
 
-- alert triage and investigation workflow
-- OSINT entity investigation workflow
-- incident evidence pack generation workflow
-- controlled web search/fetch through the gateway
-- basic alert ingestion
-- minimum enrichment connector framework
-- case/evidence linkage sufficient for investigation reconstruction
-- approval gates for export, escalation, and policy exceptions
-- markdown/json report outputs
-- auditable run, tool, model, and approval logging
+- alert triage and investigation
+- OSINT entity investigation
+- incident evidence pack generation
+- controlled `web.fetch` and `web.search`
+- alert intake path
+- minimal enrichment connector framework
+- case/evidence/artifact/finding linkage
+- approvals for export, exception, and selected escalation paths
+- auditable workflow, tool, policy, model, approval, and evidence events
 
 ### Explicitly out of scope
 
-- autonomous remediation or response actions
-- malware sandboxing or binary detonation
-- deep threat intel feed management
-- broad SIEM data lake or search replacement
-- multi-tenant isolation design beyond future compatibility
-- advanced graph analytics beyond minimum relationships
-- full dashboard suite for executives
-- broad collaboration suite/chatops
-- verification/scoring layers beyond minimum provenance and review controls
+- autonomous remediation
+- malware detonation
+- broad threat-intel feed platform behavior
+- enterprise tenancy implementation
+- advanced graph visualization
+- extensive executive dashboards
+- broad connector catalog beyond Module 1 minimums
 
-Out-of-scope items can become later modules or later milestones, but they should not distort Module 1 architecture.
+## 12. Open questions
 
-## 10. Open questions
-
-- What is the first canonical normalized alert schema for Corestack intake?
-- What is the minimum evidence object split between `artifact`, `evidence item`, and `source` in the core schema?
-- Which enrichment connectors are mandatory for MVP versus deferred?
-- What exact approval object schema and state machine will Corestack adopt?
-- How should report/export manifests encode redactions, derived artifacts, and hash chains?
-- Which local model(s) are the default for extraction and summarization in self-hosted deployments?
-- What data classes are never allowed to leave self-hosted execution without explicit override?
-- What is the first external handoff target, if any, for optional ticket/case export?
-- How much of the current Fear Signal Radar pack should be treated as a downstream runtime pack versus a direct Module 1 reference implementation?
-- Which UI surface is primary for analysts first: case-first, run-first, or alert queue-first?
+- What is the canonical normalized alert schema for Module 1 intake?
+- What is the exact object boundary between source, artifact, and evidence item?
+- Which enrichment connectors are mandatory for MVP?
+- What exact approval state machine and escalation rules should core adopt?
+- Which local models are the default for extraction and summarization?
+- Which data classes must never leave self-hosted execution without override?
+- What is the first optional external handoff target?
+- How should export manifests encode redactions and integrity references?
 
 ## Alignment to ISSUES_ORDER.md
 
-This document is intended to satisfy and guide the Module 1 planning work called out in:
+This document is intended to satisfy and guide:
 
 - Milestone 0, item 2: Security/OSINT Module 1 definition
 - Milestone 0, item 3: Evidence and case object model
 - Milestone 0, item 4: Agent sandbox / gatekeeper security model
 - Milestone 0, item 5: Approvals and human-in-the-loop decision model
-- Milestone 1 and 2 items covering workflow engine, model routing, policy engine, audit, and forensics
+- Milestone 1 and 2 work on control plane architecture, tool gating, workflow orchestration, model routing, audit, and evidence trails
 
-The implementation implication is straightforward: Corestack remains one desktop/control plane, and Security/OSINT Module 1 is the first domain module that forces the reusable platform contracts.
+Corestack remains one desktop/control plane, and Security/OSINT Module 1 is the first module used to validate the shared platform contracts.
