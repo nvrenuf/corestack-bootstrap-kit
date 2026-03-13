@@ -200,7 +200,7 @@ Platform contracts are not sufficiently validated until an operator can review, 
 
 ### Epic 1: Control plane shell and navigation foundation
 
-#### Issue 1.1: Implement the persistent Corestack shell and navigation skeleton
+#### Issue 1.1: Implement the persistent Corestack shell and navigation skeleton [x] (main: `8cd6592`, PR #28)
 
 ##### Purpose
 
@@ -227,11 +227,11 @@ Create the single desktop/control plane shell and top-level information architec
 
 - core-owned
 
-##### Status target
+##### Status
 
-- MVP
+- complete
 
-#### Issue 1.2: Implement Home and Launcher as core-owned entry surfaces
+#### Issue 1.2: Implement Home and Launcher as core-owned entry surfaces [x] (main: `1a2b085`, PR #28)
 
 ##### Purpose
 
@@ -257,13 +257,13 @@ Provide the first operator entry points into Corestack work and Module 1 workflo
 
 - core-owned
 
-##### Status target
+##### Status
 
-- MVP
+- complete
 
 ### Epic 2: Core workflow, run, and case skeleton
 
-#### Issue 2.1: Define and implement the minimum run and workflow execution contract
+#### Issue 2.1: Define and implement the minimum run and workflow execution contract [x] (main: `1c87d62`, PR #28)
 
 ##### Purpose
 
@@ -291,11 +291,11 @@ Establish the shared run model required by Module 1 workflows.
 
 - core-owned
 
-##### Status target
+##### Status
 
-- MVP
+- complete
 
-#### Issue 2.2: Define and implement the minimum case object and run-to-case linkage
+#### Issue 2.2: Define and implement the minimum case object and run-to-case linkage [x] (main: `821abc0`, PR #28)
 
 ##### Purpose
 
@@ -322,13 +322,13 @@ Create the base investigation container required for Module 1.
 
 - core-owned
 
-##### Status target
+##### Status
 
-- MVP
+- complete
 
 ### Epic 3: Policy-gated tool execution foundation
 
-#### Issue 3.1: Define the policy decision contract for governed actions
+#### Issue 3.1: Define the policy decision contract for governed actions [x] (main: `0a8d76a`, PR #28)
 
 ##### Purpose
 
@@ -355,11 +355,11 @@ Create the minimum allow/deny/approval-required contract used by tools, models, 
 
 - core-owned
 
-##### Status target
+##### Status
 
-- MVP
+- complete
 
-#### Issue 3.2: Implement the `web.fetch` and `web.search` tool contracts and schemas
+#### Issue 3.2: Implement the `web.fetch` and `web.search` tool contracts and schemas [x] (main: `2046ecd`, PR #28)
 
 ##### Purpose
 
@@ -385,11 +385,11 @@ Provide the first governed tool classes used by Module 1.
 
 - core-owned
 
-##### Status target
+##### Status
 
-- MVP
+- complete
 
-#### Issue 3.3: Implement a minimal tool gateway with policy enforcement and audit hooks
+#### Issue 3.3: Implement a minimal tool gateway with policy enforcement and audit hooks [~] (main: `31c49b4`, PR #29; scaffolding landed)
 
 ##### Purpose
 
@@ -417,9 +417,9 @@ Route governed tool execution through a single controlled path.
 
 - core-owned
 
-##### Status target
+##### Status
 
-- MVP
+- in progress (scaffolding landed; full enforcement and hardening pending)
 
 ### Epic 4: Evidence, artifact, and audit backbone
 
