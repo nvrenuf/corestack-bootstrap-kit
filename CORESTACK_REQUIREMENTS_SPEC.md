@@ -69,6 +69,23 @@ If packs or runtime packs are used later, they are implementation or deployment 
 - evidence-first and audit-friendly operation
 - reusable core contracts before module-specific infrastructure
 
+## 2A. Implemented MVP foundation status
+
+The following MVP foundations are now implemented in core and are no longer planning-only requirements:
+
+- persistent Corestack shell and navigation skeleton, including Home and Launcher entry surfaces
+- minimum run/workflow execution contract with run-to-case linkage
+- governed action enforcement through a real policy decision contract (allow, deny, approval-required)
+- schema-defined `web.fetch` and `web.search` tool contracts
+- minimum evidence, artifact, and finding objects with run/case linkage
+- structured, correlated audit/event logging scaffolding for runs, tools, policy, approvals, and evidence mutations
+- approval object model, state machine, workflow checkpoints, and reviewer queue/detail surfaces
+- model registry and local-first routing contract, including restriction-aware external-provider hooks and model execution logging
+- Security/OSINT Module 1 registered through the core module contract
+- first real end-to-end Alert Triage and Investigation workflow
+
+This document remains the canonical product/requirements baseline. For execution-level issue tracking and in-progress detail, see `IMPLEMENTATION_STATUS.md`.
+
 ## 3. Functional requirements
 
 ### 3.1 Control plane shell

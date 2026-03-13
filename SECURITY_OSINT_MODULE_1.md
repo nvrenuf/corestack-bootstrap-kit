@@ -52,6 +52,22 @@ Security/OSINT Module 1 must consume and validate reusable platform contracts ra
 
 If Module 1 appears to require a private subsystem, that should be treated as a signal that the corresponding core platform contract is incomplete and needs refinement.
 
+## 2A. Implemented MVP foundations for Module 1
+
+Security/OSINT Module 1 now has a real implemented foundation in the core platform:
+
+- module registration is implemented through the core module contract (Module 1 is visible as a registered module)
+- Alert Triage and Investigation exists as an end-to-end executable workflow, not just a planned reference flow
+- workflow execution uses a minimum run contract with run-to-case linkage and resumable/governed execution states
+- governed actions are evaluated through core policy decision contracts, including approval-required outcomes
+- approval queue/detail review surfaces and reviewer state transitions are implemented
+- evidence, artifact, and finding objects are implemented and can be attached to runs/cases
+- `web.fetch` and `web.search` are implemented as schema-defined governed tool contracts
+- model routing for Module 1 execution paths is local-first and restriction-aware with execution logging
+- structured audit/event scaffolding records correlated workflow, policy, approval, model, and evidence events
+
+This specification continues to define module intent and architecture-facing product requirements. `IMPLEMENTATION_STATUS.md` remains the execution tracker.
+
 ## 3. Primary users
 
 ### SOC analyst

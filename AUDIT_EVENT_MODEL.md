@@ -24,6 +24,25 @@ Design intent:
 - Supports reconstruction, auditability, review, and future export
 - Preserves product identity: modules and packs extend Corestack but do not replace core contracts
 
+## 2A. Current implementation status
+
+Implemented now (MVP foundation slice):
+
+- structured event emission scaffolding exists in core for run lifecycle, governed tool activity, policy decisions, approvals, model execution, and evidence/artifact/finding linkage
+- events carry correlation context across run, case, and related governed action paths
+- policy decisions and approval-required/approved/denied outcomes are represented as first-class auditable events
+- reviewer actions in approval flows are captured as structured approval lifecycle events
+- model routing/execution decisions are emitted with restriction-aware outcomes, including blocked external-provider attempts
+
+Still deferred (by design):
+
+- finalized long-term taxonomy/versioning governance
+- retention tier optimization and cross-tenant analytics layers
+- tamper-evident hardening beyond baseline integrity-compatible storage
+- broad forensic export packaging and external schema standardization
+
+This document remains the canonical architecture and capability model for audit/events. `IMPLEMENTATION_STATUS.md` is the execution tracker for what has landed versus what is still open.
+
 ## 3. What an event is
 
 An event is a typed, timestamped, structured record of a significant platform action or decision.

@@ -10,6 +10,23 @@ Module 1 must not introduce one-off vertical infrastructure unless there is an e
 
 If runtime packs are mentioned, they should be treated as packaging or deployment details, not as product identity. The product remains Corestack, and Security/OSINT remains a module within the single control plane.
 
+## 1A. Implemented foundation status
+
+Current implementation now covers the first operational foundation slice of this architecture:
+
+- persistent control-plane shell + navigation skeleton with Home and Launcher entry surfaces
+- minimum workflow/run contract with case linkage and governed execution pathing
+- real policy decision contract for governed actions, including approval-required decisions
+- implemented `web.fetch` and `web.search` governed tool schemas
+- implemented approval object/state machine with workflow checkpoints and reviewer queue/detail UX surfaces
+- implemented evidence/artifact/finding minimum objects and linkage to runs/cases
+- implemented structured, correlated audit/event scaffolding for run/tool/policy/approval/model/evidence activity
+- implemented model registry + local-first routing contract with external-provider restriction hooks
+- Security/OSINT Module 1 registered through the core module contract
+- first end-to-end Alert Triage and Investigation workflow implemented on top of these contracts
+
+This document remains the canonical architecture description and target boundaries. `IMPLEMENTATION_STATUS.md` tracks issue-by-issue execution state.
+
 ## 2. Platform contracts exercised by Module 1
 
 ### Workflow/run contract
