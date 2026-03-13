@@ -459,7 +459,7 @@ Create the smallest evidence-bearing object set needed for Module 1.
 
 - MVP
 
-#### Issue 4.2: Implement artifact storage linkage and metadata persistence
+#### Issue 4.2: Implement artifact storage linkage and metadata persistence [x] (main: `69e72a7`, PR pending)
 
 ##### Purpose
 
@@ -484,6 +484,10 @@ Support file-like outputs such as fetched content, normalized payloads, and repo
 ##### Ownership
 
 - core-owned
+
+##### Status
+
+- complete
 
 ##### Status target
 

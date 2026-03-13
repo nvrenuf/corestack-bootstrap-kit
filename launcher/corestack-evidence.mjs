@@ -1,5 +1,6 @@
 const EVIDENCE_LIFECYCLE_STATES = ["collected", "reviewed", "archived"];
 const ARTIFACT_LIFECYCLE_STATES = ["available", "deleted"];
+const ARTIFACT_STORAGE_STATES = ["active", "tombstoned"];
 const FINDING_LIFECYCLE_STATES = ["open", "in_review", "resolved", "dismissed"];
 
 function clone(value) {
@@ -35,8 +36,32 @@ function validateSource(source) {
   assertNonEmptyString(source.kind, "source.kind");
 }
 
+function normalizeStorageRef(storageRef) {
+  if (typeof storageRef === "string") {
+    assertNonEmptyString(storageRef, "artifact.storageRef");
+    return { uri: storageRef };
+  }
+
+  assertObject(storageRef, "artifact.storageRef");
+  assertNonEmptyString(storageRef.uri, "artifact.storageRef.uri");
+  return clone(storageRef);
+}
+
+function validateIntegrity(value) {
+  if (value == null) {
+    return null;
+  }
+
+  assertObject(value, "artifact.integrity");
+  assertNonEmptyString(value.algorithm, "artifact.integrity.algorithm");
+  assertNonEmptyString(value.value, "artifact.integrity.value");
+  return clone(value);
+}
+
 export function createEvidenceStore({
   storage,
+  runStore = null,
+  caseStore = null,
   key = "corestack.evidence.v1",
   now = () => new Date().toISOString(),
   createEvidenceId = () => crypto.randomUUID(),
@@ -54,6 +79,70 @@ export function createEvidenceStore({
 
   function writeState(state) {
     storage.setItem(key, JSON.stringify(state));
+  }
+
+  function assertRunExists(runId, label = "runId") {
+    if (!runId) {
+      return null;
+    }
+
+    assertNonEmptyString(runId, label);
+    if (!runStore) {
+      return null;
+    }
+
+    const run = runStore.getRun(runId);
+    if (!run) {
+      throw new Error(`run not found: ${runId}`);
+    }
+    return run;
+  }
+
+  function assertCaseExists(caseId, label = "caseId") {
+    if (!caseId) {
+      return null;
+    }
+
+    assertNonEmptyString(caseId, label);
+    if (!caseStore) {
+      return null;
+    }
+
+    const caseRecord = caseStore.getCase(caseId);
+    if (!caseRecord) {
+      throw new Error(`case not found: ${caseId}`);
+    }
+    return caseRecord;
+  }
+
+  function assertRunCaseLinkage(runId, caseId, run, caseRecord, label = "object") {
+    if (!runId || !caseId || !runStore || !caseStore) {
+      return;
+    }
+
+    const runLinkedCaseId = run?.caseId ?? null;
+    const caseHasRun = Array.isArray(caseRecord?.runIds) && caseRecord.runIds.includes(runId);
+    if (runLinkedCaseId !== caseId && !caseHasRun) {
+      throw new Error(`${label} run/case linkage mismatch`);
+    }
+  }
+
+  function assertArtifactReferencesExist(artifactIds = [], state, label) {
+    for (const artifactId of artifactIds) {
+      assertNonEmptyString(artifactId, `${label}.artifactIds[]`);
+      if (!state.artifacts.some((artifact) => artifact.artifactId === artifactId)) {
+        throw new Error(`${label} references unknown artifact: ${artifactId}`);
+      }
+    }
+  }
+
+  function assertEvidenceReferencesExist(evidenceIds = [], state, label) {
+    for (const evidenceId of evidenceIds) {
+      assertNonEmptyString(evidenceId, `${label}.evidenceIds[]`);
+      if (!state.evidenceItems.some((evidenceItem) => evidenceItem.evidenceId === evidenceId)) {
+        throw new Error(`${label} references unknown evidence: ${evidenceId}`);
+      }
+    }
   }
 
   return {
@@ -75,15 +164,25 @@ export function createEvidenceStore({
       source,
       provenance,
       lifecycleState = "available",
+      storageState = "active",
+      integrity = null,
       auditRef = null,
       metadata = {},
     }) {
       assertNonEmptyString(type, "artifact.type");
       assertNonEmptyString(classification, "artifact.classification");
-      assertNonEmptyString(storageRef, "artifact.storageRef");
+      const normalizedStorageRef = normalizeStorageRef(storageRef);
       validateSource(source);
       validateProvenance(provenance);
       assertLifecycleState(lifecycleState, ARTIFACT_LIFECYCLE_STATES, "artifact.lifecycleState");
+      assertLifecycleState(storageState, ARTIFACT_STORAGE_STATES, "artifact.storageState");
+      const normalizedIntegrity = validateIntegrity(integrity);
+      const run = assertRunExists(runId, "artifact.runId");
+      const caseRecord = assertCaseExists(caseId, "artifact.caseId");
+      if (!runId && !caseId) {
+        throw new Error("artifact requires at least one linkage: runId or caseId");
+      }
+      assertRunCaseLinkage(runId, caseId, run, caseRecord, "artifact");
 
       const timestamp = now();
       const state = readState();
@@ -91,12 +190,14 @@ export function createEvidenceStore({
         artifactId: createArtifactId(),
         type,
         classification,
-        storageRef,
+        storageRef: normalizedStorageRef,
         runId,
         caseId,
         source,
         provenance,
         lifecycleState,
+        storageState,
+        integrity: normalizedIntegrity,
         auditRef,
         metadata,
         createdAt: timestamp,
@@ -128,8 +229,13 @@ export function createEvidenceStore({
       validateProvenance(provenance);
       assertLifecycleState(lifecycleState, EVIDENCE_LIFECYCLE_STATES, "evidence.lifecycleState");
 
+      const run = assertRunExists(runId, "evidence.runId");
+      const caseRecord = assertCaseExists(caseId, "evidence.caseId");
+      assertRunCaseLinkage(runId, caseId, run, caseRecord, "evidence");
+
       const timestamp = now();
       const state = readState();
+      assertArtifactReferencesExist(artifactIds, state, "evidence");
       const evidenceItem = {
         evidenceId: createEvidenceId(),
         type,
@@ -170,9 +276,14 @@ export function createEvidenceStore({
       assertNonEmptyString(runId, "finding.runId");
       validateProvenance(provenance);
       assertLifecycleState(lifecycleState, FINDING_LIFECYCLE_STATES, "finding.lifecycleState");
+      const run = assertRunExists(runId, "finding.runId");
+      const caseRecord = assertCaseExists(caseId, "finding.caseId");
+      assertRunCaseLinkage(runId, caseId, run, caseRecord, "finding");
 
       const timestamp = now();
       const state = readState();
+      assertEvidenceReferencesExist(evidenceIds, state, "finding");
+      assertArtifactReferencesExist(artifactIds, state, "finding");
       const finding = {
         findingId: createFindingId(),
         type,

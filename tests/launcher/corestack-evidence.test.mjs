@@ -37,6 +37,8 @@ function createHarness() {
   });
   const evidenceStore = createEvidenceStore({
     storage,
+    runStore,
+    caseStore,
     now: () => "2026-03-13T00:00:00.000Z",
     createEvidenceId: () => `evidence-${++evidenceCounter}`,
     createArtifactId: () => `artifact-${++artifactCounter}`,
@@ -63,11 +65,15 @@ test("evidence, artifact, and finding objects can be created with run/case linka
   const artifact = evidenceStore.createArtifact({
     type: "web.fetch.response",
     classification: "osint.raw",
-    storageRef: "artifact://local/run-1/fetch-response.json",
+    storageRef: {
+      uri: "artifact://local/run-1/fetch-response.json",
+      mediaType: "application/json",
+    },
     runId: run.runId,
     caseId: caseRecord.caseId,
     source: { kind: "tool", ref: "web.fetch" },
     provenance: createProvenance({ correlationId: "corr-1" }),
+    integrity: { algorithm: "sha256", value: "abc123" },
   });
 
   const evidence = evidenceStore.createEvidenceItem({
@@ -93,8 +99,33 @@ test("evidence, artifact, and finding objects can be created with run/case linka
   });
 
   assert.equal(artifact.caseId, caseRecord.caseId);
+  assert.equal(artifact.storageRef.uri, "artifact://local/run-1/fetch-response.json");
+  assert.equal(artifact.storageState, "active");
   assert.equal(evidence.runId, run.runId);
   assert.equal(finding.evidenceIds[0], evidence.evidenceId);
+});
+
+test("artifact metadata and storageRef persist across reads", () => {
+  const { registry, runStore, evidenceStore } = createHarness();
+  const run = launchWorkflowRun({ registry, runStore, workflowId: "security-osint.alert-triage" });
+  evidenceStore.createArtifact({
+    type: "web.fetch.response",
+    classification: "osint.raw",
+    storageRef: {
+      uri: "artifact://local/run-8/source.html",
+      mediaType: "text/html",
+      byteSize: 128,
+    },
+    runId: run.runId,
+    source: { kind: "tool", ref: "web.fetch" },
+    provenance: createProvenance(),
+    metadata: { extractor: "fetch-normalizer" },
+  });
+
+  const [stored] = evidenceStore.listArtifacts();
+  assert.equal(stored.storageRef.mediaType, "text/html");
+  assert.equal(stored.storageRef.byteSize, 128);
+  assert.equal(stored.metadata.extractor, "fetch-normalizer");
 });
 
 test("provenance basics are required for evidence-bearing objects", () => {
@@ -135,10 +166,76 @@ test("object lifecycle states are constrained to minimal canonical enums", () =>
         type: "web.fetch.response",
         classification: "osint.raw",
         storageRef: "artifact://local/run-1/fetch-response.json",
+        runId: "run-1",
         lifecycleState: "pending",
         source: { kind: "tool" },
         provenance: createProvenance(),
       }),
     /artifact\.lifecycleState must be one of/,
+  );
+});
+
+test("artifact linkage and reference validation enforce integrity boundaries", () => {
+  const { evidenceStore } = createHarness();
+
+  assert.throws(
+    () =>
+      evidenceStore.createArtifact({
+        type: "web.fetch.response",
+        classification: "osint.raw",
+        storageRef: "artifact://local/unlinked/fetch-response.json",
+        source: { kind: "tool" },
+        provenance: createProvenance(),
+      }),
+    /artifact requires at least one linkage: runId or caseId/,
+  );
+
+  assert.throws(
+    () =>
+      evidenceStore.createArtifact({
+        type: "web.fetch.response",
+        classification: "osint.raw",
+        storageRef: "artifact://local/run-404/fetch-response.json",
+        runId: "run-404",
+        source: { kind: "tool" },
+        provenance: createProvenance(),
+      }),
+    /run not found: run-404/,
+  );
+});
+
+test("finding and evidence references must point to known artifacts/evidence", () => {
+  const { registry, runStore, caseStore, evidenceStore } = createHarness();
+  const run = launchWorkflowRun({ registry, runStore, workflowId: "security-osint.alert-triage" });
+  const caseRecord = caseStore.createCaseFromRun({ run });
+  runStore.linkCase(run.runId, caseRecord.caseId);
+
+  assert.throws(
+    () =>
+      evidenceStore.createEvidenceItem({
+        type: "source_snapshot",
+        classification: "osint.supporting",
+        summary: "missing artifact ref",
+        runId: run.runId,
+        caseId: caseRecord.caseId,
+        source: { kind: "artifact", ref: "artifact-unknown" },
+        provenance: createProvenance(),
+        artifactIds: ["artifact-unknown"],
+      }),
+    /evidence references unknown artifact: artifact-unknown/,
+  );
+
+  assert.throws(
+    () =>
+      evidenceStore.createFinding({
+        type: "threat_signal",
+        severity: "low",
+        summary: "missing evidence ref",
+        runId: run.runId,
+        caseId: caseRecord.caseId,
+        evidenceIds: ["evidence-unknown"],
+        provenance: createProvenance(),
+      }),
+    /finding references unknown evidence: evidence-unknown/,
   );
 });

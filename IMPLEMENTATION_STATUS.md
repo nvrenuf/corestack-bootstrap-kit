@@ -13,6 +13,7 @@
 - [x] Define policy decision contract for governed actions (`0a8d76a`, PR #28)
 - [x] Implement `web.fetch` and `web.search` tool contracts and schemas (`2046ecd`, PR #28)
 - [x] Define the minimum evidence, artifact, and finding objects (`492f359`, PR pending)
+- [x] Implement artifact storage linkage and metadata persistence (`69e72a7`, PR pending)
 
 ## In-progress issues
 
@@ -20,7 +21,7 @@
 
 ## Next recommended issue
 
-- Issue 4.2: Implement artifact storage linkage and metadata persistence.
+- Issue 4.3: Implement structured audit/event logging for runs, tools, evidence, and approvals.
 
 ## References
 
@@ -30,5 +31,6 @@
 ## Notes / blockers
 
 - Issue 4.1 completed with a thin core-owned evidence model (evidence item, artifact, finding) including run/case linkage, provenance basics, lifecycle states, and audit reference hooks.
+- Issue 4.2 completed by adding thin artifact storage metadata persistence, normalized `storageRef` shape, run/case linkage validation, and artifact/evidence reference integrity checks.
 - Local repository does not contain a `main` branch ref; reconciliation was performed against the current integration branch (`work`) and its merged PR commits.
 - Tool gateway hardening items (full allowlist/rate-limit/payload limit behavior) should remain tracked as incomplete until acceptance criteria are fully met.

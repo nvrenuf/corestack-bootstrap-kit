@@ -61,6 +61,7 @@ Goal: Deliver the minimum secure Corestack control plane that can host Module 1.
 - [x] Implement `web.fetch` and `web.search` tool contracts and schemas (`2046ecd`, PR #28)
 - [x] Land minimal governed tool gateway scaffolding (`31c49b4`, PR #29)
 - [x] Define the minimum evidence, artifact, and finding objects (`492f359`, PR pending)
+- [x] Implement artifact storage linkage and metadata persistence (`69e72a7`, PR pending)
 
 Note: These are MVP-slice completions. Milestone issues #4/#17/#18 remain open for non-MVP hardening and full acceptance criteria.
 
