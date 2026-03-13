@@ -47,6 +47,7 @@ Corestack remains one desktop/control plane product.
 Security/OSINT Module 1 must consume and validate reusable platform contracts rather than introducing one-off vertical infrastructure. The default rule is:
 
 - core owns reusable workflow, policy, approval, evidence, audit, model routing, and UI shell behavior
+- structured audit/event trails are required platform behavior for run/tool/evidence/approval reconstruction (see `AUDIT_EVENT_MODEL.md`)
 - Module 1 owns domain workflows, domain views, domain-specific data extensions, and domain connector usage
 
 If Module 1 appears to require a private subsystem, that should be treated as a signal that the corresponding core platform contract is incomplete and needs refinement.
@@ -255,6 +256,7 @@ Minimum input:
 - alert is dispositioned or escalated with rationale
 - material claims are linked to evidence
 - investigation path is reconstructable
+- reconstruction is backed by the structured platform audit/event model in `AUDIT_EVENT_MODEL.md`
 
 ### Workflow 2: OSINT entity investigation
 
