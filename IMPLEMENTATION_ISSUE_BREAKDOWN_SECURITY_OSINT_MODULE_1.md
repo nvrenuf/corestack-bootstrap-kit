@@ -423,7 +423,7 @@ Route governed tool execution through a single controlled path.
 
 ### Epic 4: Evidence, artifact, and audit backbone
 
-#### Issue 4.1: Define the minimum evidence, artifact, and finding objects [x] (main: `492f359`, PR pending)
+#### Issue 4.1: Define the minimum evidence, artifact, and finding objects [x] (main: `492f359`, PR #31)
 
 ##### Purpose
 
@@ -459,7 +459,7 @@ Create the smallest evidence-bearing object set needed for Module 1.
 
 - MVP
 
-#### Issue 4.2: Implement artifact storage linkage and metadata persistence [x] (main: `69e72a7`, PR pending)
+#### Issue 4.2: Implement artifact storage linkage and metadata persistence [~] (main: `69e72a7`, PR #32; thin linkage landed)
 
 ##### Purpose
 
@@ -487,7 +487,7 @@ Support file-like outputs such as fetched content, normalized payloads, and repo
 
 ##### Status
 
-- complete
+- in progress (thin storage linkage landed; full artifact lifecycle coverage and hardening remain open)
 
 ##### Status target
 

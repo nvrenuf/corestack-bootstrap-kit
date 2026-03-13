@@ -59,11 +59,11 @@ Goal: Deliver the minimum secure Corestack control plane that can host Module 1.
 - [x] Define and implement minimum case object and run-to-case linkage (`821abc0`, PR #28)
 - [x] Define policy decision contract for governed actions (`0a8d76a`, PR #28)
 - [x] Implement `web.fetch` and `web.search` tool contracts and schemas (`2046ecd`, PR #28)
-- [x] Land minimal governed tool gateway scaffolding (`31c49b4`, PR #29)
-- [x] Define the minimum evidence, artifact, and finding objects (`492f359`, PR pending)
-- [x] Implement artifact storage linkage and metadata persistence (`69e72a7`, PR pending)
+- [~] Land minimal governed tool gateway scaffolding (`31c49b4`, PR #29)
+- [x] Define the minimum evidence, artifact, and finding objects (`492f359`, PR #31)
+- [~] Implement artifact storage linkage and metadata persistence (`69e72a7`, PR #32)
 
-Note: These are MVP-slice completions. Milestone issues #4/#17/#18 remain open for non-MVP hardening and full acceptance criteria.
+Note: These are MVP-slice thin-slice reconciliations. Keep Milestone issues #4/#17/#18/#21 open until full acceptance criteria are satisfied.
 
 ### Epic: Controlled Internet Access (Tool Gateway + n8n)  #16 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/16
 7. **Define and implement Corestack control plane architecture**  #2 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/2  
