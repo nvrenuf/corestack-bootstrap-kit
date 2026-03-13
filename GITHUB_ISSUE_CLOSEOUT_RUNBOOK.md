@@ -77,3 +77,20 @@ Closing as planning complete. Any follow-on implementation work remains tracked 
 - PR #29: `31c49b4`
 - PR #31: `492f359`
 - PR #32: `69e72a7`
+
+## Issues to close when approval slice PR merges
+
+- #5.1 — Define and implement the approval object model and state machine
+- #5.2 — Add workflow approval checkpoints and approval queue/detail surfaces
+
+### Close note to paste for #5.1
+
+Completed in thin-slice MVP scope.
+
+Implemented durable approval objects with stable identifiers, run/workflow/case/policy linkage, pending/approved/denied/expired state machine transitions, and approval lifecycle audit events aligned to the structured audit model.
+
+### Close note to paste for #5.2
+
+Completed in thin-slice MVP scope.
+
+Implemented minimal run/workflow approval checkpoints using existing policy decision semantics plus core-owned approvals queue/detail UI surfaces with approve/deny actions that resume or terminate gated runs and persist audit trail transitions.

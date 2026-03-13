@@ -24,6 +24,8 @@ export const AUDIT_EVENT_TYPES = {
   TOOL_INVALID_REQUEST: "tool.execution.invalid_request",
   EVIDENCE_MUTATED: "evidence.object.mutated",
   APPROVAL_PLACEHOLDER: "approval.lifecycle.placeholder",
+  APPROVAL_CREATED: "approval.lifecycle.created",
+  APPROVAL_STATE_CHANGED: "approval.lifecycle.state_changed",
 };
 
 export function validateAuditEvent(event) {

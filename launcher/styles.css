@@ -260,3 +260,24 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+.approval-list {
+  list-style: none;
+  padding-left: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.approval-item a {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.approval-item.selected a {
+  background: var(--accent-soft);
+  border-color: rgba(178, 76, 47, 0.4);
+}

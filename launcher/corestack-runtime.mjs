@@ -1,4 +1,4 @@
-export const RUN_STATES = ["created", "running", "blocked", "failed", "completed"];
+export const RUN_STATES = ["created", "running", "pending_approval", "blocked", "failed", "completed"];
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -257,6 +257,108 @@ export function createRunStore({
           status: updated.status,
           step_id: stepId ?? updated.currentStepId,
           output,
+        },
+      });
+      return updated;
+    },
+    appendPolicyDecision(runId, decision) {
+      if (!decision || typeof decision !== "object") {
+        throw new Error("policy decision must be an object");
+      }
+
+      return updateRun(runId, (run) => {
+        run.policyDecisions = [...run.policyDecisions, decision];
+        return run;
+      });
+    },
+    markPendingApproval(runId, { stepId, approvalId, reason = "policy-requires-approval" } = {}) {
+      if (!approvalId) {
+        throw new Error("approvalId is required to mark pending approval");
+      }
+
+      const updated = updateRun(runId, (run) => {
+        run.status = "pending_approval";
+        run.isResumable = false;
+        run.resumeToken = null;
+        run.pendingApproval = {
+          approvalId,
+          reason,
+          requestedAt: now(),
+        };
+        run.stepRecords = run.stepRecords.map((step) =>
+          step.stepId === (stepId ?? run.currentStepId)
+            ? {
+                ...step,
+                status: "blocked",
+                metadata: { ...step.metadata, approvalId, reason, pendingApproval: true },
+              }
+            : step,
+        );
+        return run;
+      });
+
+      emitEvent({
+        event_type: "run.lifecycle.state_changed",
+        timestamp: now(),
+        correlation: {
+          run_id: updated.runId,
+          workflow_id: updated.workflowId,
+          case_id: updated.caseId,
+          approval_id: approvalId,
+        },
+        payload: {
+          status: updated.status,
+          step_id: stepId ?? updated.currentStepId,
+          reason,
+          approval_id: approvalId,
+        },
+      });
+      return updated;
+    },
+    resolveApprovalCheckpoint(runId, { stepId, approvalId, outcome } = {}) {
+      if (!["approved", "denied"].includes(outcome)) {
+        throw new Error("approval resolution outcome must be approved or denied");
+      }
+
+      const updated = updateRun(runId, (run) => {
+        if (run.status !== "pending_approval") {
+          throw new Error("run is not pending approval");
+        }
+
+        if (run.pendingApproval?.approvalId !== approvalId) {
+          throw new Error("approvalId does not match run pending approval checkpoint");
+        }
+
+        run.pendingApproval = null;
+        run.status = outcome === "approved" ? "running" : "failed";
+        run.error = outcome === "denied" ? { code: "approval.denied" } : null;
+        run.stepRecords = run.stepRecords.map((step) =>
+          step.stepId === (stepId ?? run.currentStepId)
+            ? {
+                ...step,
+                status: outcome === "approved" ? "running" : "failed",
+                endedAt: outcome === "denied" ? now() : step.endedAt,
+                metadata: { ...step.metadata, approvalResolution: outcome },
+              }
+            : step,
+        );
+        return run;
+      });
+
+      emitEvent({
+        event_type: "run.lifecycle.state_changed",
+        timestamp: now(),
+        correlation: {
+          run_id: updated.runId,
+          workflow_id: updated.workflowId,
+          case_id: updated.caseId,
+          approval_id: approvalId,
+        },
+        payload: {
+          status: updated.status,
+          step_id: stepId ?? updated.currentStepId,
+          approval_outcome: outcome,
+          approval_id: approvalId,
         },
       });
       return updated;

@@ -130,6 +130,83 @@ function renderHomeSurface(context = {}) {
   `;
 }
 
+
+function renderApprovalQueueItem(item, isSelected = false) {
+  return `
+    <li class="approval-item ${isSelected ? "selected" : ""}">
+      <a href="#/approvals?approvalId=${item.approvalId}">
+        <strong>${item.summary}</strong>
+        <span> · ${item.status}</span>
+        ${item.runId ? `<span> · Run ${item.runId}</span>` : ""}
+        ${item.caseId ? `<span> · Case ${item.caseId}</span>` : ""}
+      </a>
+    </li>
+  `;
+}
+
+function renderApprovalDetail(detail) {
+  if (!detail) {
+    return `
+      <article class="shell-panel">
+        <span class="surface-meta">Approval detail</span>
+        <h3>Select an approval</h3>
+        <p>Choose an item from the queue to inspect policy rationale and governed action context.</p>
+      </article>
+    `;
+  }
+
+  const reasons = detail.policyDecision?.reasons ?? [];
+  return `
+    <article class="shell-panel">
+      <span class="surface-meta">Approval detail</span>
+      <h3>${detail.subject.summary}</h3>
+      <p>Status: <strong>${detail.status}</strong></p>
+      <ul class="placeholder-list">
+        <li>Governed action: ${detail.governedAction.type} (${detail.governedAction.id})</li>
+        <li>Workflow: ${detail.links.workflowId ?? "n/a"}</li>
+        <li>Run: ${detail.links.runId ?? "n/a"}</li>
+        <li>Case: ${detail.links.caseId ?? "n/a"}</li>
+        <li>Policy decision: ${detail.links.policyDecisionId ?? "n/a"}</li>
+      </ul>
+      <h4>Policy rationale</h4>
+      ${reasons.length ? `<ul class="placeholder-list">${reasons.map((reason) => `<li>${reason.code}: ${reason.message}</li>`).join("")}</ul>` : "<p>No policy reasons provided.</p>"}
+      <h4>Conceptual effect</h4>
+      <ul class="placeholder-list">
+        <li>Approve: run continues beyond the governed checkpoint.</li>
+        <li>Deny: run transitions to failed with approval denial context.</li>
+      </ul>
+      ${detail.status === "pending" ? `
+        <div class="action-row">
+          <button class="action-button" type="button" data-approval-action="approve" data-approval-id="${detail.approvalId}">Approve</button>
+          <button class="action-button secondary" type="button" data-approval-action="deny" data-approval-id="${detail.approvalId}">Deny</button>
+        </div>
+      ` : ""}
+    </article>
+  `;
+}
+
+function renderApprovalsSurface(context = {}) {
+  const queue = context.approvalQueue ?? [];
+  const selectedApprovalId = context.selectedApprovalId ?? null;
+  const detail = context.approvalDetail ?? null;
+
+  return `
+    <section class="surface-grid" data-surface-id="approvals">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Core approvals surface</span>
+        <h3>Approval queue</h3>
+        <p>Review governed actions awaiting explicit human decision.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Queue</span>
+        <h3>Pending approvals</h3>
+        ${queue.length ? `<ul class="placeholder-list approval-list">${queue.map((item) => renderApprovalQueueItem(item, item.approvalId === selectedApprovalId)).join("")}</ul>` : "<p>No pending approvals.</p>"}
+      </article>
+      ${renderApprovalDetail(detail)}
+    </section>
+  `;
+}
+
 function renderLauncherSurface(context = {}) {
   const startPath = context.startPathLabel ?? "Alert triage and investigation";
   const attachTarget = context.attachableCase;
@@ -183,6 +260,10 @@ export function renderRouteContent(route, context = {}) {
 
   if (route.id === "launcher") {
     return renderLauncherSurface(context);
+  }
+
+  if (route.id === "approvals") {
+    return renderApprovalsSurface(context);
   }
 
   return renderSurfacePlaceholder(route);

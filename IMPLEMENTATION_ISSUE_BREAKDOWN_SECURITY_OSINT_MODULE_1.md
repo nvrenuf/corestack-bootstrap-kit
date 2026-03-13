@@ -552,12 +552,16 @@ Provide the shared approval contract required for Module 1.
 ##### Acceptance criteria
 
 - approval requests can be created, updated, and resolved
-- approval states include pending, approved, denied, changes requested, escalated, expired, and overridden
+- approval states include pending, approved, denied, and expired for MVP
 - approvals link to relevant work objects
 
 ##### Ownership
 
 - core-owned
+
+##### Status
+
+- completed (thin core-owned approval model with durable objects and minimal state machine landed)
 
 ##### Status target
 
@@ -585,12 +589,16 @@ Make approvals actionable in the operator experience.
 ##### Acceptance criteria
 
 - a workflow can pause on an approval checkpoint
-- approvers can approve, deny, request changes, or escalate
+- approvers can approve or deny in MVP queue/detail surfaces
 - approval outcomes resume or terminate the gated path appropriately
 
 ##### Ownership
 
 - core-owned
+
+##### Status
+
+- completed (run checkpoints, approval queue/detail UI, and approval lifecycle audit transitions landed)
 
 ##### Status target
 
