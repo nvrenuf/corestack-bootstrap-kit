@@ -50,16 +50,39 @@ CREATE INDEX IF NOT EXISTS idx_radar_topic_started
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'ingest_writer') THEN
-        CREATE ROLE ingest_writer LOGIN PASSWORD 'ingest_writer_pw';
+        CREATE ROLE ingest_writer NOLOGIN;
     END IF;
+    ALTER ROLE ingest_writer NOLOGIN;
 END$$;
 
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'synth_reader') THEN
-        CREATE ROLE synth_reader LOGIN PASSWORD 'synth_reader_pw';
+        CREATE ROLE synth_reader NOLOGIN;
     END IF;
+    ALTER ROLE synth_reader NOLOGIN;
 END$$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'ingest_api') THEN
+        CREATE ROLE ingest_api LOGIN PASSWORD 'ingest_api_pw';
+    END IF;
+    ALTER ROLE ingest_api LOGIN PASSWORD 'ingest_api_pw';
+END$$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'synth_api') THEN
+        CREATE ROLE synth_api LOGIN PASSWORD 'synth_api_pw';
+    END IF;
+    ALTER ROLE synth_api LOGIN PASSWORD 'synth_api_pw';
+END$$;
+
+ALTER ROLE ingest_api INHERIT;
+ALTER ROLE synth_api INHERIT;
+ALTER ROLE ingest_api SET ROLE ingest_writer;
+ALTER ROLE synth_api SET ROLE synth_reader;
 
 DO $$
 BEGIN
@@ -69,6 +92,8 @@ END$$;
 
 GRANT USAGE ON SCHEMA public TO ingest_writer;
 GRANT USAGE ON SCHEMA public TO synth_reader;
+GRANT ingest_writer TO ingest_api;
+GRANT synth_reader TO synth_api;
 
 REVOKE ALL ON ALL TABLES IN SCHEMA public FROM PUBLIC;
 REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM PUBLIC;
@@ -77,9 +102,13 @@ REVOKE ALL PRIVILEGES ON TABLE signal_items FROM ingest_writer;
 REVOKE ALL PRIVILEGES ON TABLE radar_runs FROM ingest_writer;
 REVOKE ALL PRIVILEGES ON TABLE signal_items FROM synth_reader;
 REVOKE ALL PRIVILEGES ON TABLE radar_runs FROM synth_reader;
+REVOKE ALL PRIVILEGES ON TABLE signal_items FROM ingest_api;
+REVOKE ALL PRIVILEGES ON TABLE radar_runs FROM ingest_api;
+REVOKE ALL PRIVILEGES ON TABLE signal_items FROM synth_api;
+REVOKE ALL PRIVILEGES ON TABLE radar_runs FROM synth_api;
 
-GRANT INSERT ON TABLE signal_items TO ingest_writer;
-GRANT INSERT, UPDATE ON TABLE radar_runs TO ingest_writer;
+GRANT INSERT ON TABLE public.signal_items TO ingest_writer;
+GRANT INSERT, UPDATE ON TABLE public.radar_runs TO ingest_writer;
 
-GRANT SELECT ON TABLE signal_items TO synth_reader;
-GRANT SELECT ON TABLE radar_runs TO synth_reader;
+GRANT SELECT ON TABLE public.signal_items TO synth_reader;
+GRANT SELECT ON TABLE public.radar_runs TO synth_reader;

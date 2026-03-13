@@ -32,7 +32,7 @@ def insert_signal_item(conn: psycopg.Connection, params: dict[str, Any]) -> bool
 
     row = conn.execute(
         """
-        INSERT INTO signal_items (
+        INSERT INTO public.signal_items (
             id, topic_id, platform, content_type, source_id, url, author,
             published_at, collected_at, title, text_snippet,
             engagement_json, tags_json, language, hash, raw_ref_json
@@ -58,7 +58,7 @@ def insert_run_start(
 ) -> None:
     conn.execute(
         """
-        INSERT INTO radar_runs (run_id, topic_id, started_at, time_window_days, status)
+        INSERT INTO public.radar_runs (run_id, topic_id, started_at, time_window_days, status)
         VALUES (%s, %s, now(), %s, %s)
         """,
         (str(run_id), topic_id, time_window_days, "ok"),
@@ -75,7 +75,7 @@ def update_run_finish(
 ) -> int:
     cur = conn.execute(
         """
-        UPDATE radar_runs
+        UPDATE public.radar_runs
         SET finished_at = now(), counts_json = %s, status = %s, error_text = %s
         WHERE run_id = %s
         """,

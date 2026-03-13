@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from uuid import uuid4
+
 import psycopg
 import pytest
 from psycopg import errors
@@ -33,24 +35,58 @@ def _conn_as_role(postgres_db, user: str, password: str) -> psycopg.Connection:
     return psycopg.connect(**kwargs)
 
 
-def test_ingest_writer_permissions(admin_conn, postgres_db):
+def test_ingest_service_login_permissions(admin_conn, postgres_db):
     apply_migration(admin_conn)
 
-    with _conn_as_role(postgres_db, "ingest_writer", "ingest_writer_pw") as ingest_conn:
+    with _conn_as_role(postgres_db, "ingest_api", "ingest_api_pw") as ingest_conn:
+        row_id = str(uuid4())
+        hash_value = f"ingest-hash-{uuid4()}"
         ingest_conn.execute(
             """
-            INSERT INTO signal_items (topic_id, platform, content_type, url, hash)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO public.signal_items (
+                id,
+                topic_id,
+                platform,
+                content_type,
+                url,
+                collected_at,
+                engagement_json,
+                tags_json,
+                language,
+                hash,
+                raw_ref_json
+            )
+            VALUES (
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                now(),
+                '{}'::jsonb,
+                '{}'::jsonb,
+                %s,
+                %s,
+                '{}'::jsonb
+            )
             """,
-            ("work-money", "reddit", "post", "https://example.com/a", "ingest-hash-1"),
+            (
+                row_id,
+                "work-money",
+                "reddit",
+                "post",
+                "https://example.com/a",
+                "en",
+                hash_value,
+            ),
         )
 
         with pytest.raises(errors.InsufficientPrivilege) as select_error:
-            ingest_conn.execute("SELECT * FROM signal_items").fetchall()
+            ingest_conn.execute("SELECT * FROM public.signal_items").fetchall()
         assert select_error.value.sqlstate == "42501"
 
 
-def test_synth_reader_permissions(admin_conn, postgres_db):
+def test_synth_service_login_permissions(admin_conn, postgres_db):
     apply_migration(admin_conn)
 
     admin_conn.execute(
@@ -61,7 +97,7 @@ def test_synth_reader_permissions(admin_conn, postgres_db):
         ("work-money", "news", "article", "https://example.com/b", "reader-hash-1"),
     )
 
-    with _conn_as_role(postgres_db, "synth_reader", "synth_reader_pw") as synth_conn:
+    with _conn_as_role(postgres_db, "synth_api", "synth_api_pw") as synth_conn:
         count = synth_conn.execute("SELECT COUNT(*) FROM signal_items").fetchone()[0]
         assert count >= 1
 
@@ -74,3 +110,34 @@ def test_synth_reader_permissions(admin_conn, postgres_db):
                 ("work-money", "reddit", "post", "https://example.com/c", "reader-hash-2"),
             )
         assert insert_error.value.sqlstate == "42501"
+
+
+def test_service_login_roles_inherit_privilege_roles(admin_conn):
+    apply_migration(admin_conn)
+
+    role_flags = dict(
+        admin_conn.execute(
+            """
+            SELECT rolname, rolinherit
+            FROM pg_roles
+            WHERE rolname IN ('ingest_api', 'synth_api')
+            """
+        ).fetchall()
+    )
+    assert role_flags["ingest_api"] is True
+    assert role_flags["synth_api"] is True
+
+    memberships = {
+        (member, role)
+        for member, role in admin_conn.execute(
+            """
+            SELECT m.rolname AS member_name, r.rolname AS role_name
+            FROM pg_auth_members am
+            JOIN pg_roles r ON r.oid = am.roleid
+            JOIN pg_roles m ON m.oid = am.member
+            WHERE m.rolname IN ('ingest_api', 'synth_api')
+            """
+        ).fetchall()
+    }
+    assert ("ingest_api", "ingest_writer") in memberships
+    assert ("synth_api", "synth_reader") in memberships

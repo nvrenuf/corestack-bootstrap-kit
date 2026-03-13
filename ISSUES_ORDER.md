@@ -1,153 +1,203 @@
 # ISSUES_ORDER.md — Corestack Execution Order
 
 This file defines the build order for Corestack, grouped into milestones with clear priorities.
-Rule: **Corestack base stays lean.** Domain “agents” ship as **packs** on top of these primitives.
+Rule: **Corestack is one desktop/control plane product.** Domain capabilities ship as **modules**, not separate OS builds. The term **pack** remains available only where it is the correct runtime packaging concept.
 
 ---
 
-## Milestone 1 — Tool System MVP (P0/P1)
+## Milestone 0 — Product and Architecture Lock (P0)
 
-Goal: Prove Corestack as an “agent OS” by delivering a secure, testable, documented tool system that any pack can use.
+Goal: Lock the product shape, architecture boundaries, approval model, security posture, and first module before implementation expands.
+
+1. **Core vs Module boundary**  #TBD  
+   Owner: TBD  
+   - [ ] Core responsibilities are explicitly defined  
+   - [ ] Module responsibilities are explicitly defined  
+   - [ ] Shared contracts are defined for APIs, events, storage, policies, workflows, and UI extension points
+
+2. **Security/OSINT Module 1 definition**  #TBD  
+   Owner: TBD  
+   - [ ] Users, jobs, and non-goals are documented  
+   - [ ] Reference workflows are defined  
+   - [ ] Required tools, models, evidence objects, connectors, and control plane surfaces are identified
+
+3. **Evidence and case object model**  #TBD  
+   Owner: TBD  
+   - [ ] Core evidence, case, artifact, finding, source, and relationship objects are defined  
+   - [ ] Provenance and chain-of-custody fields are defined  
+   - [ ] Retention, redaction, and export implications are documented
+
+4. **Agent sandbox / gatekeeper security model**  #TBD  
+   Owner: TBD  
+   - [ ] Trust boundaries are defined  
+   - [ ] Sandbox and isolation expectations are documented  
+   - [ ] Policy enforcement points and audit requirements are defined
+
+5. **Approvals and human-in-the-loop decision model**  #TBD  
+   Owner: TBD  
+   - [ ] Approval object, states, escalation, and override rules are defined  
+   - [ ] Workflow, model, tool, and connector approval hooks are identified  
+   - [ ] Auditability requirements are defined
+
+6. **Define product surface area: UI/UX, admin, and day-2 operations**  #12 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/12  
+   Owner: TBD  
+   - [ ] Launcher, agents, runs, approvals, evidence/cases, logs/audit, policies, connectors, admin, and day-2 ops surfaces are defined  
+   - [ ] Module management is defined in product language  
+   - [ ] Self-hosted-first UX assumptions are documented
+
+---
+
+## Milestone 1 — Corestack Control Plane Foundation (P0/P1)
+
+Goal: Deliver the minimum secure Corestack control plane that can host Module 1.
 
 ### Epic: Controlled Internet Access (Tool Gateway + n8n)  #16 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/16
-1. **Define and implement Corestack control plane architecture**  #2 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/2  
+7. **Define and implement Corestack control plane architecture**  #2 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/2  
    Owner: TBD  
-   - [ ] Define base services and control surfaces (CLI first)  
-   - [ ] Define profile/pack lifecycle hooks (install/up/down/status/logs)  
-   - [ ] Define config/env conventions and storage paths
+   - [ ] Single control plane runtime and component topology are defined  
+   - [ ] Module, run, approval, policy, model, connector, and evidence lifecycles are defined  
+   - [ ] Self-hosted config, secrets, storage, and security defaults are defined
 
-2. **Design and build policy engine and tool gating**  #4 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/4  
+8. **Design and build policy engine and tool gating**  #4 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/4  
    Owner: TBD  
-   - [ ] Policy model (allowlist/denylist, rate-limit, timeouts, size limits)  
-   - [ ] Decision logging format (audit events)  
-   - [ ] Safe defaults (deny-by-default for secure profile)
+   - [ ] Policy model covers allow/deny, rate limits, timeouts, size limits, and trust boundaries  
+   - [ ] Decision logging format is defined  
+   - [ ] Safe defaults are deny-by-default for hardened deployments
 
-3. **Define tool schemas: web.fetch + web.search**  #17 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/17  
+9. **Define tool schemas: web.fetch + web.search**  #17 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/17  
    Owner: TBD  
-   - [ ] JSON schema for each tool request/response  
-   - [ ] Error model and normalization rules  
-   - [ ] Tool metadata (capabilities, limits, required permissions)
+   - [ ] JSON schema for each tool request and response  
+   - [ ] Error model and normalization rules are defined  
+   - [ ] Tool metadata includes capabilities, limits, and required permissions
 
-4. **Implement Tool Gateway enforcement layer (allowlist, rate limit, payload validation)**  #18 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/18  
-   Owner: TBD  
-   - [ ] Validate inputs against schema  
-   - [ ] Enforce allowlist + file-based allowlist support  
-   - [ ] Enforce rate limits, max bytes, timeouts  
-   - [ ] Return normalized errors
+10. **Implement Tool Gateway enforcement layer (allowlist, rate limit, payload validation)**  #18 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/18  
+    Owner: TBD  
+    - [ ] Inputs are validated against schema  
+    - [ ] Allowlists, rate limits, max bytes, and timeouts are enforced  
+    - [ ] Normalized errors are returned
 
-5. **Wire Tool Gateway → n8n (routing, auth header/shared secret, response normalization)**  #20 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/20  
-   Owner: TBD  
-   - [ ] Shared secret / auth header between gateway and n8n  
-   - [ ] Route web.fetch/web.search to correct webhook endpoints  
-   - [ ] Normalize n8n responses to tool schemas  
-   - [ ] Handle retries and timeouts safely
+11. **Wire Tool Gateway → n8n (routing, auth header/shared secret, response normalization)**  #20 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/20  
+    Owner: TBD  
+    - [ ] Shared secret and auth header handling are defined  
+    - [ ] Routes are wired safely  
+    - [ ] Responses are normalized and failure paths are safe
 
-6. **Build n8n workflows for web.fetch (HTTP request) and web.search (search provider)**  #19 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/19  
-   Owner: TBD  
-   - [ ] web.fetch workflow: fetch → parse → limits → return  
-   - [ ] web.search workflow: provider call → normalize → return  
-   - [ ] Provider-agnostic config placeholders (keys via credentials)
+12. **Build n8n workflows for web.fetch (HTTP request) and web.search (search provider)**  #19 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/19  
+    Owner: TBD  
+    - [ ] web.fetch and web.search workflows are implemented  
+    - [ ] Limits and normalization are enforced  
+    - [ ] Provider config is externalized safely
 
-7. **Add audit logging + security events (requests, domains, decisions, failures)**  #21 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/21  
-   Owner: TBD  
-   - [ ] Structured event format (JSON)  
-   - [ ] Log decisions (allow/deny) + reasons  
-   - [ ] Include domain, tool, requester, size, duration, status  
-   - [ ] Redaction rules for secrets
+13. **Add audit logging + security events (requests, domains, decisions, failures)**  #21 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/21  
+    Owner: TBD  
+    - [ ] Structured event format is implemented  
+    - [ ] Allow and deny decisions are logged with reasons  
+    - [ ] Secret redaction rules are enforced
 
-8. **Integration tests + validation harness (E2E, negative tests, allowlist tests)**  #22 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/22  
-   Owner: TBD  
-   - [ ] Golden-path E2E for web.fetch and web.search  
-   - [ ] Negative tests: blocked domain, oversize payload, timeout, rate limit  
-   - [ ] Contract tests for schema conformance  
-   - [ ] CI-friendly runner
+14. **Integration tests + validation harness (E2E, negative tests, allowlist tests)**  #22 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/22  
+    Owner: TBD  
+    - [ ] Golden-path and negative-path E2E tests are implemented  
+    - [ ] Contract tests enforce schema conformance  
+    - [ ] CI-friendly runner is available
 
-9. **Docs: runbook + configuration + threat model notes**  #23 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/23  
-   Owner: TBD  
-   - [ ] How to run base + tool system  
-   - [ ] How to configure allowlists safely  
-   - [ ] Threat model: egress, prompt injection via retrieved content, SSRF, data exfil  
-   - [ ] Operational troubleshooting (logs, common failures)
+15. **Docs: runbook + configuration + threat model notes**  #23 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/23  
+    Owner: TBD  
+    - [ ] Runbook and configuration docs exist  
+    - [ ] Threats and mitigations are documented  
+    - [ ] Operational troubleshooting is documented
 
 ---
 
-## Milestone 2 — Packs + Ops Maturity (P2)
+## Milestone 2 — Security/OSINT Module 1 Enablement (P1)
 
-Goal: Make the platform stable to build and ship multiple paid packs.
+Goal: Make the platform capable of supporting the first real module: Security/OSINT.
 
-10. **Establish tool ecosystem packaging, distribution, and security**  #11 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/11  
+16. **Build workflow engine and orchestration layer**  #10 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/10  
     Owner: TBD  
-    - [ ] Pack contract (pack.json + compose + assets)  
-    - [ ] Pack install/update/remove flow (CLI)  
-    - [ ] Pack provenance (signing/checksums)  
-    - [ ] Secrets separation per pack
+    - [ ] Workflow primitives support ingest, enrich, correlate, analyze, review, and report patterns  
+    - [ ] Human review, approvals, policy checks, and resumable runs are supported  
+    - [ ] Workflow artifacts can attach to evidence and case records
 
-11. **Build workflow engine and orchestration layer**  #10 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/10  
+17. **Implement model management and routing layer**  #9 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/9  
     Owner: TBD  
-    - [ ] Standard pipeline patterns (research → draft → QA → publish)  
-    - [ ] Manual gates support  
-    - [ ] Artifact storage conventions
+    - [ ] Open-weight local models are the default path  
+    - [ ] Pluggable provider adapters are supported  
+    - [ ] Policy-governed routing is enforced and logged
 
-12. **Implement model management and routing layer**  #9 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/9  
+18. **Security audit, forensics, and evidence trails**  #TBD  
     Owner: TBD  
-    - [ ] Provider routing rules (local vs online)  
-    - [ ] Per-pack model selection  
-    - [ ] Cost/latency constraints
+    - [ ] Security audit taxonomy is defined  
+    - [ ] Evidence provenance and chain-of-custody are captured  
+    - [ ] Exportable forensic packages are supported
 
-13. **Develop comprehensive observability, audit, and forensics functionality**  #8 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/8  
+19. **Define data lifecycle and privacy controls**  #6 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/6  
     Owner: TBD  
-    - [ ] Dashboards for tool usage and failures  
-    - [ ] Exportable audit trails  
-    - [ ] Forensics-friendly retention
+    - [ ] Retention policies are defined  
+    - [ ] Redaction and PII handling are defined  
+    - [ ] Deletion workflows are defined
 
-14. **Define data lifecycle and privacy controls**  #6 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/6  
+20. **Develop evaluation harness and quality gates**  #13 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/13  
     Owner: TBD  
-    - [ ] Retention policies per pack  
-    - [ ] Redaction + PII handling  
-    - [ ] Deletion workflows
-
-15. **Develop evaluation harness and quality gates**  #13 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/13  
-    Owner: TBD  
-    - [ ] Output validators (citations, banned claims, safety)  
-    - [ ] Regression tests for packs  
-    - [ ] Quality scoring gates
-
-16. **Define product surface area: UI/UX, admin, and day‑2 operations**  #12 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/12  
-    Owner: TBD  
-    - [ ] Stack Manager UI (start/stop/status)  
-    - [ ] Pack catalog view (installed/available)  
-    - [ ] Backup/restore workflows
+    - [ ] Output validators exist for safety and correctness  
+    - [ ] Regression tests cover module behavior  
+    - [ ] Quality gates are defined for release readiness
 
 ---
 
-## Milestone 3 — Enterprise + Commercial (P3)
+## Milestone 3 — Platform Operations Maturity (P2)
 
-Goal: Make Corestack enterprise-deployable and sellable with procurement-ready posture.
+Goal: Make Corestack stable, operable, and maintainable in self-hosted environments.
 
-17. **Integrate enterprise-grade identity and authorization**  #3 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/3  
+21. **Establish module packaging, runtime contract, and pack distribution/security**  #11 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/11  
     Owner: TBD  
-    - [ ] SSO/OIDC integration path  
-    - [ ] Role-based access controls  
-    - [ ] Per-pack permissions
+    - [ ] Module contract is defined  
+    - [ ] Runtime packaging and update flows are defined  
+    - [ ] Pack provenance and secrets separation are supported
 
-18. **Implement multi-tenant isolation and segregation**  #5 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/5  
+22. **Platform observability and ops telemetry**  #TBD  
     Owner: TBD  
-    - [ ] Tenant scoping for tools/data/logs  
-    - [ ] Isolation boundaries and enforcement  
-    - [ ] Tenant-level allowlists and keys
+    - [ ] Metrics, logs, traces, and dashboards exist for the control plane and modules  
+    - [ ] Alerts and health views exist for self-hosted operation  
+    - [ ] Telemetry export paths are defined
 
-19. **Plan commercial readiness: deployment options, licensing, and procurement**  #14 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/14  
+23. **Backup, restore, upgrade, and recovery operations**  #TBD  
     Owner: TBD  
-    - [ ] Packaging (self-host, managed, airgapped options)  
-    - [ ] Licensing/entitlement model for paid packs  
-    - [ ] Security documentation bundle (SOC2 mapping, threat model, SBOM)
+    - [ ] Backup and restore flows are implemented  
+    - [ ] Upgrade and rollback expectations are defined  
+    - [ ] Recovery runbooks are documented
 
 ---
 
-## Fear Signal Radar (STA) — Pack: fear-signal-radar
+## Milestone 4 — Enterprise and Commercial Readiness (P3)
 
-Current pack version: **0.1.0**
+Goal: Add enterprise controls after the single-product, self-hosted, security-first foundation is working.
+
+24. **Integrate enterprise-grade identity and authorization**  #3 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/3  
+    Owner: TBD  
+    - [ ] SSO and OIDC integration path is defined  
+    - [ ] Role-based access controls are implemented  
+    - [ ] Module permissions are supported
+
+25. **Implement multi-tenant isolation and segregation**  #5 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/5  
+    Owner: TBD  
+    - [ ] Tenant scoping exists for tools, data, logs, models, and evidence  
+    - [ ] Isolation boundaries are enforced  
+    - [ ] Tenant-level policies and keys are supported
+
+26. **Plan commercial readiness: deployment options, licensing, and procurement**  #14 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/14  
+    Owner: TBD  
+    - [ ] Self-hosted and airgapped packaging are defined  
+    - [ ] Licensing and entitlement approach is defined  
+    - [ ] Security documentation bundle is prepared
+
+---
+
+## Fear Signal Radar (STA) — Module 1 Candidate Runtime Pack
+
+Current pack version: **0.1.0**  
 Status: NOT STARTED
+
+This section remains as an implementation/runtime packaging plan for the Security/OSINT domain. It is not the product-level roadmap.
 
 ### 0.1.0 MVP Execution Order
 
@@ -185,5 +235,9 @@ Status: NOT STARTED
 
 ## Notes
 
-- “Controlled Internet Access (Tool Gateway + n8n)” is **not the whole platform**; it is the **first proof** of the Tool System MVP (Milestone 1).
-- Packs (e.g., Marketing, OSINT, SHIELD) should not add complexity to the base. They consume the primitives above.
+- Corestack is **one desktop/control plane**, not a family of separate OS builds.
+- Domain capabilities are **modules**, not separate products.
+- **Security/OSINT is Module 1** and should drive the first real platform abstractions.
+- Models are **open-weight-first, pluggable, and policy-governed**.
+- Security is **hardened by design**, with sandboxing, gatekeeping, audit, and least-privilege defaults.
+- Deployment is **self-hosted-first**; managed and commercial concerns come later.

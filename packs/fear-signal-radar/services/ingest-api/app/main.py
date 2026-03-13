@@ -39,6 +39,13 @@ def create_app() -> FastAPI:
     logger = get_logger()
     settings = get_settings()
     app.state.settings = settings
+    log_ingest_event(
+        logger,
+        event="ingest_startup",
+        db_user=settings.db_user,
+        db_host=settings.db_host,
+        db_port=settings.db_port,
+    )
 
     @app.middleware("http")
     async def body_limit_and_request_id(request: Request, call_next):
@@ -100,6 +107,7 @@ def create_app() -> FastAPI:
 
         log_ingest_event(
             logger,
+            event="ingest_signal",
             request_id=request.state.request_id,
             collector_id=x_collector_id or "unknown",
             topic_id=payload.topic_id,
@@ -107,6 +115,7 @@ def create_app() -> FastAPI:
             url=sanitized_url,
             status=response_status,
             dedupe=dedupe_status,
+            duplicate_flag=not created,
             duration_ms=duration_ms,
             bytes_in=getattr(request.state, "bytes_in", 0),
         )

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1 (FSRA-008 / FSRA-009 / FSRA-010)
+
+- Added synthesizer agent with deterministic clustering, heuristic scoring, fear landscape/post-angle generation, and JSON/Markdown export.
+- Added runner/admin tooling: `scripts/run_topic.sh`, `scripts/export_report.sh`, and `scripts/admin_queries.sql`.
+- Added synthesizer and runner tests for deterministic/offline execution behavior.
+- Expanded pack operational documentation (`README.md`, `RUNBOOK.md`, `SECURITY.md`) and documented security boundaries.
+
 ## 0.1.0 (MVP: Phase 0–3)
 
 - Initial pack issue scaffolding and MVP delivery plan.

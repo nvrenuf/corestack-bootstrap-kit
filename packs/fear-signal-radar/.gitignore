@@ -1,5 +1,4 @@
-
-# FSRA pack local python artifacts
-packs/fear-signal-radar/.venv/
-packs/fear-signal-radar/*.egg-info/
-packs/fear-signal-radar/**/__pycache__/
+.venv/
+*.egg-info/
+__pycache__/
+outputs/
