@@ -4,19 +4,70 @@
   "title": "Corestack Tool Envelope",
   "type": "object",
   "additionalProperties": false,
-  "required": ["ok", "data"],
+  "required": [
+    "ok",
+    "data"
+  ],
   "properties": {
-    "ok": { "type": "boolean" },
-    "data": { "type": "object", "additionalProperties": true },
+    "ok": {
+      "type": "boolean"
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": true
+    },
     "error": {
       "anyOf": [
-        { "$ref": "./error.schema.json" },
-        { "type": "null" }
+        {
+          "$ref": "./error.schema.json"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
-    "source_meta": { "type": "object", "additionalProperties": true },
-    "timings_ms": { "type": "object", "additionalProperties": true },
-    "content_hash": { "type": ["string", "null"] }
+    "source_meta": {
+      "$ref": "./tool.metadata.schema.json"
+    },
+    "timings_ms": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "content_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "correlation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "correlation_id"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "correlation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "case_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
   }
 }
-

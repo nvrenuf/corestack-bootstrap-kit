@@ -4,20 +4,80 @@
   "title": "web.search Request",
   "type": "object",
   "additionalProperties": false,
-  "required": ["agent_id", "purpose", "inputs"],
+  "required": [
+    "agent_id",
+    "purpose",
+    "inputs",
+    "context"
+  ],
   "properties": {
-    "agent_id": { "type": "string", "minLength": 1 },
-    "purpose": { "type": "string", "minLength": 1 },
-    "request_id": { "type": "string", "minLength": 1 },
+    "agent_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
     "inputs": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["query"],
+      "required": [
+        "query"
+      ],
       "properties": {
-        "query": { "type": "string", "minLength": 1 },
-        "max_results": { "type": "integer", "minimum": 1, "maximum": 10, "default": 5 }
+        "query": {
+          "type": "string",
+          "minLength": 1
+        },
+        "max_results": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 5
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "correlation_id"
+      ],
+      "properties": {
+        "correlation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "case_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "workflow_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "module_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     }
   }
 }
-

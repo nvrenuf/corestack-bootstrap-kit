@@ -6,36 +6,75 @@
     {
       "title": "Success",
       "allOf": [
-        { "$ref": "./envelope.schema.json" },
+        {
+          "$ref": "./envelope.schema.json"
+        },
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["ok", "data"],
+          "required": [
+            "ok",
+            "data"
+          ],
           "properties": {
-            "ok": { "const": true },
-            "error": { "type": ["null"] },
+            "ok": {
+              "const": true
+            },
+            "error": {
+              "type": [
+                "null"
+              ]
+            },
             "data": {
               "type": "object",
-              "additionalProperties": true,
-              "required": ["query", "results", "searched_at"],
+              "additionalProperties": false,
+              "required": [
+                "query",
+                "results",
+                "searched_at"
+              ],
               "properties": {
-                "query": { "type": "string" },
+                "query": {
+                  "type": "string"
+                },
                 "results": {
                   "type": "array",
                   "items": {
                     "type": "object",
-                    "additionalProperties": true,
-                    "required": ["title", "url", "snippet", "source"],
+                    "additionalProperties": false,
+                    "required": [
+                      "title",
+                      "url",
+                      "snippet",
+                      "source"
+                    ],
                     "properties": {
-                      "title": { "type": "string" },
-                      "url": { "type": "string" },
-                      "snippet": { "type": "string" },
-                      "source": { "type": "string" },
-                      "published_at": { "type": ["string", "null"] }
+                      "title": {
+                        "type": "string"
+                      },
+                      "url": {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "snippet": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "published_at": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
                     }
                   }
                 },
-                "searched_at": { "type": "string", "format": "date-time" }
+                "searched_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
               }
             }
           }
@@ -45,19 +84,31 @@
     {
       "title": "Error",
       "allOf": [
-        { "$ref": "./envelope.schema.json" },
+        {
+          "$ref": "./envelope.schema.json"
+        },
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["ok", "data", "error"],
+          "required": [
+            "ok",
+            "data",
+            "error"
+          ],
           "properties": {
-            "ok": { "const": false },
-            "data": { "type": "object", "additionalProperties": true },
-            "error": { "$ref": "./error.schema.json" }
+            "ok": {
+              "const": false
+            },
+            "data": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "error": {
+              "$ref": "./error.schema.json"
+            }
           }
         }
       ]
     }
   ]
 }
-
