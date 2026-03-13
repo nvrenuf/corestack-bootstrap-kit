@@ -37,6 +37,7 @@
 
 ## Notes / blockers
 
+- Convenience/UI plumbing fix: restored secondary quick links to existing platform utilities (n8n, Ollama, DB Admin/Adminer) on the Launcher surface for operator access, without changing shell architecture, workflow behavior, or roadmap scope.
 - Issue 4.1 completed with a thin core-owned evidence model (evidence item, artifact, finding) including run/case linkage, provenance basics, lifecycle states, and audit reference hooks.
 - Issue 4.2 has thin artifact storage metadata persistence landed (normalized `storageRef`, run/case linkage validation, artifact/evidence reference checks), but remains in progress for full lifecycle/hardening acceptance criteria.
 - Issue 5.1 + 5.2 completed in a combined thin slice with pending/approved/denied/expired approval states, run pending-approval checkpoints, queue/detail review surfaces, and approval lifecycle audit events.
