@@ -115,3 +115,15 @@ Completed in thin-slice MVP scope.
 Implemented structured model execution audit hooks (`model.execution.requested`, `model.execution.decisioned`, `model.execution.result`, and `model.execution.restriction_blocked`) with run/workflow/case/actor/model correlation and route-decision compatibility, plus external-provider restriction blocking hooks for local-only/policy-disallowed execution paths (commit `current branch head`, PR TBD).
 
 Keeping broad provider integrations and full inference orchestration out of scope for subsequent issues.
+
+## Issues to close when module registration slice PR merges
+
+- #TBD — Issue 7.1: Register Security/OSINT Module 1 through the core module contract
+
+### Close note to paste for Issue 7.1
+
+Completed in thin-slice MVP scope.
+
+Implemented a reusable core-owned module registration contract (stable module identifiers, display labels, availability status, declared capabilities, control-plane metadata, registration/loading shape, and future association fields) and registered Security/OSINT Module 1 through that contract for launcher/modules visibility without introducing marketplace behavior (commit `current branch head`, PR TBD).
+
+Keeping full Module 1 workflow implementation tracked under Issue 7.2.

@@ -706,6 +706,10 @@ Validate that Module 1 is a domain extension rather than a private subsystem.
 
 - module-owned content on a core-owned contract
 
+##### Status
+
+- completed (thin core-owned module contract landed with Security/OSINT Module 1 registered for launcher/modules visibility without expanding into marketplace behavior)
+
 ##### Status target
 
 - MVP

@@ -24,11 +24,19 @@ import {
 import {
   createAuditEventStore,
 } from "./corestack-audit.mjs";
+import {
+  createModuleRegistry,
+  createSecurityOsintModule1Definition,
+} from "./corestack-modules.mjs";
 
 const navRoot = document.querySelector("[data-primary-nav]");
 const contentRoot = document.querySelector("[data-route-content]");
 const titleRoot = document.querySelector("[data-route-title]");
 const moduleHookRoot = document.querySelector("[data-module-nav-hook]");
+
+const moduleRegistry = createModuleRegistry([
+  createSecurityOsintModule1Definition(),
+]);
 
 const workflowRegistry = createWorkflowRegistry([
   {
@@ -84,6 +92,8 @@ function renderNav(activeRouteId) {
 function getRouteContext(routeId) {
   const runs = runStore.listRuns();
   const cases = caseStore.listCases();
+  const modules = moduleRegistry.list();
+  const primaryModule = modules[0] ?? null;
 
   if (routeId === "home") {
     return {
@@ -95,8 +105,15 @@ function getRouteContext(routeId) {
 
   if (routeId === "launcher") {
     return {
-      startPathLabel: "Launch alert triage run",
+      startPathLabel: primaryModule?.controlPlane?.launcherEntries?.[0]?.label ?? "Launch alert triage run",
       attachableCase: cases[0] ?? null,
+      primaryModule,
+    };
+  }
+
+  if (routeId === "modules") {
+    return {
+      modules,
     };
   }
 
@@ -118,7 +135,7 @@ function renderRoute() {
   const route = getRoute(routeId);
   titleRoot.textContent = route.label;
   renderNav(route.id);
-  moduleHookRoot.innerHTML = renderModuleHook();
+  moduleHookRoot.innerHTML = renderModuleHook(moduleRegistry.list());
   contentRoot.innerHTML = renderRouteContent(route, getRouteContext(route.id));
 }
 

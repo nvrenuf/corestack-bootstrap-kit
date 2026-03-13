@@ -5,6 +5,7 @@ import {
   TOP_LEVEL_ROUTES,
   getRoute,
   normalizeRoute,
+  renderModuleHook,
   renderRouteContent,
   renderSurfacePlaceholder,
 } from "../../launcher/corestack-shell.mjs";
@@ -61,4 +62,21 @@ test("launcher exposes a Security\/OSINT workflow start path inside the shared s
   assert.match(rendered, /Security \/ OSINT Module 1/);
   assert.match(rendered, /Alert triage and investigation/);
   assert.match(rendered, /Attach run to Security \/ OSINT alert triage/);
+});
+
+
+test("module hook and modules route render registered module visibility", () => {
+  const modules = [{
+    id: "security-osint-module-1",
+    name: "Security / OSINT Module 1",
+    status: "active",
+    capabilities: [{ id: "investigation.alert-triage", label: "Alert triage and investigation" }],
+  }];
+
+  const hook = renderModuleHook(modules);
+  const modulesSurface = renderRouteContent(getRoute("modules"), { modules });
+
+  assert.match(hook, /Security \/ OSINT Module 1/);
+  assert.match(modulesSurface, /Registered domain capabilities are visible here/);
+  assert.match(modulesSurface, /1 capability\(ies\)/);
 });

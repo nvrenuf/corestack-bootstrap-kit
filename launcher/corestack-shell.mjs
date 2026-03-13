@@ -41,11 +41,18 @@ export function renderSurfacePlaceholder(route) {
   `;
 }
 
-export function renderModuleHook() {
+export function renderModuleHook(modules = []) {
+  const moduleItems = modules.length
+    ? modules
+      .map((module) => `<li><strong>${module.name}</strong><span> · ${module.status}</span></li>`)
+      .join("")
+    : "<li>No modules registered yet.</li>";
+
   return `
     <ul class="hook-list">
       <li>Module surfaces register content inside the shared shell.</li>
       <li>Security/OSINT remains a module, not a separate desktop.</li>
+      ${moduleItems}
     </ul>
   `;
 }
@@ -208,8 +215,13 @@ function renderApprovalsSurface(context = {}) {
 }
 
 function renderLauncherSurface(context = {}) {
-  const startPath = context.startPathLabel ?? "Alert triage and investigation";
+  const module = context.primaryModule ?? null;
+  const launcherEntry = module?.controlPlane?.launcherEntries?.[0] ?? null;
+  const startPath = context.startPathLabel ?? launcherEntry?.label ?? "Alert triage and investigation";
   const attachTarget = context.attachableCase;
+  const moduleName = module?.name ?? "Security / OSINT Module 1";
+  const workflowId = launcherEntry?.workflowId ?? "security-osint.alert-triage";
+  const startRoute = launcherEntry?.route ?? "#/launcher?start=security-osint-alert-triage";
 
   return `
     <section class="surface-grid" data-surface-id="launcher">
@@ -220,14 +232,14 @@ function renderLauncherSurface(context = {}) {
       </article>
       <article class="shell-panel module-card">
         <span class="surface-meta">Module</span>
-        <h3>Security / OSINT Module 1</h3>
+        <h3>${moduleName}</h3>
         <p>The first domain module contributes workflow start paths without owning a separate desktop.</p>
         <div class="action-row">
-          <a class="action-link" href="#/launcher?start=security-osint-alert-triage">Open workflow start path</a>
-          <button class="action-button" type="button" data-start-workflow="security-osint.alert-triage" data-case-mode="new">${startPath}</button>
+          <a class="action-link" href="${startRoute}">Open workflow start path</a>
+          <button class="action-button" type="button" data-start-workflow="${workflowId}" data-case-mode="new">${startPath}</button>
           ${
             attachTarget
-              ? `<button class="action-button secondary" type="button" data-start-workflow="security-osint.alert-triage" data-case-mode="attach" data-case-id="${attachTarget.caseId}">Attach run to ${attachTarget.title}</button>`
+              ? `<button class="action-button secondary" type="button" data-start-workflow="${workflowId}" data-case-mode="attach" data-case-id="${attachTarget.caseId}">Attach run to ${attachTarget.title}</button>`
               : `<span class="action-note">Create a case first to unlock attach-to-case launching.</span>`
           }
         </div>
@@ -264,6 +276,26 @@ export function renderRouteContent(route, context = {}) {
 
   if (route.id === "approvals") {
     return renderApprovalsSurface(context);
+  }
+
+  if (route.id === "modules") {
+    const modules = context.modules ?? [];
+    return `
+      <section class="surface-grid" data-surface-id="modules">
+        <article class="shell-panel feature-panel">
+          <span class="surface-meta">Core-owned module registry visibility</span>
+          <h3>Modules</h3>
+          <p>Registered domain capabilities are visible here without introducing marketplace behavior.</p>
+        </article>
+        <article class="shell-panel">
+          <span class="surface-meta">Registered modules</span>
+          <h3>Available capabilities</h3>
+          ${modules.length
+            ? `<ul class="placeholder-list">${modules.map((module) => `<li><strong>${module.name}</strong><span> · ${module.status}</span><span> · ${module.capabilities.length} capability(ies)</span></li>`).join("")}</ul>`
+            : "<p>No modules registered.</p>"}
+        </article>
+      </section>
+    `;
   }
 
   return renderSurfacePlaceholder(route);

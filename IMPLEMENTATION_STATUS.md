@@ -17,6 +17,7 @@
 - [x] Add workflow approval checkpoints and approval queue/detail surfaces (`current branch head`, PR TBD)
 - [x] Define and implement model registry and local-first routing contract (`current branch head`, PR TBD)
 - [x] Add model execution logging and external-provider restriction hooks (`current branch head`, PR TBD)
+- [x] Register Security/OSINT Module 1 through the core module contract (`current branch head`, PR TBD)
 
 ## In-progress issues
 
@@ -26,7 +27,7 @@
 
 ## Next recommended issue
 
-- Issue 7.1: Register Security/OSINT Module 1 through the core module contract.
+- Issue 7.2: Implement the first end-to-end Module 1 workflow: Alert triage and investigation.
 
 ## References
 
@@ -40,5 +41,6 @@
 - Issue 5.1 + 5.2 completed in a combined thin slice with pending/approved/denied/expired approval states, run pending-approval checkpoints, queue/detail review surfaces, and approval lifecycle audit events.
 - Issue 6.1 completed in a thin core-owned slice by adding a reusable model registry and local-first router contract with policy/audit compatibility hooks and structured unavailable/disallowed route failures.
 - Issue 6.2 completed in a thin core-owned slice by introducing model execution audit hooks (requested/decisioned/result), correlation metadata, and external-provider restriction blocking hooks built on top of the routing contract.
+- Issue 7.1 completed in a thin core-owned slice (commit `current branch head`) by adding a reusable module registration contract and registering Security/OSINT Module 1 for launcher/modules visibility without enabling marketplace behavior.
 - Local repository does not contain a `main` branch ref; reconciliation was performed against the current integration branch (`work`) and its merged PR commits.
 - Tool gateway hardening items (full allowlist/rate-limit/payload limit behavior) should remain tracked as incomplete until acceptance criteria are fully met.
