@@ -9,6 +9,9 @@ import {
   createCaseStore,
 } from "./corestack-cases.mjs";
 import {
+  buildRunPolicyReference,
+} from "./corestack-policy.mjs";
+import {
   createBrowserStorage,
   createRunStore,
   createWorkflowRegistry,
@@ -90,13 +93,23 @@ contentRoot.addEventListener("click", (event) => {
   const workflowId = trigger.getAttribute("data-start-workflow");
   const caseMode = trigger.getAttribute("data-case-mode") ?? "new";
   const requestedCaseId = trigger.getAttribute("data-case-id");
+  const workflow = workflowRegistry.get(workflowId);
+  const existingCase = requestedCaseId ? caseStore.getCase(requestedCaseId) : null;
+  const actor = { actorId: "local-operator", actorType: "user" };
 
   const run = launchWorkflowRun({
     registry: workflowRegistry,
     runStore,
     workflowId,
-    actor: { actorId: "local-operator", actorType: "user" },
-    input: { source: "launcher" },
+    actor,
+    input: {
+      source: "launcher",
+      ...buildRunPolicyReference({
+        workflow,
+        actor,
+        caseRecord: existingCase,
+      }),
+    },
   });
 
   if (caseMode === "attach" && requestedCaseId) {

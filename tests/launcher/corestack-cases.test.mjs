@@ -40,6 +40,14 @@ test("a run can create a new case and persist run-to-case linkage", () => {
     registry,
     runStore,
     workflowId: "security-osint.alert-triage",
+    input: {
+      policyContext: {
+        module_id: "security-osint-module-1",
+        workflow_id: "security-osint.alert-triage",
+        correlation_id: "corr-1",
+        actor: { actor_id: "analyst-1", actor_type: "user" },
+      },
+    },
   });
   const linkedCase = caseStore.createCaseFromRun({
     run,
@@ -50,6 +58,7 @@ test("a run can create a new case and persist run-to-case linkage", () => {
   assert.equal(linkedCase.caseId, "case-1");
   assert.equal(linkedCase.status, "open");
   assert.equal(linkedCase.owner.actorId, "analyst-1");
+  assert.equal(linkedCase.policyContext.workflow_id, "security-osint.alert-triage");
   assert.equal(linkedRun.caseId, "case-1");
   assert.equal(caseStore.getCase("case-1").runIds[0], run.runId);
 });

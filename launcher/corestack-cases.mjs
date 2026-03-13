@@ -56,6 +56,8 @@ export function createCaseStore({
         title,
         status,
         owner,
+        policyContext: run.policyContext,
+        policyRefs: [],
         createdAt: timestamp,
         updatedAt: timestamp,
         runIds: [run.runId],
@@ -82,6 +84,7 @@ export function createCaseStore({
           existingCase.runIds.push(run.runId);
         }
         existingCase.latestRunId = run.runId;
+        existingCase.policyContext = existingCase.policyContext ?? run.policyContext ?? null;
         existingCase.timeline.push({
           eventId: `${run.runId}:attached`,
           type: "run.attached",

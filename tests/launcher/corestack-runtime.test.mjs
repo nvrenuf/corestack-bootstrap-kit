@@ -48,6 +48,26 @@ test("a registered workflow can launch and persist a run with step records", () 
   assert.equal(runStore.getRun(run.runId).status, "running");
 });
 
+test("runs can carry policy context references without evaluating a policy engine", () => {
+  const runStore = createStore();
+  const run = launchWorkflowRun({
+    registry: createRegistry(),
+    runStore,
+    workflowId: "security-osint.alert-triage",
+    input: {
+      policyContext: {
+        module_id: "security-osint-module-1",
+        workflow_id: "security-osint.alert-triage",
+        correlation_id: "corr-1",
+        actor: { actor_id: "analyst-1", actor_type: "user" },
+      },
+    },
+  });
+
+  assert.equal(run.policyContext.workflow_id, "security-osint.alert-triage");
+  assert.deepEqual(run.policyDecisions, []);
+});
+
 test("blocked runs can be resumed after an external state change token is supplied", () => {
   const runStore = createStore();
   const run = launchWorkflowRun({

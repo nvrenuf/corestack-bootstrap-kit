@@ -86,7 +86,7 @@ export function createRunStore({
       const run = readRuns().find((item) => item.runId === runId);
       return run ? clone(run) : null;
     },
-    createRun({ workflow, input = {}, actor = {}, trigger = "manual", caseId = null }) {
+    createRun({ workflow, input = {}, actor = {}, trigger = "manual", caseId = null, policyContext = null }) {
       const timestamp = now();
       const firstStep = workflow.steps[0];
       const run = {
@@ -99,6 +99,8 @@ export function createRunStore({
         input,
         actor,
         caseId,
+        policyContext,
+        policyDecisions: [],
         status: "created",
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -213,6 +215,13 @@ export function launchWorkflowRun({ registry, runStore, workflowId, input = {}, 
     throw new Error(`workflow not registered: ${workflowId}`);
   }
 
-  const run = runStore.createRun({ workflow, input, actor, trigger, caseId });
+  const run = runStore.createRun({
+    workflow,
+    input,
+    actor,
+    trigger,
+    caseId,
+    policyContext: input.policyContext ?? null,
+  });
   return runStore.markRunning(run.runId, { stepId: workflow.steps[0].id, metadata: { launchSource: "launcher" } });
 }
