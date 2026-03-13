@@ -104,6 +104,7 @@ services:
       - "8080:80"
     volumes:
       - ../../launcher:/usr/share/nginx/html:ro
+      - ../nginx/conf.d/10-mjs-mime-types.conf:/etc/nginx/conf.d/10-mjs-mime-types.conf:ro
 
 volumes:
   ollama_data:
