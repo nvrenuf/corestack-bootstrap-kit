@@ -12,6 +12,7 @@
 - [x] Define and implement minimum case object and run-to-case linkage (`821abc0`, PR #28)
 - [x] Define policy decision contract for governed actions (`0a8d76a`, PR #28)
 - [x] Implement `web.fetch` and `web.search` tool contracts and schemas (`2046ecd`, PR #28)
+- [x] Define the minimum evidence, artifact, and finding objects (`492f359`, PR pending)
 
 ## In-progress issues
 
@@ -19,7 +20,7 @@
 
 ## Next recommended issue
 
-- Issue 4.1: Define the minimum evidence, artifact, and finding objects.
+- Issue 4.2: Implement artifact storage linkage and metadata persistence.
 
 ## References
 
@@ -28,5 +29,6 @@
 
 ## Notes / blockers
 
+- Issue 4.1 completed with a thin core-owned evidence model (evidence item, artifact, finding) including run/case linkage, provenance basics, lifecycle states, and audit reference hooks.
 - Local repository does not contain a `main` branch ref; reconciliation was performed against the current integration branch (`work`) and its merged PR commits.
 - Tool gateway hardening items (full allowlist/rate-limit/payload limit behavior) should remain tracked as incomplete until acceptance criteria are fully met.
