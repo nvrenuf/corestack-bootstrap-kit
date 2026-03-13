@@ -423,7 +423,7 @@ Route governed tool execution through a single controlled path.
 
 ### Epic 4: Evidence, artifact, and audit backbone
 
-#### Issue 4.1: Define the minimum evidence, artifact, and finding objects
+#### Issue 4.1: Define the minimum evidence, artifact, and finding objects [x] (main: `492f359`, PR pending)
 
 ##### Purpose
 
@@ -450,6 +450,10 @@ Create the smallest evidence-bearing object set needed for Module 1.
 ##### Ownership
 
 - core-owned
+
+##### Status
+
+- complete
 
 ##### Status target
 
