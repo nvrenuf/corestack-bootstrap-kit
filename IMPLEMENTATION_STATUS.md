@@ -6,10 +6,10 @@
 
 ## Latest issue update
 
-- Issue name: Security / OSINT visual theme pass (core control-plane styling refinement)
-- Status: completed for MVP visual-system scope
-- Commit hash: `current branch head`
-- Short note: Applied a cohesive Security / OSINT-aligned visual system across the existing shell and all current surfaces (dark structural chrome, warm investigation workspace, slate-blue structure accents, muted copper investigation cues, and restrained status/severity badges) while preserving route behavior and information architecture.
+- Issue name: Left-nav hover/active readability contrast refinement (Corestack shell)
+- Status: completed targeted shell readability fix
+- Commit hash: `e3a9e72`
+- Short note: Fixed left-nav readability contrast by keeping nav text high-contrast through hover, active, and active+hover/focus-visible states while preserving existing shell structure, route behavior, and Security/OSINT visual-theme treatments.
 - Next recommended issue: Add thin accessibility/contrast verification and per-surface visual regression baselines so subsequent UI depth slices preserve the new control-plane theme consistency.
 
 ## Completed issues (verified in `main`)
