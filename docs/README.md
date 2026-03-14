@@ -8,6 +8,7 @@ This repository is documentation-driven. Operational behavior in scripts must ma
 - `docs/architecture/THREAT_MODEL.md` — bootstrap/runtime threat model and controls.
 - `docs/architecture/AUDIT_LOGGING.md` — append-only logging + hash-chain stub design.
 - `docs/architecture/CONFIG_CONVENTIONS.md` — config precedence, version pinning, service exposure rules.
+- `docs/architecture/CONTAINER_IMAGE_INVENTORY.md` — audited inventory of defined/built/implied container images and target strategy.
 
 ## Runbooks
 
