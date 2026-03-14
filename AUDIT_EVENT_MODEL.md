@@ -211,3 +211,15 @@ Partially implemented:
 
 Planned/deferred:
 - Dedicated module-platform analytics dashboards and long-horizon module operations reporting remain deferred.
+
+## Settings + Admin / Tenancy visibility note (MVP thin slice)
+
+Implemented now:
+- Settings and Admin / Tenancy surfaces now consume existing correlated governance signals (policy decisions, approval counts, model/tool governance events, run/case posture) to make platform readiness and admin boundary status legible.
+- No new audit event taxonomy/category was introduced; this is a projection layer using current event contracts.
+
+Partially implemented:
+- Event-derived posture is read-oriented and scoped to current MVP-supported paths.
+
+Planned/deferred:
+- Enterprise admin analytics, tenant-scoped governance dashboards, and long-horizon admin/tenancy reporting remain deferred.

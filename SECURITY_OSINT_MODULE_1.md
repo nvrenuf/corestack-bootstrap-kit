@@ -929,3 +929,16 @@ Partially implemented:
 
 Planned/deferred:
 - Marketplace/catalog behavior, packaging/distribution lifecycle, and module install/update administration remain out of scope for this slice.
+
+## Settings + Admin / Tenancy relationship note (MVP thin slice)
+
+Implemented now:
+- Settings and Admin / Tenancy surfaces now expose thin but truthful platform posture relevant to Module 1 operations.
+- Module 1 operators can see current local-first runtime defaults, governance/readiness signals, and documented configuration entry points without fake edit controls.
+- Admin/Tenancy framing explicitly states current single-operator local baseline and deferred enterprise tenancy/IAM controls.
+
+Partially implemented:
+- Module 1 continues to rely on core contracts for tenancy/admin boundaries; no module-specific admin plane exists.
+
+Planned/deferred:
+- Tenant lifecycle controls, scoped authorization UX, and full enterprise tenancy operations remain separate follow-on work.

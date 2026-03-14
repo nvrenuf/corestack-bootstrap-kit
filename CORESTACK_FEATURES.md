@@ -167,3 +167,32 @@ Capability-oriented source of truth for CoreStack feature status.
 
 ### Planned / deferred
 - Module packaging/distribution lifecycle, marketplace/catalog UX, licensing/entitlements, and install/update management remain intentionally deferred.
+
+
+## Settings configuration/readiness workspace (core-owned)
+
+### Implemented now
+- Settings is now a thin but meaningful core-owned configuration/readiness surface instead of a generic placeholder.
+- The page projects current runtime posture from existing contracts: local-vs-external model routing footprint, module/workflow participation, governed connector path count, and current run/case/approval/governance-event readiness signals.
+- Operator-visible entry points to current runbook/threat-model/configuration source docs are listed in-product so environment changes remain truthful and documentation-led.
+
+### Partially implemented
+- Visibility is stronger, but mutation remains outside the UI; configuration changes are still runbook/config-file driven.
+- Readiness framing is intentionally scoped to current MVP-supported flows and local/in-memory runtime paths.
+
+### Planned / deferred
+- In-product settings mutation APIs/editors, secret-management lifecycle UX, and enterprise day-2 configuration governance tooling.
+
+
+## Admin / Tenancy posture workspace (core-owned)
+
+### Implemented now
+- Admin / Tenancy is now a thin core-owned administration/readiness workspace that makes current boundaries explicit without pretending enterprise controls exist.
+- The page surfaces current admin baseline posture (single-operator local-first), governance signal visibility, tenancy-boundary notes grounded in current run/case/evidence/policy/audit contracts, and explicit deferred-control inventory.
+- Relationship to future authorization/isolation work is documented in-product: current contracts carry correlation/actor context but do not implement full tenant lifecycle or IAM controls.
+
+### Partially implemented
+- Tenancy posture remains terminology/contract-level and visibility-oriented, not a full runtime-enforced multi-tenant operations platform.
+
+### Planned / deferred
+- Tenant lifecycle management UX, RBAC/SSO administration, delegated enterprise admin controls, and full multi-tenant SaaS control-plane operations.

@@ -75,6 +75,7 @@ Goal: Deliver the minimum secure Corestack control plane that can host Module 1.
 - [x] Deepen Policies into a core-owned governance workspace thin slice with implemented vs deferred framing and existing contract visibility (`current branch head`, PR TBD)
 - [x] Deepen Models into a core-owned governance/execution workspace thin slice with local-first/provider boundary, usage, governance, and audit visibility (`current branch head`, PR TBD)
 - [x] Deepen Modules into a core-owned architecture/capability workspace thin slice with registry posture, core-surface relationship mapping, and truthful implemented/partial/deferred framing (`current branch head`, PR TBD)
+- [x] Deepen Settings + Admin / Tenancy into combined core-owned platform configuration/administration readiness workspaces with truthful implemented/partial/deferred framing and explicit deferred enterprise scope (`current branch head`, PR TBD)
 
 Note: These are MVP-slice thin-slice reconciliations. Keep Milestone issues #4/#18/#21 open until full acceptance criteria are satisfied.
 
