@@ -81,11 +81,40 @@ test("invalid requests are rejected in normalized shape", async () => {
   assert.equal(result.ok, false);
   assert.equal(result.status, "invalid_request");
   assert.equal(result.error.code, "BAD_REQUEST");
+  assert.equal(result.error.category, "validation");
+  assert.equal(result.error.http_status, 400);
   assert.equal(result.error.details.field, "inputs.url");
   assert.equal(policyCalled, false);
 });
 
-test("deny outcome blocks execution and returns policy decision", async () => {
+test("stricter request validation rejects unsupported fields and invalid URI protocols", async () => {
+  const gateway = createToolGateway({
+    policyCheck: async () => ({ outcome: "allow", reasons: [{ code: "OK", message: "Allowed" }] }),
+    executeTool: async () => ({ ok: true }),
+  });
+
+  const extraFieldResult = await gateway.execute({
+    tool: "web.search",
+    request: {
+      ...searchRequest(),
+      extra: "nope",
+    },
+  });
+  assert.equal(extraFieldResult.status, "invalid_request");
+  assert.equal(extraFieldResult.error.details.field, "request");
+
+  const badUriResult = await gateway.execute({
+    tool: "web.fetch",
+    request: {
+      ...fetchRequest(),
+      inputs: { url: "ftp://example.com/data" },
+    },
+  });
+  assert.equal(badUriResult.status, "invalid_request");
+  assert.equal(badUriResult.error.details.field, "inputs.url");
+});
+
+test("deny outcome blocks execution and returns policy decision with normalized policy error", async () => {
   let executed = false;
   const gateway = createToolGateway({
     policyCheck: async () => ({
@@ -105,7 +134,9 @@ test("deny outcome blocks execution and returns policy decision", async () => {
   const result = await gateway.execute({ tool: "web.fetch", request: fetchRequest() });
 
   assert.equal(result.ok, false);
-  assert.equal(result.status, "policy_blocked");
+  assert.equal(result.status, "policy_denied");
+  assert.equal(result.error.code, "POLICY_DENIED");
+  assert.equal(result.error.category, "policy");
   assert.equal(result.policy.outcome, "deny");
   assert.equal(executed, false);
 });
@@ -131,13 +162,15 @@ test("require_approval outcome blocks execution in contract-aware way", async ()
   const result = await gateway.execute({ tool: "web.fetch", request: fetchRequest() });
 
   assert.equal(result.ok, false);
-  assert.equal(result.status, "policy_blocked");
+  assert.equal(result.status, "approval_required");
+  assert.equal(result.error.code, "APPROVAL_REQUIRED");
+  assert.equal(result.error.retryable, true);
   assert.equal(result.policy.outcome, "require_approval");
   assert.equal(result.policy.approval.required, true);
   assert.equal(executed, false);
 });
 
-test("audit hooks emit structured decision payloads", async () => {
+test("audit hooks emit structured request/decision/result events including blocked outcomes", async () => {
   const events = [];
   const gateway = createToolGateway({
     policyCheck: async () => ({
@@ -156,8 +189,11 @@ test("audit hooks emit structured decision payloads", async () => {
   await gateway.execute({ tool: "web.fetch", request: fetchRequest() });
 
   const decisionEvent = events.find((event) => event.event_type === "tool.execution.decisioned");
+  const resultEvent = events.find((event) => event.event_type === "tool.execution.result");
   assert.ok(decisionEvent);
+  assert.ok(resultEvent);
   assert.equal(decisionEvent.payload.outcome, "allow");
   assert.equal(decisionEvent.correlation.decision_id, "dec-allow");
   assert.equal(decisionEvent.correlation.correlation_id, "corr-1");
+  assert.equal(resultEvent.payload.execution_status, "executed");
 });

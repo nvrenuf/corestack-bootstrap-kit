@@ -389,7 +389,7 @@ Provide the first governed tool classes used by Module 1.
 
 - complete
 
-#### Issue 3.3: Implement a minimal tool gateway with policy enforcement and audit hooks [~] (main: `31c49b4`, PR #29; scaffolding landed)
+#### Issue 3.3: Implement a minimal tool gateway with policy enforcement and audit hooks [x] (main: `31c49b4` + `current branch head`, PR #29 + PR TBD)
 
 ##### Purpose
 
@@ -419,7 +419,7 @@ Route governed tool execution through a single controlled path.
 
 ##### Status
 
-- in progress (scaffolding landed; full enforcement and hardening pending)
+- complete for MVP thin slice (scaffolding + hardened validation, normalized deny/approval behavior, and structured audit-compatible events)
 
 ### Epic 4: Evidence, artifact, and audit backbone
 

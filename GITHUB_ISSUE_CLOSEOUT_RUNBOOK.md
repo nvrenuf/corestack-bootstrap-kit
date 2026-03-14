@@ -41,9 +41,11 @@ PR #29 / commit `31c49b4` landed minimal governed tool-gateway scaffolding and p
 
 ### Status note to paste for #18
 
-Status update: in progress (partial thin-slice landed).
+Status update: in progress (MVP thin-slice hardening landed; full platform enforcement still open).
 
-PR #29 / commit `31c49b4` landed gateway scaffolding, but full enforcement acceptance criteria (strict allowlist controls, complete payload/rate/timeout enforcement, and hardened negative-path behavior) are still open.
+PR #29 / commit `31c49b4` landed gateway scaffolding. Current branch head (PR TBD) hardens the minimal governed gateway with stricter contract-shaped validation, normalized deny/require_approval outcomes, and cleaner structured audit-compatible request/decision/result emissions for `web.fetch` and `web.search`.
+
+Keep #18 open for non-MVP breadth (strict enterprise allowlist/rate-limit/timeout platform controls and broader connector/provider enforcement).
 
 ### Status note to paste for #21
 

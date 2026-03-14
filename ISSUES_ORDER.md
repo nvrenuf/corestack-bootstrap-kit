@@ -59,7 +59,7 @@ Goal: Deliver the minimum secure Corestack control plane that can host Module 1.
 - [x] Define and implement minimum case object and run-to-case linkage (`821abc0`, PR #28)
 - [x] Define policy decision contract for governed actions (`0a8d76a`, PR #28)
 - [x] Implement `web.fetch` and `web.search` tool contracts and schemas (`2046ecd`, PR #28)
-- [~] Land minimal governed tool gateway scaffolding (`31c49b4`, PR #29)
+- [x] Harden minimal governed tool gateway behavior with stricter validation, normalized denial/approval outcomes, and structured audit-compatible emissions (`current branch head`, PR TBD)
 - [x] Define the minimum evidence, artifact, and finding objects (`492f359`, PR #31)
 - [~] Implement artifact storage linkage and metadata persistence (`69e72a7`, PR #32)
 - [x] Implement structured audit/event logging for runs, tools, evidence, and approvals (`c0fae98`, PR TBD)

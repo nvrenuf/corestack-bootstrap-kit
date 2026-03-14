@@ -2,6 +2,10 @@ import { createGovernedActionRequest, validatePolicyDecision } from "./corestack
 import { createPolicyDecisionAuditCorrelation } from "./corestack-audit.mjs";
 
 const SUPPORTED_TOOLS = ["web.fetch", "web.search"];
+const ALLOWED_REQUEST_FIELDS = ["agent_id", "request_id", "purpose", "inputs", "context"];
+const ALLOWED_CONTEXT_FIELDS = ["correlation_id", "run_id", "case_id", "workflow_id", "module_id"];
+const ALLOWED_FETCH_INPUT_FIELDS = ["url"];
+const ALLOWED_SEARCH_INPUT_FIELDS = ["query", "max_results"];
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -12,23 +16,65 @@ function isNonEmptyString(value) {
 }
 
 function validationError(tool, message, field) {
+  return normalizedError({
+    tool,
+    status: "invalid_request",
+    code: "BAD_REQUEST",
+    message,
+    field,
+    category: "validation",
+    retryable: false,
+    httpStatus: 400,
+  });
+}
+
+function normalizedError({
+  tool,
+  status,
+  code,
+  message,
+  field = null,
+  category,
+  retryable,
+  httpStatus,
+  details = {},
+  policy = null,
+}) {
   return {
     ok: false,
-    status: "invalid_request",
+    status,
     tool,
     error: {
-      code: "BAD_REQUEST",
+      code,
       message,
+      category,
+      retryable,
+      http_status: httpStatus,
       details: {
-        field,
+        ...(field ? { field } : {}),
+        ...details,
       },
     },
+    policy,
+    result: null,
   };
+}
+
+function hasOnlyAllowedFields(obj, allowed) {
+  return Object.keys(obj).every((key) => allowed.includes(key));
+}
+
+function isNullableString(value) {
+  return value === null || value === undefined || typeof value === "string";
 }
 
 function validateCommonRequestShape(tool, request) {
   if (!request || typeof request !== "object" || Array.isArray(request)) {
     return validationError(tool, "request must be an object", "request");
+  }
+
+  if (!hasOnlyAllowedFields(request, ALLOWED_REQUEST_FIELDS)) {
+    return validationError(tool, "request contains unsupported fields", "request");
   }
 
   if (!isNonEmptyString(request.agent_id)) {
@@ -43,8 +89,18 @@ function validateCommonRequestShape(tool, request) {
     return validationError(tool, "context must be an object", "context");
   }
 
+  if (!hasOnlyAllowedFields(request.context, ALLOWED_CONTEXT_FIELDS)) {
+    return validationError(tool, "context contains unsupported fields", "context");
+  }
+
   if (!isNonEmptyString(request.context.correlation_id)) {
     return validationError(tool, "context.correlation_id must be a non-empty string", "context.correlation_id");
+  }
+
+  for (const field of ["run_id", "case_id", "workflow_id", "module_id"]) {
+    if (!isNullableString(request.context[field])) {
+      return validationError(tool, `context.${field} must be string|null when provided`, `context.${field}`);
+    }
   }
 
   if (!request.inputs || typeof request.inputs !== "object" || Array.isArray(request.inputs)) {
@@ -61,10 +117,27 @@ function validateToolRequest(tool, request) {
   }
 
   if (tool === "web.fetch") {
+    if (!hasOnlyAllowedFields(request.inputs, ALLOWED_FETCH_INPUT_FIELDS)) {
+      return validationError(tool, "inputs contains unsupported fields", "inputs");
+    }
+
     if (!isNonEmptyString(request.inputs.url)) {
       return validationError(tool, "inputs.url must be a non-empty string", "inputs.url");
     }
+
+    try {
+      const parsed = new URL(request.inputs.url);
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        return validationError(tool, "inputs.url must use http or https", "inputs.url");
+      }
+    } catch {
+      return validationError(tool, "inputs.url must be a valid URI", "inputs.url");
+    }
   } else if (tool === "web.search") {
+    if (!hasOnlyAllowedFields(request.inputs, ALLOWED_SEARCH_INPUT_FIELDS)) {
+      return validationError(tool, "inputs contains unsupported fields", "inputs");
+    }
+
     if (!isNonEmptyString(request.inputs.query)) {
       return validationError(tool, "inputs.query must be a non-empty string", "inputs.query");
     }
@@ -116,6 +189,7 @@ function buildAuditEvent({ eventType, tool, request, decision = null, actor, now
       agent_id: request.agent_id,
       outcome: decision?.outcome ?? null,
       reason_codes: decision?.reasons?.map((reason) => reason.code) ?? [],
+      decision_outcome: decision?.outcome ?? null,
       ...payload,
     },
   };
@@ -235,13 +309,29 @@ export function createToolGateway({
       }));
 
       if (decision.outcome === "deny" || decision.outcome === "require_approval") {
-        return {
-          ok: false,
-          status: "policy_blocked",
+        const isApproval = decision.outcome === "require_approval";
+        emitEvent(buildAuditEvent({
+          eventType: "tool.execution.result",
           tool,
+          request,
+          decision,
+          actor,
+          now,
+          payload: {
+            execution_status: isApproval ? "approval_required" : "denied",
+          },
+        }));
+
+        return normalizedError({
+          tool,
+          status: isApproval ? "approval_required" : "policy_denied",
+          code: isApproval ? "APPROVAL_REQUIRED" : "POLICY_DENIED",
+          message: isApproval ? "tool execution requires approval" : "tool execution denied by policy",
+          category: "policy",
+          retryable: isApproval,
+          httpStatus: isApproval ? 409 : 403,
           policy: decision,
-          result: null,
-        };
+        });
       }
 
       const result = await executeTool({ tool, request: clone(request), decision: clone(decision) });

@@ -12,6 +12,7 @@
 - [x] Define and implement minimum case object and run-to-case linkage (`821abc0`, PR #28)
 - [x] Define policy decision contract for governed actions (`0a8d76a`, PR #28)
 - [x] Implement `web.fetch` and `web.search` tool contracts and schemas (`2046ecd`, PR #28)
+- [x] Implement a minimal tool gateway with policy enforcement and audit hooks — hardened MVP behavior landed with stricter request validation, normalized deny/approval handling, and structured audit-compatible event emissions (`current branch head`, PR TBD).
 - [x] Define the minimum evidence, artifact, and finding objects (`492f359`, PR #31)
 - [x] Define and implement the approval object model and state machine (`current branch head`, PR TBD)
 - [x] Add workflow approval checkpoints and approval queue/detail surfaces (`current branch head`, PR TBD)
@@ -22,13 +23,12 @@
 
 ## In-progress issues
 
-- [ ] Implement a minimal tool gateway with policy enforcement and audit hooks — scaffolding landed (`31c49b4`, PR #29), but full enforcement acceptance criteria remain open.
 - [ ] Implement artifact storage linkage and metadata persistence — thin linkage landed (`69e72a7`, PR #32), but full lifecycle and hardening acceptance criteria remain open.
 - [x] Implement structured audit/event logging for runs, tools, evidence, and approvals (`c0fae98`, PR TBD)
 
 ## Next recommended issue
 
-- Tool gateway hardening (Issue #18 / policy-gated enforcement completion) before expanding to additional Module 1 workflows.
+- Artifact storage hardening (Issue #4.2 follow-through) before expanding review-surface breadth.
 
 ## References
 
@@ -46,4 +46,4 @@
 - Issue 7.1 completed in a thin core-owned slice (commit `current branch head`) by adding a reusable module registration contract and registering Security/OSINT Module 1 for launcher/modules visibility without enabling marketplace behavior.
 - Issue 7.2 completed in a thin end-to-end slice by adding a control-plane-launched alert triage workflow that creates/links cases, enforces approval checkpoints, executes through model routing/execution hooks, and persists evidence/artifact/finding outputs with audit event history.
 - Local repository does not contain a `main` branch ref; reconciliation was performed against the current integration branch (`work`) and its merged PR commits.
-- Tool gateway hardening items (full allowlist/rate-limit/payload limit behavior) should remain tracked as incomplete until acceptance criteria are fully met.
+- Tool gateway MVP hardening is complete for thin-slice governed behavior; enterprise gateway controls (broad allowlist/rate-limit/platform breadth) remain intentionally out of scope and should stay tracked in broader policy/tooling issues.
