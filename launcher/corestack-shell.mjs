@@ -1165,54 +1165,148 @@ function renderConnectorsSurface(context = {}) {
   `;
 }
 
-function renderSettingsSurface() {
+function renderSettingsSurface(context = {}) {
+  const {
+    runtimeDefaults = {},
+    readinessSignals = {},
+    coreDependencyPosture = [],
+    docsEntryPoints = [],
+  } = context;
+
   return `
     <section class="surface-grid" data-surface-id="settings">
       <article class="shell-panel feature-panel">
         <span class="surface-meta">Core-owned platform surface</span>
         <h3>Settings</h3>
-        <p>Central place for platform-level configuration status and runbook entry points in a local-first MVP environment.</p>
+        <p>Configuration/readiness workspace for understanding the current platform runtime posture, governance defaults, and where operators should look before making environment-level changes.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Runtime posture visible now</span>
+        <h3>Current MVP configuration assumptions</h3>
+        <ul class="placeholder-list">
+          <li>Local-first model routes in registry: ${runtimeDefaults.localModelCount ?? 0}.</li>
+          <li>External model routes in registry: ${runtimeDefaults.externalModelCount ?? 0}.</li>
+          <li>Registered modules consuming core runtime contracts: ${runtimeDefaults.moduleCount ?? 0}.</li>
+          <li>Registered workflows using shared run/case/evidence/policy/audit contracts: ${runtimeDefaults.workflowCount ?? 0}.</li>
+          <li>Governed connector paths declared in this MVP: ${runtimeDefaults.connectorPathCount ?? 0}.</li>
+        </ul>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Operational readiness signals</span>
+        <h3>What operators can verify in-product now</h3>
+        <ul class="placeholder-list">
+          <li>Runs tracked: ${readinessSignals.runCount ?? 0}; cases tracked: ${readinessSignals.caseCount ?? 0}; pending approvals: ${readinessSignals.pendingApprovalCount ?? 0}.</li>
+          <li>Observed policy decisions across runs: ${readinessSignals.policyDecisionCount ?? 0}.</li>
+          <li>Correlated model and tool governance events in audit history: ${readinessSignals.governanceEventCount ?? 0}.</li>
+          <li>This page is status/visibility-first and intentionally does not expose fake persistent settings editors.</li>
+        </ul>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Core relationships</span>
+        <h3>Settings boundaries across platform capabilities</h3>
+        ${coreDependencyPosture.length
+          ? `<ul class="placeholder-list">${coreDependencyPosture.map((item) => `<li><strong>${item.area}</strong><span> · ${item.state}</span><br /><small>${item.notes}</small></li>`).join("")}</ul>`
+          : "<p>No core dependency posture entries are currently mapped.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Runbooks and source-of-truth docs</span>
+        <h3>Where the current operational contract is documented</h3>
+        ${docsEntryPoints.length
+          ? `<ul class="placeholder-list">${docsEntryPoints.map((item) => `<li><strong>${item.label}</strong><span> · ${item.path}</span><br /><small>${item.notes}</small></li>`).join("")}</ul>`
+          : "<p>No documentation entry points are currently listed.</p>"}
       </article>
       ${renderCapabilityStatus({
         ownership: "Core-owned",
         implemented: [
-          "Configuration templates and runbooks define the current operational contract.",
-          "Threat model, schema references, and hardening docs are linked from the docs/runbook set.",
+          "Current settings posture is projected from existing runtime contracts (models/workflows/modules/connectors), audit events, and governance outcomes.",
+          "Operators can verify current local-first assumptions and environment readiness without pretending there is a full configuration-management backend.",
+          "Runbook and source-of-truth documentation entry points are surfaced as the current mechanism for applying platform-level configuration changes.",
         ],
         planned: [
-          "In-product settings editors remain deferred.",
-          "Tenant-level settings controls remain deferred.",
+          "In-product settings editors and persistent mutation APIs remain deferred.",
+          "Secret-management/credential rotation UX and advanced day-2 automation remain deferred.",
+          "Tenant-specific settings lifecycle controls remain deferred until broader admin/tenancy foundations land.",
         ],
         moduleNotes: [
-          "Modules consume settings from core configuration contracts rather than owning separate settings UIs.",
+          "Settings remains core-owned; modules consume shared runtime/configuration contracts and should not ship module-owned settings control planes.",
         ],
       })}
+      <article class="shell-panel">
+        <span class="surface-meta">Partially implemented scope</span>
+        <h3>What is intentionally thin in this slice</h3>
+        <ul class="placeholder-list">
+          <li>Configuration visibility is strong for current MVP routes, but change workflows remain runbook-driven and outside this UI.</li>
+          <li>Readiness indicators are derived from current in-memory/local stores and currently supported module/workflow paths.</li>
+          <li>Enterprise-grade configuration governance (change windows, drift detection, approvals for config mutation) is not implemented in this slice.</li>
+        </ul>
+      </article>
     </section>
   `;
 }
 
-function renderAdminTenancySurface() {
+function renderAdminTenancySurface(context = {}) {
+  const {
+    adminBaseline = {},
+    tenancyBoundaries = [],
+    deferredControls = [],
+  } = context;
+
   return `
     <section class="surface-grid" data-surface-id="admin-tenancy">
       <article class="shell-panel feature-panel">
         <span class="surface-meta">Core-owned platform surface</span>
         <h3>Admin / Tenancy</h3>
-        <p>Tracks tenancy and admin boundaries for the control plane without introducing pretend admin automation.</p>
+        <p>Administration and tenancy-readiness workspace describing current control-plane boundaries, what isolation posture is present now, and what enterprise controls remain intentionally deferred.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Current admin baseline</span>
+        <h3>Operator posture in this MVP</h3>
+        <ul class="placeholder-list">
+          <li>Current baseline mode: ${adminBaseline.mode ?? "single-operator local baseline"}.</li>
+          <li>Runs observed: ${adminBaseline.runCount ?? 0}; cases observed: ${adminBaseline.caseCount ?? 0}; approvals observed: ${adminBaseline.approvalCount ?? 0} (${adminBaseline.pendingApprovalCount ?? 0} pending).</li>
+          <li>Governance events available for admin review: ${adminBaseline.governanceEventCount ?? 0}.</li>
+          <li>This surface is read-oriented and does not claim live tenant provisioning or role management workflows.</li>
+        </ul>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Tenancy and isolation framing</span>
+        <h3>Boundaries visible in current contracts</h3>
+        ${tenancyBoundaries.length
+          ? `<ul class="placeholder-list">${tenancyBoundaries.map((item) => `<li><strong>${item.area}</strong><span> · ${item.state}</span><br /><small>${item.notes}</small></li>`).join("")}</ul>`
+          : "<p>No tenancy boundary entries are currently mapped.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Deferred enterprise scope</span>
+        <h3>Controls intentionally not implemented yet</h3>
+        ${deferredControls.length
+          ? `<ul class="placeholder-list">${deferredControls.map((item) => `<li><strong>${item.control}</strong><span> · ${item.status}</span><br /><small>${item.notes}</small></li>`).join("")}</ul>`
+          : "<p>No deferred control entries are currently listed.</p>"}
       </article>
       ${renderCapabilityStatus({
         ownership: "Core-owned",
         implemented: [
-          "Current MVP uses a single-operator local baseline while preserving tenancy terminology in contracts and docs.",
-          "Audit and policy contracts already include actor/correlation metadata needed for future tenancy controls.",
+          "Current MVP keeps a single-operator local-first administration baseline while preserving tenancy terminology in contracts and documentation.",
+          "Audit, policy, run, and evidence contracts already carry actor/correlation context that future authorization/isolation layers can build on.",
+          "This page makes admin/tenancy scope legible without introducing fake enterprise control-plane workflows.",
         ],
         planned: [
-          "Tenant lifecycle and role management UI remain deferred.",
-          "Admin approval delegation and scoped access controls remain deferred.",
+          "Tenant lifecycle management, RBAC/SSO administration, and scoped identity governance remain deferred.",
+          "Delegated admin operations and per-tenant operational policy controls remain deferred.",
+          "Full multi-tenant SaaS control-plane operations UX remains deferred beyond this MVP thin slice.",
         ],
         moduleNotes: [
-          "Modules remain tenant-scoped through core case/run/evidence contracts rather than module-owned tenancy models.",
+          "Admin/Tenancy remains core-owned; modules inherit tenancy boundaries through core run/case/evidence/policy contracts rather than defining tenant models.",
         ],
       })}
+      <article class="shell-panel">
+        <span class="surface-meta">Partially implemented scope</span>
+        <h3>Current depth and next boundary</h3>
+        <ul class="placeholder-list">
+          <li>Tenancy posture is contract- and terminology-level today, not a full enforced multi-tenant runtime with operator tooling.</li>
+          <li>Admin readiness focuses on observability and governance correlation across existing surfaces, not mutable administration workflows.</li>
+          <li>Future authorization/isolation work should extend these core boundaries rather than creating module-owned admin panels.</li>
+        </ul>
+      </article>
     </section>
   `;
 }
@@ -1271,11 +1365,11 @@ export function renderRouteContent(route, context = {}) {
   }
 
   if (route.id === "settings") {
-    return renderSettingsSurface();
+    return renderSettingsSurface(context);
   }
 
   if (route.id === "admin-tenancy") {
-    return renderAdminTenancySurface();
+    return renderAdminTenancySurface(context);
   }
 
   return renderSurfacePlaceholder(route);

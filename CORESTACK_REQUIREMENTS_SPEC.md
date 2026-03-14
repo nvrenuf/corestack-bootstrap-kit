@@ -1197,3 +1197,31 @@ Partially implemented:
 
 Planned/deferred:
 - Module packaging/distribution platform lifecycle, marketplace/catalog behavior, licensing/entitlement controls, and install/update management UX.
+
+## Settings surface depth reconciliation (MVP thin slice)
+
+Implemented now:
+- Settings surface is a core-owned configuration/readiness workspace instead of a placeholder panel.
+- Runtime posture is projected from existing contracts and route context (local-first vs external model footprint, module/workflow participation, governed connector path count).
+- Operational readiness signals (runs/cases/pending approvals/policy decisions/governance events) and source-of-truth doc entry points are visible in-product.
+- Scope is explicitly truthful: visibility and orientation are implemented without fake settings mutation controls.
+
+Partially implemented:
+- Configuration change workflows remain documentation/runbook/config-file driven and are not mutated through a UI.
+- Visibility reflects current MVP-supported flows and data availability.
+
+Planned/deferred:
+- In-product settings persistence/editing APIs, secret-management lifecycle UX, and enterprise day-2 configuration governance.
+
+## Admin / Tenancy surface depth reconciliation (MVP thin slice)
+
+Implemented now:
+- Admin / Tenancy surface is a core-owned administration/readiness workspace with explicit boundary framing.
+- Current admin baseline posture (single-operator local-first), governance signal visibility, and tenancy-boundary mapping across core contracts are visible.
+- Deferred enterprise controls are listed explicitly in-product to avoid over-claiming current platform maturity.
+
+Partially implemented:
+- Tenancy posture is currently visibility-first and contract-aware, not a full runtime-enforced tenant management plane.
+
+Planned/deferred:
+- Tenant lifecycle workflows, RBAC/SSO administration, delegated enterprise admin controls, and full multi-tenant SaaS operations UX.

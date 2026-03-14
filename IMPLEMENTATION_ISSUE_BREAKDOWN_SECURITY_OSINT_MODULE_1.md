@@ -1121,3 +1121,16 @@ What landed:
 
 Carry-forward scope:
 - Broader module-platform lifecycle administration remains a separate non-MVP issue.
+
+## Settings + Admin / Tenancy surface depth reconciliation (MVP thin slice)
+
+Status: completed for MVP thin-slice scope.
+
+What landed:
+- Upgraded Settings into a thin core-owned configuration/readiness workspace with truthful runtime posture visibility (local-first model footprint, workflow/module participation, governed connector path count, run/case/approval/governance signals).
+- Upgraded Admin / Tenancy into a thin core-owned administration/readiness workspace with explicit current baseline posture, tenancy-boundary mapping, and deferred enterprise control inventory.
+- Reused existing contracts/context (runs, cases, approvals, policies, model/tool governance events, module/workflow registry, and source-of-truth runbook/config docs) without introducing fake edit controls or new backend admin models.
+- Added rendering tests covering truthful implemented/deferred framing plus sparse-data behavior for Settings and Admin / Tenancy.
+
+Carry-forward scope:
+- Enterprise tenancy lifecycle operations, RBAC/SSO/IAM admin tooling, delegated admin control flows, and full settings mutation/persistence UX remain deferred beyond this MVP slice.
