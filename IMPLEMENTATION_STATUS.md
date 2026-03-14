@@ -6,11 +6,11 @@
 
 ## Latest issue update
 
-- Issue name: Settings + Admin / Tenancy combined surface depth slice (core-owned platform administration/configuration posture visibility)
-- Status: completed for MVP thin-slice scope
+- Issue name: Security / OSINT visual theme pass (core control-plane styling refinement)
+- Status: completed for MVP visual-system scope
 - Commit hash: `current branch head`
-- Short note: Deepened Settings and Admin / Tenancy from placeholder framing into thin, truthful core-owned readiness workspaces that expose runtime posture, governance signals, documentation entry points, tenancy/admin boundaries, and explicit deferred enterprise scope without fake controls.
-- Next recommended issue: Continue non-MVP breadth for enterprise authorization/isolation foundations (RBAC/SSO/tenant lifecycle) while preserving the current core-owned admin/tenancy boundary model.
+- Short note: Applied a cohesive Security / OSINT-aligned visual system across the existing shell and all current surfaces (dark structural chrome, warm investigation workspace, slate-blue structure accents, muted copper investigation cues, and restrained status/severity badges) while preserving route behavior and information architecture.
+- Next recommended issue: Add thin accessibility/contrast verification and per-surface visual regression baselines so subsequent UI depth slices preserve the new control-plane theme consistency.
 
 ## Completed issues (verified in `main`)
 
@@ -38,6 +38,7 @@
 - [x] Implement models governance/execution surface depth slice (`current branch head`, PR TBD)
 - [x] Implement modules architecture/capability surface depth slice (`current branch head`, PR TBD)
 - [x] Implement settings and admin/tenancy readiness posture surface depth slice (`current branch head`, PR TBD)
+- [x] Apply Security / OSINT visual theme pass across current core-owned MVP shell and surfaces (`current branch head`, PR TBD)
 - [x] Docs/runbook/configuration/threat-model notes hardened for the MVP-supported operation path (`current branch head`, PR TBD); full platform-grade operations/documentation breadth remains out of scope.
 
 ## In-progress issues

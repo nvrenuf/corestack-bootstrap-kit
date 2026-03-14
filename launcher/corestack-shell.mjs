@@ -181,7 +181,7 @@ function renderRunSummary(run) {
   return `
     <li>
       <strong>${run.workflowName}</strong>
-      <span> · ${run.status}</span>
+      <span> · ${renderToneBadge(run.status)}</span>
       <span> · ${run.currentStepTitle}</span>
       ${run.caseId ? `<span> · Case ${run.caseId}</span>` : ""}
     </li>
@@ -192,10 +192,25 @@ function renderCaseSummary(caseItem) {
   return `
     <li>
       <strong>${caseItem.title}</strong>
-      <span> · ${caseItem.status}</span>
+      <span> · ${renderToneBadge(caseItem.status)}</span>
       <span> · ${caseItem.runIds.length} linked run(s)</span>
     </li>
   `;
+}
+
+function renderToneBadge(rawValue = "") {
+  const value = String(rawValue);
+  const normalized = value.toLowerCase();
+  if (["critical", "high", "failed", "error", "denied", "blocked"].includes(normalized)) {
+    return `<span class="tone-badge tone-danger">${value}</span>`;
+  }
+  if (["approved", "healthy", "success", "completed", "low", "ok"].includes(normalized)) {
+    return `<span class="tone-badge tone-success">${value}</span>`;
+  }
+  if (["medium", "pending", "review", "open", "in_review"].includes(normalized)) {
+    return `<span class="tone-badge tone-warning">${value}</span>`;
+  }
+  return `<span class="tone-badge tone-neutral">${value}</span>`;
 }
 
 function renderPlatformUtilitiesPanel() {
@@ -499,7 +514,7 @@ function renderInvestigationWorkspaceSurface(context = {}) {
         <span class="surface-meta">Investigation selector</span>
         <h3>Cases</h3>
         ${cases.length
-          ? `<ul class="placeholder-list">${cases.map((caseItem) => `<li><a href="#/investigation-workspace?caseId=${caseItem.caseId}">${caseItem.title}</a><span> · ${caseItem.status}</span></li>`).join("")}</ul>`
+          ? `<ul class="placeholder-list">${cases.map((caseItem) => `<li><a href="#/investigation-workspace?caseId=${caseItem.caseId}">${caseItem.title}</a><span> · ${renderToneBadge(caseItem.status)}</span></li>`).join("")}</ul>`
           : "<p>No cases available yet. Start from Launcher to create the first investigation context.</p>"}
       </article>
       <article class="shell-panel">
@@ -508,7 +523,7 @@ function renderInvestigationWorkspaceSurface(context = {}) {
         ${selectedCase
           ? `<ul class="placeholder-list">
               <li><strong>Title:</strong> ${selectedCase.title ?? "n/a"}</li>
-              <li><strong>Status:</strong> ${selectedCase.status}</li>
+              <li><strong>Status:</strong> ${renderToneBadge(selectedCase.status)}</li>
               <li><strong>Module:</strong> ${selectedCase.moduleId ?? "n/a"}</li>
               <li><strong>Linked runs:</strong> ${linkedRuns.length}</li>
             </ul>`
@@ -520,7 +535,7 @@ function renderInvestigationWorkspaceSurface(context = {}) {
         ${primaryRun
           ? `<ul class="placeholder-list">
               <li><strong>Workflow:</strong> ${primaryRun.workflowName}</li>
-              <li><strong>Status:</strong> ${primaryRun.status}</li>
+              <li><strong>Status:</strong> ${renderToneBadge(primaryRun.status)}</li>
               <li><strong>Current step:</strong> ${primaryRun.currentStepTitle ?? "n/a"}</li>
               <li><strong>Policy decisions:</strong> ${primaryRun.policyDecisions?.length ?? 0}</li>
             </ul>`
@@ -535,7 +550,7 @@ function renderInvestigationWorkspaceSurface(context = {}) {
           <li>Resolved or dismissed: ${findings.length - openFindings}</li>
         </ul>
         ${findings.length
-          ? `<ul class="placeholder-list">${findings.slice(0, 3).map((item) => `<li>${item.severity} · <a href="#/files-artifacts?findingId=${item.findingId}">${item.summary}</a>${item.evidenceIds?.[0] ? ` · <a href="#/files-artifacts?evidenceId=${item.evidenceIds[0]}">evidence</a>` : ""}${item.artifactIds?.[0] ? ` · <a href="#/files-artifacts?artifactId=${item.artifactIds[0]}">artifact</a>` : ""}${item.findingId ? ` · <a href="#/logs-audit?findingId=${item.findingId}">audit</a>` : ""}</li>`).join("")}</ul>`
+          ? `<ul class="placeholder-list">${findings.slice(0, 3).map((item) => `<li>${renderToneBadge(item.severity)} · <a href="#/files-artifacts?findingId=${item.findingId}">${item.summary}</a>${item.evidenceIds?.[0] ? ` · <a href="#/files-artifacts?evidenceId=${item.evidenceIds[0]}">evidence</a>` : ""}${item.artifactIds?.[0] ? ` · <a href="#/files-artifacts?artifactId=${item.artifactIds[0]}">artifact</a>` : ""}${item.findingId ? ` · <a href="#/logs-audit?findingId=${item.findingId}">audit</a>` : ""}</li>`).join("")}</ul>`
           : "<p>No findings generated yet for this investigation.</p>"}
       </article>
       <article class="shell-panel">
@@ -790,8 +805,8 @@ function renderFindingDetail(context = {}) {
       <h3>${selectedFinding.findingId}</h3>
       <ul class="placeholder-list">
         <li><strong>Type:</strong> ${selectedFinding.type}</li>
-        <li><strong>Severity:</strong> ${selectedFinding.severity}</li>
-        <li><strong>Status:</strong> ${selectedFinding.lifecycleState}</li>
+        <li><strong>Severity:</strong> ${renderToneBadge(selectedFinding.severity)}</li>
+        <li><strong>Status:</strong> ${renderToneBadge(selectedFinding.lifecycleState)}</li>
         <li><strong>Summary:</strong> ${selectedFinding.summary}</li>
         <li><strong>Linked evidence:</strong> ${selectedFinding.evidenceIds?.length ?? 0}</li>
         <li><strong>Linked artifacts:</strong> ${selectedFinding.artifactIds?.length ?? 0}</li>

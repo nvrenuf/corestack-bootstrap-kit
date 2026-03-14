@@ -14,6 +14,19 @@ Capability-oriented source of truth for CoreStack feature status.
 ### Planned / deferred
 - Broader operational automation and full platform-grade admin controls.
 
+## Security / OSINT visual system theme pass
+
+### Implemented now
+- Shared shell now uses a cohesive Security / OSINT control-plane visual identity: dark structural chrome (sidebar/nav), warm investigation-centered workspace surfaces, slate/steel-blue structural accents, and muted copper/amber review/evidence accents.
+- Panel, card, and section hierarchy was refined for clearer depth and scanability while preserving existing route structure and ownership framing.
+- Status/severity cues were normalized into restrained tone badges (danger/warning/success/neutral) so governance and investigation signals remain readable and consistent across key surfaces.
+
+### Partially implemented
+- This pass is intentionally MVP-scoped to current launcher/shell surfaces and does not yet include full automated visual regression/a11y contrast baselines.
+
+### Planned / deferred
+- Add formal visual regression snapshots and broader accessibility verification across future deeper CRUD/administration surfaces.
+
 ## Governed tool gateway (web.fetch + web.search)
 
 ### Implemented now

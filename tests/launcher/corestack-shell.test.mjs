@@ -595,7 +595,7 @@ test("files-artifacts route renders thin artifact and evidence detail with linke
   assert.match(rendered, /artifact:\/\/local\/run-1\/file\.json/);
   assert.match(rendered, /Linked evidence items: 1/);
   assert.match(rendered, /Linked artifacts: 1/);
-  assert.match(rendered, /Severity:\s*<\/strong> medium/);
+  assert.match(rendered, /Severity:\s*<\/strong>\s*<span class="tone-badge tone-warning">medium<\/span>/);
   assert.match(rendered, /evidence\.object\.mutated/);
 });
 
