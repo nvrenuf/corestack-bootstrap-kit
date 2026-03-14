@@ -19,6 +19,7 @@ Current implementation now covers the first operational foundation slice of this
 - real policy decision contract for governed actions, including approval-required decisions
 - implemented `web.fetch` and `web.search` governed tool schemas
 - implemented approval object/state machine with workflow checkpoints and reviewer queue/detail UX surfaces
+- implemented core-owned Policies governance workspace that projects real policy/approval/model/audit signals without introducing policy-authoring controls
 - implemented evidence/artifact/finding minimum objects and linkage to runs/cases
 - implemented structured, correlated audit/event scaffolding for run/tool/policy/approval/model/evidence activity
 - implemented model registry + local-first routing contract with external-provider restriction hooks

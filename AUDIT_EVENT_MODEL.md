@@ -170,3 +170,8 @@ Planned/deferred:
 
 - The current UI layer exposes this audit model across all left-nav surfaces through direct review surfaces (Runs/Cases/Files/Logs) and thin status surfaces (Policies/Models/Admin).
 - This slice does not expand the canonical event schema; it broadens truthful visibility framing only.
+
+## Policies workspace visibility note (current thin slice)
+
+- Policies now uses existing audit-linked governance signals (policy decisions, approval checkpoint linkage, and model restriction/routing events) to make governed behavior legible in one core-owned surface.
+- No new audit object model or event taxonomy was introduced; this is a projection/composition slice on top of existing correlated events and contracts.

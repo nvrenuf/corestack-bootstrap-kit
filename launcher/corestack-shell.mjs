@@ -813,36 +813,61 @@ function renderAgentsSurface() {
 
 function renderPoliciesSurface(context = {}) {
   const policyDecisionCount = context.policyDecisionCount ?? 0;
+  const policyOutcomeCounts = context.policyOutcomeCounts ?? { allow: 0, deny: 0, require_approval: 0 };
+  const governedActionSummary = context.governedActionSummary ?? {};
   const pendingApprovals = context.pendingApprovals ?? 0;
+  const totalApprovals = context.totalApprovals ?? 0;
+  const runCountWithPolicyDecisions = context.runCountWithPolicyDecisions ?? 0;
+  const workflowCheckpointCount = context.workflowCheckpointCount ?? 0;
+  const modelGovernanceEventCount = context.modelGovernanceEventCount ?? 0;
+  const governedActionItems = Object.entries(governedActionSummary)
+    .map(([type, count]) => `<li><strong>${type}</strong><span> · ${count} approval-linked action(s)</span></li>`)
+    .join("");
 
   return `
     <section class="surface-grid" data-surface-id="policies">
       <article class="shell-panel feature-panel">
-        <span class="surface-meta">Core-owned, module-aware surface</span>
+        <span class="surface-meta">Core-owned governance workspace</span>
         <h3>Policies</h3>
-        <p>Review policy decision behavior attached to runs and checkpoints using the existing policy decision contract.</p>
+        <p>Make policy-governed behavior legible across tools, models, workflows, and approvals without introducing unsupported authoring controls.</p>
       </article>
       <article class="shell-panel">
-        <span class="surface-meta">Current signals</span>
-        <h3>Thin policy visibility</h3>
+        <span class="surface-meta">Policy inventory (implemented now)</span>
+        <h3>Decision and checkpoint coverage</h3>
         <ul class="placeholder-list">
-          <li>Policy decisions observed in run history: ${policyDecisionCount}</li>
-          <li>Pending approval checkpoints: ${pendingApprovals}</li>
-          <li>Policy editor UX is intentionally deferred in this slice.</li>
+          <li>Total policy decisions captured on runs: ${policyDecisionCount}</li>
+          <li>Runs with at least one policy decision: ${runCountWithPolicyDecisions}</li>
+          <li>Decision outcomes — allow: ${policyOutcomeCounts.allow}, require approval: ${policyOutcomeCounts.require_approval}, deny: ${policyOutcomeCounts.deny}</li>
+          <li>Pending approval checkpoints: ${pendingApprovals} (of ${totalApprovals} recorded approvals)</li>
+          <li>Workflow-step governed checkpoints: ${workflowCheckpointCount}</li>
+          <li>Model governance audit signals (route/restriction): ${modelGovernanceEventCount}</li>
+        </ul>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Where policies apply</span>
+        <h3>Governed action relationship</h3>
+        ${governedActionItems ? `<ul class="placeholder-list">${governedActionItems}</ul>` : "<p>No governed actions have produced approval records yet.</p>"}
+        <ul class="placeholder-list">
+          <li><a href="#/runs">Runs</a> show policy decisions and pending checkpoints at run detail level.</li>
+          <li><a href="#/approvals">Approvals</a> is the operator action surface for require-approval outcomes.</li>
+          <li><a href="#/models">Models</a> surfaces routing and restriction events that are policy-relevant.</li>
+          <li><a href="#/logs-audit">Logs / Audit</a> preserves correlation for policy and approval event traces.</li>
         </ul>
       </article>
       ${renderCapabilityStatus({
         ownership: "Core-owned, module-aware",
         implemented: [
-          "Policy decisions are captured per run using existing object contracts.",
-          "Approval surfaces enforce review before selected actions continue.",
+          "Policy decision contract is active and attached to run records.",
+          "Require-approval outcomes link directly into the core approval checkpoint flow.",
+          "Governance visibility spans run review, approval queue, model restriction hooks, and audit correlation.",
         ],
         planned: [
-          "Authoring/versioning UI for policy bundles remains deferred.",
-          "Tenant policy lifecycle administration remains deferred.",
+          "Policy authoring/versioning UI remains deferred for this MVP thin slice.",
+          "Policy simulation/testing, tenant lifecycle administration, and compliance mapping remain deferred.",
         ],
         moduleNotes: [
-          "Security / OSINT Module 1 consumes policy decisions inside alert triage workflows.",
+          "Security / OSINT Module 1 is policy-subject and contributes run context, but Policies remains a core-owned surface.",
+          "Future modules can expose policy-relevant context through core contracts without creating module-owned policy pages.",
         ],
       })}
     </section>

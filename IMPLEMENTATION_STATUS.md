@@ -6,11 +6,11 @@
 
 ## Latest issue update
 
-- Issue name: Corestack nav surface completion and product map pages
-- Status: completed for MVP thin-slice scope (all current left-nav routes now resolve to intentional, truthful product surfaces with ownership/state framing)
+- Issue name: Policies surface depth slice (core-owned governance workspace)
+- Status: completed for MVP thin-slice scope
 - Commit hash: `current branch head`
-- Short note: Preserved stronger implemented review surfaces (Runs, Approvals, Cases/Evidence, Investigation Workspace, Files/Artifacts, Logs/Audit) and completed thin intentional surfaces for Agents, Policies, Models, Connectors, Settings, and Admin/Tenancy with explicit implemented vs deferred status and module relationship framing.
-- Next recommended issue: Add a next thin capability slice for one newly completed nav page (for example connector health visibility or policy bundle authoring) while keeping #18/#21 broad hardening tracks open.
+- Short note: Deepened the Policies route from placeholder status into a truthful governance workspace using existing contracts and data projection (policy decision outcomes, approval checkpoint linkage, governed action summary, model governance signals, and audit relationship framing) without introducing unsupported policy authoring behavior.
+- Next recommended issue: Deepen connector governance visibility (health/status + policy relevance) as the next thin core-owned operations slice while keeping #18/#21 broad hardening tracks open.
 
 ## Completed issues (verified in `main`)
 

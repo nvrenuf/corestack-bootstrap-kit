@@ -61,6 +61,7 @@ Security/OSINT Module 1 now has a real implemented foundation in the core platfo
 - workflow execution uses a minimum run contract with run-to-case linkage and resumable/governed execution states
 - governed actions are evaluated through core policy decision contracts, including approval-required outcomes
 - approval queue/detail review surfaces and reviewer state transitions are implemented
+- core-owned Policies surface now provides thin governance workspace visibility for where Module 1 actions are policy-subject (runs, approvals/checkpoints, model restrictions, linked audit traces)
 - evidence, artifact, and finding objects are implemented and can be attached to runs/cases
 - `web.fetch` and `web.search` are implemented as schema-defined governed tool contracts
 - model routing for Module 1 execution paths is local-first and restriction-aware with execution logging

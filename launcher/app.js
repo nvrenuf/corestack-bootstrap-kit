@@ -162,9 +162,30 @@ function getRouteContext(routeId) {
   }
 
   if (routeId === "policies") {
+    const approvals = approvalStore.listApprovals();
+    const policyDecisions = runs.flatMap((run) => run.policyDecisions ?? []);
+    const policyOutcomeCounts = policyDecisions.reduce((counts, decision) => {
+      counts[decision.outcome] = (counts[decision.outcome] ?? 0) + 1;
+      return counts;
+    }, { allow: 0, deny: 0, require_approval: 0 });
+    const pendingApprovalLinks = approvals.filter((approval) => approval.status === "pending");
+    const governedActionSummary = approvals.reduce((summary, approval) => {
+      const key = approval.governedAction?.type ?? "unknown";
+      summary[key] = (summary[key] ?? 0) + 1;
+      return summary;
+    }, {});
+    const modelGovernanceEvents = auditStore.listEvents().filter((event) =>
+      event.event_type === "model.execution.restricted" || event.event_type === "model.route.selected");
+
     return {
-      policyDecisionCount: runs.reduce((total, run) => total + (run.policyDecisions?.length ?? 0), 0),
-      pendingApprovals: approvalStore.listPending().length,
+      policyDecisionCount: policyDecisions.length,
+      policyOutcomeCounts,
+      governedActionSummary,
+      pendingApprovals: pendingApprovalLinks.length,
+      totalApprovals: approvals.length,
+      runCountWithPolicyDecisions: runs.filter((run) => (run.policyDecisions?.length ?? 0) > 0).length,
+      workflowCheckpointCount: pendingApprovalLinks.filter((approval) => approval.governedAction?.type === "workflow_step").length,
+      modelGovernanceEventCount: modelGovernanceEvents.length,
     };
   }
 

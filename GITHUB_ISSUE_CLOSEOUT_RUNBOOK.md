@@ -219,3 +219,11 @@ Status update: completed for MVP thin-slice scope.
 - Completed intentional surface coverage for all current left-nav entries in the shared Corestack shell.
 - Preserved stronger implemented review workflows (runs/cases/workspace/files/logs/approvals) and added truthful thin surfaces for the remaining pages.
 - Each page now communicates ownership type (core-owned, module-aware, extension-point), implemented-now behavior, and planned/deferred scope without fake controls.
+
+## Issues to close when policies surface depth PR merges
+
+- Policies surface depth thin slice (core-owned governance workspace)
+
+Suggested closeout note:
+
+Deepened the core-owned Policies surface from a placeholder into a thin governance workspace that projects real MVP governance behavior using existing contracts: policy decisions on runs, decision outcome mix, approval checkpoint linkage/governed-action summary, policy-relevant model routing/restriction signals, and audit relationship pivots. Scope remains read-oriented and truthful (no policy authoring/versioning UX or enterprise governance administration).

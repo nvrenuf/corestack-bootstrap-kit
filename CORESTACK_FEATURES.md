@@ -95,3 +95,16 @@ Capability-oriented source of truth for CoreStack feature status.
 
 ### Planned / deferred
 - Full policy authoring, connector onboarding, agent orchestration administration, and tenant management UX depth.
+
+## Policies governance workspace (core-owned)
+
+### Implemented now
+- Policies route now acts as a thin governance workspace instead of a generic placeholder.
+- Surface inventory shows policy decisions attached to runs, decision outcomes, pending approval checkpoints, and governed-action coverage using existing contracts.
+- Operators can see where governance applies through direct relationship framing across Runs, Approvals, Models, and Logs / Audit.
+
+### Partially implemented
+- Policy visibility is strong enough for MVP operations, but remains read-oriented and intentionally thin.
+
+### Planned / deferred
+- Policy authoring/versioning, simulation/testing, and broad enterprise policy administration remain deferred.

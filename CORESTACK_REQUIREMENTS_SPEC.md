@@ -1109,6 +1109,20 @@ Partially implemented:
 Deferred:
 - Broad forensic timeline, report/export packaging, and cross-module generic investigation workspace behavior.
 
+## Policies surface depth reconciliation (current thin slice)
+
+Implemented now:
+- Policies route provides a core-owned governance workspace with truthful inventory and relationship framing.
+- Existing policy decision contract is projected into operator-visible counts (total decisions, outcome mix, runs with policy activity).
+- Existing approvals/governed-action concepts are projected into checkpoint and governed-action visibility without introducing a policy editor.
+- Existing model restriction/routing and audit correlation behavior are called out as policy-relevant governance signals.
+
+Partially implemented:
+- Policies is visibility-first for current MVP behavior and does not include full policy lifecycle operations.
+
+Deferred:
+- Policy authoring/versioning UX, simulation tooling, and enterprise governance administration breadth.
+
 
 ### 3.13 Nav surface product-map semantics
 

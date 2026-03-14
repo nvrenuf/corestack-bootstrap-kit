@@ -129,16 +129,34 @@ test("agents surface documents core ownership, implemented hooks, and deferred o
   assert.match(rendered, /Security \/ OSINT Module 1 contributes workflow behavior/);
 });
 
-test("policies surface renders truthful thin status with policy decision and approval counts", () => {
+test("policies surface renders thin governance workspace with implemented and deferred framing", () => {
   const rendered = renderRouteContent(getRoute("policies"), {
     policyDecisionCount: 3,
+    policyOutcomeCounts: { allow: 1, deny: 0, require_approval: 2 },
     pendingApprovals: 1,
+    totalApprovals: 2,
+    runCountWithPolicyDecisions: 2,
+    workflowCheckpointCount: 1,
+    modelGovernanceEventCount: 4,
+    governedActionSummary: { workflow_step: 2 },
   });
 
-  assert.match(rendered, /Core-owned, module-aware surface/);
-  assert.match(rendered, /Policy decisions observed in run history: 3/);
-  assert.match(rendered, /Pending approval checkpoints: 1/);
-  assert.match(rendered, /Policy editor UX is intentionally deferred/);
+  assert.match(rendered, /Core-owned governance workspace/);
+  assert.match(rendered, /Total policy decisions captured on runs: 3/);
+  assert.match(rendered, /Decision outcomes — allow: 1, require approval: 2, deny: 0/);
+  assert.match(rendered, /Pending approval checkpoints: 1 \(of 2 recorded approvals\)/);
+  assert.match(rendered, /workflow_step/);
+  assert.match(rendered, /Policy authoring\/versioning UI remains deferred/);
+});
+
+test("policies surface handles sparse governance context without implying authoring", () => {
+  const rendered = renderRouteContent(getRoute("policies"), {
+    policyDecisionCount: 0,
+    governedActionSummary: {},
+  });
+
+  assert.match(rendered, /No governed actions have produced approval records yet/);
+  assert.match(rendered, /policy authoring\/versioning UI remains deferred/i);
 });
 
 test("models surface renders registry visibility and model event links", () => {

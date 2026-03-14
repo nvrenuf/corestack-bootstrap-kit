@@ -1071,3 +1071,15 @@ Not implemented in this issue:
 - Preserved stronger implemented review surfaces (Runs, Approvals, Cases / Evidence, Investigation Workspace, Files / Artifacts, Logs / Audit) and added truthful thin product pages for Agents, Policies, Models, Connectors, Settings, and Admin / Tenancy.
 - Each completed thin surface explicitly calls out ownership model (core-owned, module-aware, or extension-point), implemented-now behavior, and deferred/planned behavior without pretending unsupported backend capabilities.
 - Security / OSINT Module 1 relationship is shown as module contribution into core surfaces, not as module-owned navigation.
+
+## Reconciliation note — Policies surface depth thin slice
+
+Status: completed for MVP thin-slice scope.
+
+What landed:
+- Policies remains core-owned and module-aware (not module-owned).
+- Policy-governed behavior is now visible through existing contracts: policy decisions on runs, approval checkpoint linkage, governed-action coverage, model governance signals, and audit correlation visibility.
+- Scope remains read-oriented and truthful; no policy authoring/versioning controls were introduced.
+
+Still deferred:
+- Full policy management platform capabilities (authoring lifecycle, simulation, compliance mapping, tenancy-wide administration).
