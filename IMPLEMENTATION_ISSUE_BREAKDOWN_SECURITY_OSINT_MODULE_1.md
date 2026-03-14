@@ -1062,3 +1062,12 @@ Not implemented in this issue:
 
 ### Planned/deferred
 - Broad forensic/timeline consoles, report/export packaging, and cross-module generic investigation workbench behavior.
+
+
+## Nav surface completion and product-map reconciliation (thin slice)
+
+- Status: completed for MVP thin-slice scope.
+- Summary: all current left-nav entries now resolve to intentional core control-plane surfaces.
+- Preserved stronger implemented review surfaces (Runs, Approvals, Cases / Evidence, Investigation Workspace, Files / Artifacts, Logs / Audit) and added truthful thin product pages for Agents, Policies, Models, Connectors, Settings, and Admin / Tenancy.
+- Each completed thin surface explicitly calls out ownership model (core-owned, module-aware, or extension-point), implemented-now behavior, and deferred/planned behavior without pretending unsupported backend capabilities.
+- Security / OSINT Module 1 relationship is shown as module contribution into core surfaces, not as module-owned navigation.

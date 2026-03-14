@@ -265,3 +265,9 @@ This section remains as an implementation/runtime packaging plan for the Securit
 - Models are **open-weight-first, pluggable, and policy-governed**.
 - Security is **hardened by design**, with sandboxing, gatekeeping, audit, and least-privilege defaults.
 - Deployment is **self-hosted-first**; managed and commercial concerns come later.
+
+
+## Nav surface completion reconciliation note
+
+- Thin-slice reconciliation completed: all current left-nav routes now resolve to intentional, truthful surfaces while preserving existing implemented investigation/review routes as primary operator workflows.
+- This is not a full completion claim for agents/policies/connectors/admin feature depth; those remain follow-on capability slices.

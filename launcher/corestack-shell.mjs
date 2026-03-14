@@ -54,6 +54,32 @@ export function renderSurfacePlaceholder(route) {
   `;
 }
 
+function renderCapabilityStatus({
+  ownership,
+  implemented = [],
+  planned = [],
+  moduleNotes = [],
+}) {
+  return `
+    <article class="shell-panel">
+      <span class="surface-meta">Surface ownership</span>
+      <h3>${ownership}</h3>
+      <h4>Implemented now</h4>
+      <ul class="placeholder-list">
+        ${implemented.map((item) => `<li>${item}</li>`).join("")}
+      </ul>
+      <h4>Planned / deferred</h4>
+      <ul class="placeholder-list">
+        ${planned.map((item) => `<li>${item}</li>`).join("")}
+      </ul>
+      <h4>Module relationship</h4>
+      <ul class="placeholder-list">
+        ${moduleNotes.map((item) => `<li>${item}</li>`).join("")}
+      </ul>
+    </article>
+  `;
+}
+
 export function renderModuleHook(modules = []) {
   const moduleItems = modules.length
     ? modules
@@ -757,6 +783,187 @@ function renderArtifactEvidenceSurface(context = {}) {
   `;
 }
 
+function renderAgentsSurface() {
+  return `
+    <section class="surface-grid" data-surface-id="agents">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Core-owned surface with module extension points</span>
+        <h3>Agents</h3>
+        <p>Define where agent execution policy and runtime constraints are surfaced across workflows without introducing fake orchestration controls.</p>
+      </article>
+      ${renderCapabilityStatus({
+        ownership: "Core-owned with module extension points",
+        implemented: [
+          "Alert triage workflow executes through the existing run/workflow contract.",
+          "Model routing and model execution hooks are enforced before response generation.",
+          "Audit events capture model route and execution correlation IDs.",
+        ],
+        planned: [
+          "Agent catalog and assignment controls remain deferred.",
+          "Multi-agent plans and toolchain orchestration remain deferred.",
+        ],
+        moduleNotes: [
+          "Security / OSINT Module 1 contributes workflow behavior, not a separate agent shell.",
+          "Future modules will register extension metadata here via the core module contract.",
+        ],
+      })}
+    </section>
+  `;
+}
+
+function renderPoliciesSurface(context = {}) {
+  const policyDecisionCount = context.policyDecisionCount ?? 0;
+  const pendingApprovals = context.pendingApprovals ?? 0;
+
+  return `
+    <section class="surface-grid" data-surface-id="policies">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Core-owned, module-aware surface</span>
+        <h3>Policies</h3>
+        <p>Review policy decision behavior attached to runs and checkpoints using the existing policy decision contract.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Current signals</span>
+        <h3>Thin policy visibility</h3>
+        <ul class="placeholder-list">
+          <li>Policy decisions observed in run history: ${policyDecisionCount}</li>
+          <li>Pending approval checkpoints: ${pendingApprovals}</li>
+          <li>Policy editor UX is intentionally deferred in this slice.</li>
+        </ul>
+      </article>
+      ${renderCapabilityStatus({
+        ownership: "Core-owned, module-aware",
+        implemented: [
+          "Policy decisions are captured per run using existing object contracts.",
+          "Approval surfaces enforce review before selected actions continue.",
+        ],
+        planned: [
+          "Authoring/versioning UI for policy bundles remains deferred.",
+          "Tenant policy lifecycle administration remains deferred.",
+        ],
+        moduleNotes: [
+          "Security / OSINT Module 1 consumes policy decisions inside alert triage workflows.",
+        ],
+      })}
+    </section>
+  `;
+}
+
+function renderModelsSurface(context = {}) {
+  const models = context.models ?? [];
+  const recentModelEvents = context.recentModelEvents ?? [];
+
+  return `
+    <section class="surface-grid" data-surface-id="models">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Core-owned, module-aware surface</span>
+        <h3>Models</h3>
+        <p>Track model registry, local-first routing, and model execution observability used by every module workflow.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Registry visibility</span>
+        <h3>Registered models</h3>
+        ${models.length
+          ? `<ul class="placeholder-list">${models.map((model) => `<li><strong>${model.id}</strong><span> · ${model.providerType}</span><span> · local-first: ${model.localFirst ? "yes" : "no"}</span></li>`).join("")}</ul>`
+          : "<p>No models registered.</p>"}
+        <h4>Recent model security events</h4>
+        ${renderLinkedAuditEvents(recentModelEvents)}
+      </article>
+      ${renderCapabilityStatus({
+        ownership: "Core-owned, module-aware",
+        implemented: [
+          "Model registry and routing contract are active.",
+          "Execution hook logging and restriction points are active.",
+        ],
+        planned: [
+          "Advanced provider failover and per-tenant model governance remain deferred.",
+        ],
+        moduleNotes: [
+          "Security / OSINT Module 1 routes triage execution through this core model layer.",
+        ],
+      })}
+    </section>
+  `;
+}
+
+function renderConnectorsSurface() {
+  return `
+    <section class="surface-grid" data-surface-id="connectors">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Core-owned surface with module extension points</span>
+        <h3>Connectors</h3>
+        <p>Define connector governance and capability registration boundaries without exposing fake integration setup flows.</p>
+      </article>
+      ${renderCapabilityStatus({
+        ownership: "Core-owned with module extension points",
+        implemented: [
+          "web.fetch and web.search tool contracts/schemas are active through the tool gateway path.",
+          "Tool gateway enforcement and audit hardening thin-slices are active.",
+        ],
+        planned: [
+          "Connector onboarding UX and credential management remain deferred.",
+          "Connector health dashboards remain deferred.",
+        ],
+        moduleNotes: [
+          "Security / OSINT Module 1 consumes connector outputs via tool workflows.",
+        ],
+      })}
+    </section>
+  `;
+}
+
+function renderSettingsSurface() {
+  return `
+    <section class="surface-grid" data-surface-id="settings">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Core-owned platform surface</span>
+        <h3>Settings</h3>
+        <p>Central place for platform-level configuration status and runbook entry points in a local-first MVP environment.</p>
+      </article>
+      ${renderCapabilityStatus({
+        ownership: "Core-owned",
+        implemented: [
+          "Configuration templates and runbooks define the current operational contract.",
+          "Threat model, schema references, and hardening docs are linked from the docs/runbook set.",
+        ],
+        planned: [
+          "In-product settings editors remain deferred.",
+          "Tenant-level settings controls remain deferred.",
+        ],
+        moduleNotes: [
+          "Modules consume settings from core configuration contracts rather than owning separate settings UIs.",
+        ],
+      })}
+    </section>
+  `;
+}
+
+function renderAdminTenancySurface() {
+  return `
+    <section class="surface-grid" data-surface-id="admin-tenancy">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Core-owned platform surface</span>
+        <h3>Admin / Tenancy</h3>
+        <p>Tracks tenancy and admin boundaries for the control plane without introducing pretend admin automation.</p>
+      </article>
+      ${renderCapabilityStatus({
+        ownership: "Core-owned",
+        implemented: [
+          "Current MVP uses a single-operator local baseline while preserving tenancy terminology in contracts and docs.",
+          "Audit and policy contracts already include actor/correlation metadata needed for future tenancy controls.",
+        ],
+        planned: [
+          "Tenant lifecycle and role management UI remain deferred.",
+          "Admin approval delegation and scoped access controls remain deferred.",
+        ],
+        moduleNotes: [
+          "Modules remain tenant-scoped through core case/run/evidence contracts rather than module-owned tenancy models.",
+        ],
+      })}
+    </section>
+  `;
+}
+
 export function renderRouteContent(route, context = {}) {
   if (route.id === "home") {
     return renderHomeSurface(context);
@@ -808,6 +1015,30 @@ export function renderRouteContent(route, context = {}) {
         </article>
       </section>
     `;
+  }
+
+  if (route.id === "agents") {
+    return renderAgentsSurface();
+  }
+
+  if (route.id === "policies") {
+    return renderPoliciesSurface(context);
+  }
+
+  if (route.id === "models") {
+    return renderModelsSurface(context);
+  }
+
+  if (route.id === "connectors") {
+    return renderConnectorsSurface();
+  }
+
+  if (route.id === "settings") {
+    return renderSettingsSurface();
+  }
+
+  if (route.id === "admin-tenancy") {
+    return renderAdminTenancySurface();
   }
 
   return renderSurfacePlaceholder(route);

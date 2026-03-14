@@ -120,6 +120,60 @@ test("module hook and modules route render registered module visibility", () => 
   assert.match(modulesSurface, /1 capability\(ies\)/);
 });
 
+test("agents surface documents core ownership, implemented hooks, and deferred orchestration", () => {
+  const rendered = renderRouteContent(getRoute("agents"));
+
+  assert.match(rendered, /Core-owned surface with module extension points/);
+  assert.match(rendered, /Model routing and model execution hooks are enforced/);
+  assert.match(rendered, /Agent catalog and assignment controls remain deferred/);
+  assert.match(rendered, /Security \/ OSINT Module 1 contributes workflow behavior/);
+});
+
+test("policies surface renders truthful thin status with policy decision and approval counts", () => {
+  const rendered = renderRouteContent(getRoute("policies"), {
+    policyDecisionCount: 3,
+    pendingApprovals: 1,
+  });
+
+  assert.match(rendered, /Core-owned, module-aware surface/);
+  assert.match(rendered, /Policy decisions observed in run history: 3/);
+  assert.match(rendered, /Pending approval checkpoints: 1/);
+  assert.match(rendered, /Policy editor UX is intentionally deferred/);
+});
+
+test("models surface renders registry visibility and model event links", () => {
+  const rendered = renderRouteContent(getRoute("models"), {
+    models: [
+      { id: "local.mistral-small", providerType: "local", localFirst: true },
+    ],
+    recentModelEvents: [
+      {
+        event_type: "model.route.selected",
+        timestamp: "2026-01-01T00:00:00.000Z",
+        correlation: { run_id: "run-1", case_id: "case-1" },
+      },
+    ],
+  });
+
+  assert.match(rendered, /Core-owned, module-aware surface/);
+  assert.match(rendered, /local\.mistral-small/);
+  assert.match(rendered, /local-first: yes/);
+  assert.match(rendered, /model\.route\.selected/);
+});
+
+test("connectors, settings, and admin tenancy surfaces resolve to intentional product pages", () => {
+  const connectors = renderRouteContent(getRoute("connectors"));
+  const settings = renderRouteContent(getRoute("settings"));
+  const admin = renderRouteContent(getRoute("admin-tenancy"));
+
+  assert.match(connectors, /web\.fetch and web\.search tool contracts\/schemas are active/);
+  assert.match(connectors, /Connector onboarding UX and credential management remain deferred/);
+  assert.match(settings, /Configuration templates and runbooks define the current operational contract/);
+  assert.match(settings, /In-product settings editors remain deferred/);
+  assert.match(admin, /single-operator local baseline/);
+  assert.match(admin, /Tenant lifecycle and role management UI remain deferred/);
+});
+
 test("runs route renders thin run detail review with linkage summaries", () => {
   const rendered = renderRouteContent(getRoute("runs"), {
     runs: [

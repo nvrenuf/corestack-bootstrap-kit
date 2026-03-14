@@ -6,11 +6,11 @@
 
 ## Latest issue update
 
-- Issue name: Investigation drill-in and navigation polish (Security/OSINT Module 1 thin operator UX slice)
-- Status: completed for MVP thin-slice scope (drill-in pivots and navigation polish on the existing investigation workspace path)
+- Issue name: Corestack nav surface completion and product map pages
+- Status: completed for MVP thin-slice scope (all current left-nav routes now resolve to intentional, truthful product surfaces with ownership/state framing)
 - Commit hash: `current branch head`
-- Short note: Deepened drill-in flow between investigation workspace, run/case detail, files/artifacts detail, and logs/audit filtered context while preserving existing contracts; also removed numeric menu prefixes and switched operator-facing Ollama utility/startup endpoint defaults to `http://localhost:8080`.
-- Next recommended issue: Add another thin Module 1 capability slice (new workflow capability) or return to remaining non-MVP platform hardening breadth (#18/#21).
+- Short note: Preserved stronger implemented review surfaces (Runs, Approvals, Cases/Evidence, Investigation Workspace, Files/Artifacts, Logs/Audit) and completed thin intentional surfaces for Agents, Policies, Models, Connectors, Settings, and Admin/Tenancy with explicit implemented vs deferred status and module relationship framing.
+- Next recommended issue: Add a next thin capability slice for one newly completed nav page (for example connector health visibility or policy bundle authoring) while keeping #18/#21 broad hardening tracks open.
 
 ## Completed issues (verified in `main`)
 
@@ -32,6 +32,7 @@
 - [x] Implement artifact/evidence detail and linked audit lookup surfaces (`current branch head`, PR TBD)
 - [x] Implement unified investigation workspace for one coherent case-linked operator review context (`current branch head`, PR TBD)
 - [x] Implement investigation drill-in and navigation polish for the Module 1 workspace path (`current branch head`, PR TBD)
+- [x] Complete all current left-nav surfaces as intentional product-map pages (core-owned/module-aware/extension-point framing) (`current branch head`, PR TBD)
 - [x] Docs/runbook/configuration/threat-model notes hardened for the MVP-supported operation path (`current branch head`, PR TBD); full platform-grade operations/documentation breadth remains out of scope.
 
 ## In-progress issues

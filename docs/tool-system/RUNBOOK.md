@@ -225,3 +225,9 @@ Partially implemented:
 
 Deferred:
 - Any broader endpoint topology redesign beyond current MVP gateway/local setup.
+
+
+## Control-plane navigation visibility note
+
+- Operators can discover tool-gateway and audit status context from multiple shell surfaces (Logs/Audit, Models, Policies, Connectors) as thin product-map visibility panels.
+- This does not introduce new tool execution APIs; it clarifies where current implemented vs deferred capabilities are communicated in-product.

@@ -156,6 +156,30 @@ function getRouteContext(routeId) {
     };
   }
 
+
+  if (routeId === "agents") {
+    return {};
+  }
+
+  if (routeId === "policies") {
+    return {
+      policyDecisionCount: runs.reduce((total, run) => total + (run.policyDecisions?.length ?? 0), 0),
+      pendingApprovals: approvalStore.listPending().length,
+    };
+  }
+
+  if (routeId === "models") {
+    return {
+      models: modelRegistry.list(),
+      recentModelEvents: auditStore.listEvents().filter((event) =>
+        event.event_type === "model.route.selected" || event.event_type === "model.execution.completed" || event.event_type === "model.execution.restricted").slice(0, 8),
+    };
+  }
+
+  if (routeId === "connectors" || routeId === "settings" || routeId === "admin-tenancy") {
+    return {};
+  }
+
   if (routeId === "modules") {
     return {
       modules,

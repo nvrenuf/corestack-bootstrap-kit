@@ -210,3 +210,12 @@ Status update: completed for MVP thin-slice scope.
 Deepened the existing core-owned investigation workspace by adding thin drill-in pivots across findings, artifacts/evidence detail, linked run/case detail, approvals queue, and filtered logs/audit context using existing correlation/linkage contracts. Also polished operator UX by removing numeric menu prefixes and updating operator-facing Ollama utility/startup endpoint defaults to `http://localhost:8080` without changing internal health/reachability checks.
 
 This does not claim full forensic platform completion; broad timeline/report/export and cross-module workbench behavior remain deferred.
+
+
+## Issue status note to paste for nav surface completion and product-map slice
+
+Status update: completed for MVP thin-slice scope.
+
+- Completed intentional surface coverage for all current left-nav entries in the shared Corestack shell.
+- Preserved stronger implemented review workflows (runs/cases/workspace/files/logs/approvals) and added truthful thin surfaces for the remaining pages.
+- Each page now communicates ownership type (core-owned, module-aware, extension-point), implemented-now behavior, and planned/deferred scope without fake controls.

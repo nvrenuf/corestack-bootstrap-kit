@@ -81,3 +81,17 @@ Capability-oriented source of truth for CoreStack feature status.
 
 ### Planned / deferred
 - Deeper investigation UX (timeline, advanced graphing, richer correlation tools) and broader platform-grade forensic/reporting features.
+
+
+## Nav surface completion and product map
+
+### Implemented now
+- All current left-nav items resolve to intentional surfaces in the shared control-plane shell.
+- Existing implemented review surfaces are preserved as primary operational surfaces: Runs, Approvals, Cases / Evidence, Investigation Workspace, Files / Artifacts, and Logs / Audit.
+- Agents, Policies, Models, Connectors, Settings, and Admin / Tenancy now provide truthful thin product pages with explicit ownership and capability-status framing.
+
+### Partially implemented
+- Several surfaces are intentionally status/visibility-first and do not yet include full CRUD or workflow-management tooling.
+
+### Planned / deferred
+- Full policy authoring, connector onboarding, agent orchestration administration, and tenant management UX depth.

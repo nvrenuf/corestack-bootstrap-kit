@@ -1108,3 +1108,21 @@ Partially implemented:
 
 Deferred:
 - Broad forensic timeline, report/export packaging, and cross-module generic investigation workspace behavior.
+
+
+### 3.13 Nav surface product-map semantics
+
+#### Required capabilities
+
+- Every left-nav entry shall resolve to an intentional product surface, even when the capability is only thin-slice implemented.
+- Each surface shall identify whether it is core-owned, module-aware, or core-owned with module extension points.
+- Surfaces shall distinguish implemented behavior from planned/deferred behavior and shall not imply unsupported backend capabilities.
+
+#### Minimum MVP requirements
+
+- Existing implemented operational surfaces remain primary: Runs, Approvals, Cases / Evidence, Investigation Workspace, Files / Artifacts, and Logs / Audit.
+- Remaining nav surfaces (Agents, Policies, Models, Connectors, Modules, Settings, Admin / Tenancy) provide truthful capability/status framing aligned to current contracts.
+
+#### Deferred requirements
+
+- Full management tooling depth for agents, policies, connectors, and tenancy lifecycle administration.

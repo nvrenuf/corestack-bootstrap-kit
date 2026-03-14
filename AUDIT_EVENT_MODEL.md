@@ -164,3 +164,9 @@ Partially implemented:
 
 Planned/deferred:
 - Broader timeline analytics, long-horizon reconstruction UX, and export/report-focused audit presentation layers.
+
+
+## Surface-mapping note (thin nav completion slice)
+
+- The current UI layer exposes this audit model across all left-nav surfaces through direct review surfaces (Runs/Cases/Files/Logs) and thin status surfaces (Policies/Models/Admin).
+- This slice does not expand the canonical event schema; it broadens truthful visibility framing only.

@@ -876,3 +876,10 @@ Partially implemented:
 
 Planned/deferred:
 - Additional workflow families, deep forensic timeline tooling, and report/export packaging.
+
+
+## Control-plane surface relationship (current thin slice)
+
+- Security / OSINT Module 1 contributes workflows and module metadata into core-owned navigation surfaces.
+- The module does not own left-nav routes; operators access module behavior through Launcher, Runs, Cases / Evidence, Investigation Workspace, Files / Artifacts, Logs / Audit, and related core surfaces.
+- Additional non-investigation nav pages currently expose module relationship/status framing only (not separate module admin tooling).

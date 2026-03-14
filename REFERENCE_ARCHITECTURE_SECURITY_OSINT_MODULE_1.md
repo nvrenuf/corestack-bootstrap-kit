@@ -865,3 +865,10 @@ Partially implemented:
 
 Planned/deferred:
 - Advanced cross-case correlation graphs, timeline exploration, and report/export packaging architecture.
+
+
+## Nav surface completion note (thin slice)
+
+- The control-plane left navigation now resolves all current routes to intentional surfaces without introducing separate module-owned shells.
+- Core operational surfaces (Runs, Approvals, Cases / Evidence, Investigation Workspace, Files / Artifacts, Logs / Audit) remain the primary implemented operator workflow path.
+- Adjacent surfaces (Agents, Policies, Models, Connectors, Settings, Admin / Tenancy) are intentionally thin but explicit about ownership, implemented contracts, and deferred capabilities.
