@@ -119,6 +119,17 @@ function getSelectedApprovalIdFromHash() {
   return params.get("approvalId");
 }
 
+function getSelectedEntityIdFromHash(param) {
+  const hash = window.location.hash ?? "";
+  const queryIndex = hash.indexOf("?");
+  if (queryIndex === -1) {
+    return null;
+  }
+
+  const params = new URLSearchParams(hash.slice(queryIndex + 1));
+  return params.get(param);
+}
+
 function renderNav(activeRouteId) {
   navRoot.innerHTML = TOP_LEVEL_ROUTES.map((route, index) => `
     <a
@@ -167,6 +178,72 @@ function getRouteContext(routeId) {
       approvalQueue: queue,
       selectedApprovalId,
       approvalDetail: selectedApprovalId ? approvalStore.projectApprovalDetail(selectedApprovalId) : null,
+    };
+  }
+
+  if (routeId === "runs") {
+    const evidenceItems = evidenceStore.listEvidenceItems();
+    const artifacts = evidenceStore.listArtifacts();
+    const findings = evidenceStore.listFindings();
+    const approvals = approvalStore.listApprovals();
+    const selectedRunId = getSelectedEntityIdFromHash("runId") ?? runs[0]?.runId ?? null;
+    const selectedRun = selectedRunId ? runStore.getRun(selectedRunId) : null;
+
+    return {
+      runs,
+      selectedRunId,
+      selectedRun,
+      selectedRunApprovals: selectedRunId
+        ? approvals.filter((approval) => approval.links.runId === selectedRunId)
+        : [],
+      selectedRunEvidence: selectedRunId
+        ? evidenceItems.filter((item) => item.runId === selectedRunId)
+        : [],
+      selectedRunArtifacts: selectedRunId
+        ? artifacts.filter((item) => item.runId === selectedRunId)
+        : [],
+      selectedRunFindings: selectedRunId
+        ? findings.filter((item) => item.runId === selectedRunId)
+        : [],
+      selectedRunAuditEvents: selectedRunId
+        ? auditStore.listEvents({ runId: selectedRunId }).slice(0, 5)
+        : [],
+    };
+  }
+
+  if (routeId === "cases-evidence") {
+    const evidenceItems = evidenceStore.listEvidenceItems();
+    const artifacts = evidenceStore.listArtifacts();
+    const findings = evidenceStore.listFindings();
+    const approvals = approvalStore.listApprovals();
+    const selectedCaseId = getSelectedEntityIdFromHash("caseId") ?? cases[0]?.caseId ?? null;
+    const selectedCase = selectedCaseId ? caseStore.getCase(selectedCaseId) : null;
+    const linkedRuns = selectedCase
+      ? selectedCase.runIds
+          .map((runId) => runStore.getRun(runId))
+          .filter(Boolean)
+      : [];
+
+    return {
+      cases,
+      selectedCaseId,
+      selectedCase,
+      linkedRuns,
+      selectedCaseApprovals: selectedCaseId
+        ? approvals.filter((approval) => approval.links.caseId === selectedCaseId)
+        : [],
+      selectedCaseEvidence: selectedCaseId
+        ? evidenceItems.filter((item) => item.caseId === selectedCaseId)
+        : [],
+      selectedCaseArtifacts: selectedCaseId
+        ? artifacts.filter((item) => item.caseId === selectedCaseId)
+        : [],
+      selectedCaseFindings: selectedCaseId
+        ? findings.filter((item) => item.caseId === selectedCaseId)
+        : [],
+      selectedCaseAuditEvents: selectedCaseId
+        ? auditStore.listEvents({ caseId: selectedCaseId }).slice(0, 5)
+        : [],
     };
   }
 
