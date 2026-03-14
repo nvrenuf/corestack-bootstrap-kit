@@ -361,8 +361,80 @@ function getRouteContext(routeId) {
   }
 
   if (routeId === "modules") {
+    const workflows = workflowRegistry.list();
+    const approvals = approvalStore.listApprovals();
+    const evidenceItems = evidenceStore.listEvidenceItems();
+    const artifacts = evidenceStore.listArtifacts();
+    const findings = evidenceStore.listFindings();
+    const moduleWorkflowLinks = workflows
+      .filter((workflow) => workflow.moduleId)
+      .map((workflow) => ({
+        workflowId: workflow.id,
+        workflowName: workflow.name,
+        moduleId: workflow.moduleId,
+      }));
+
+    const module1Runs = runs.filter((run) => run.moduleId === "security-osint-module-1");
+    const module1RunIds = new Set(module1Runs.map((run) => run.runId));
+    const module1CaseIds = new Set(module1Runs.map((run) => run.caseId).filter(Boolean));
+    const module1AuditEvents = auditStore
+      .listEvents()
+      .filter((event) => module1RunIds.has(event.correlation?.run_id));
+
     return {
       modules,
+      moduleWorkflowLinks,
+      surfaceRelationships: [
+        {
+          surface: "Launcher",
+          state: "implemented now",
+          notes: "Module-contributed workflow start paths are launched through the shared core launcher.",
+        },
+        {
+          surface: "Runs / Cases / Evidence",
+          state: "implemented now",
+          notes: "Module workflow execution writes to core run, case, evidence, artifact, and finding contracts.",
+        },
+        {
+          surface: "Investigation Workspace / Logs / Audit",
+          state: "implemented now",
+          notes: "Module-linked investigations are reviewed through shared workspace and correlated audit/event surfaces.",
+        },
+        {
+          surface: "Policies / Models / Connectors / Agents",
+          state: "partially implemented",
+          notes: "Current module participation is visible through existing policy, model-routing, tool-gateway, and execution-role posture.",
+        },
+        {
+          surface: "Module platform lifecycle",
+          state: "planned / deferred",
+          notes: "No marketplace, packaging/distribution, entitlement, or install/update manager is implemented in this MVP slice.",
+        },
+      ],
+      module1Capability: {
+        workflowId: "security-osint.alert-triage",
+        workflowName: "Alert triage and investigation",
+        runCount: module1Runs.length,
+        caseCount: module1CaseIds.size,
+        evidenceCount: evidenceItems.filter((item) => module1RunIds.has(item.runId)).length,
+        artifactCount: artifacts.filter((item) => module1RunIds.has(item.runId)).length,
+        findingCount: findings.filter((item) => module1RunIds.has(item.runId)).length,
+        approvalCount: approvals.filter((approval) => module1RunIds.has(approval.links?.runId)).length,
+        auditEventCount: module1AuditEvents.length,
+      },
+      statusFraming: {
+        implementedNow: [
+          "Module registration inventory is visible with current module/capability posture.",
+          "Security / OSINT Module 1 contribution to workflow execution and investigation data paths is explicitly mapped.",
+          "Core-owned surface relationship framing shows how module capability is consumed across existing control-plane surfaces.",
+        ],
+        partiallyImplemented: [
+          "Participation across policies/models/connectors/agents is visibility-first and bounded to the current workflow path.",
+        ],
+        plannedDeferred: [
+          "Module packaging, marketplace/catalog, licensing/entitlements, and lifecycle management UX remain intentionally out of scope.",
+        ],
+      },
     };
   }
 

@@ -916,3 +916,16 @@ Planned/deferred:
 - Security / OSINT Module 1 continues to consume model execution through core-owned model contracts (registry, local-first routing, restriction hooks, and audit-linked execution events).
 - The Models nav surface is treated as a shared core control-plane workspace for governance/execution posture visibility, not a module-owned model administration page.
 - Current module usage shown in the Models surface is intentionally thin and truthful: alert-triage workflow dependence is visible, while broader model lifecycle administration remains deferred.
+
+## Modules surface depth note (MVP thin slice)
+
+Implemented now:
+- Modules route provides a core-owned architecture/capability workspace that makes current module posture legible for operators.
+- Security / OSINT Module 1 is shown as the currently registered module with explicit workflow contribution linkage (`security-osint.alert-triage`) and current runtime posture visibility.
+- Module participation is framed across core-owned surfaces without introducing module-owned nav or shell behavior.
+
+Partially implemented:
+- Visibility is read-oriented and scoped to currently available module/workflow/runtime data.
+
+Planned/deferred:
+- Marketplace/catalog behavior, packaging/distribution lifecycle, and module install/update administration remain out of scope for this slice.

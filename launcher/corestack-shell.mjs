@@ -96,6 +96,87 @@ export function renderModuleHook(modules = []) {
   `;
 }
 
+function renderModulesSurface(context = {}) {
+  const modules = context.modules ?? [];
+  const surfaceRelationships = context.surfaceRelationships ?? [];
+  const moduleWorkflowLinks = context.moduleWorkflowLinks ?? [];
+  const module1Capability = context.module1Capability ?? null;
+  const statusFraming = context.statusFraming ?? {
+    implementedNow: [],
+    partiallyImplemented: [],
+    plannedDeferred: [],
+  };
+
+  return `
+    <section class="surface-grid" data-surface-id="modules">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Core-owned module architecture workspace</span>
+        <h3>Modules</h3>
+        <p>Operator-facing view of domain capability packages registered in Corestack, their current contribution path, and what remains intentionally deferred.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">What a module means here</span>
+        <h3>Module model in the current MVP</h3>
+        <ul class="placeholder-list">
+          <li>A module is a domain capability package that contributes workflows, data relationships, and extension behavior into the shared control plane.</li>
+          <li>A nav item is not a module; Modules is a core-owned architecture and posture surface.</li>
+          <li>This page is read-oriented and intentionally avoids fake install/update or marketplace controls.</li>
+        </ul>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Implemented now</span>
+        <h3>Registered module inventory</h3>
+        ${modules.length
+          ? `<ul class="placeholder-list">${modules.map((module) => `<li><strong>${module.name}</strong><span> · ${module.id}</span><span> · ${module.status}</span><span> · ${module.capabilities?.length ?? 0} capability(ies)</span></li>`).join("")}</ul>`
+          : "<p>No modules are currently registered in this environment.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Core surface participation</span>
+        <h3>How modules relate to core-owned surfaces</h3>
+        ${surfaceRelationships.length
+          ? `<ul class="placeholder-list">${surfaceRelationships.map((item) => `<li><strong>${item.surface}</strong><span> · ${item.state}</span><br /><small>${item.notes}</small></li>`).join("")}</ul>`
+          : "<p>No module-to-surface relationships are currently mapped.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Module 1 capability map</span>
+        <h3>Security / OSINT Module 1 contribution</h3>
+        ${module1Capability
+          ? `<ul class="placeholder-list">
+              <li><strong>Workflow:</strong> ${module1Capability.workflowName} (${module1Capability.workflowId})</li>
+              <li><strong>Runs observed:</strong> ${module1Capability.runCount}</li>
+              <li><strong>Linked cases:</strong> ${module1Capability.caseCount}</li>
+              <li><strong>Evidence objects:</strong> ${module1Capability.evidenceCount} evidence, ${module1Capability.artifactCount} artifacts, ${module1Capability.findingCount} findings</li>
+              <li><strong>Governance/audit signals:</strong> ${module1Capability.approvalCount} approvals, ${module1Capability.auditEventCount} correlated events</li>
+            </ul>`
+          : "<p>Security / OSINT Module 1 has not produced runtime data yet; registration and workflow linkage remain visible.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Workflow linkage</span>
+        <h3>Registered workflow contribution</h3>
+        ${moduleWorkflowLinks.length
+          ? `<ul class="placeholder-list">${moduleWorkflowLinks.map((item) => `<li><strong>${item.workflowName}</strong><span> · ${item.workflowId}</span><span> · module ${item.moduleId}</span></li>`).join("")}</ul>`
+          : "<p>No module workflow links are currently registered.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Scope framing</span>
+        <h3>Implemented vs partial vs planned/deferred</h3>
+        <h4>Implemented now</h4>
+        <ul class="placeholder-list">
+          ${statusFraming.implementedNow.map((item) => `<li>${item}</li>`).join("")}
+        </ul>
+        <h4>Partially implemented</h4>
+        <ul class="placeholder-list">
+          ${statusFraming.partiallyImplemented.map((item) => `<li>${item}</li>`).join("")}
+        </ul>
+        <h4>Planned / deferred</h4>
+        <ul class="placeholder-list">
+          ${statusFraming.plannedDeferred.map((item) => `<li>${item}</li>`).join("")}
+        </ul>
+      </article>
+    </section>
+  `;
+}
+
 function renderRunSummary(run) {
   return `
     <li>
@@ -1170,23 +1251,7 @@ export function renderRouteContent(route, context = {}) {
   }
 
   if (route.id === "modules") {
-    const modules = context.modules ?? [];
-    return `
-      <section class="surface-grid" data-surface-id="modules">
-        <article class="shell-panel feature-panel">
-          <span class="surface-meta">Core-owned module registry visibility</span>
-          <h3>Modules</h3>
-          <p>Registered domain capabilities are visible here without introducing marketplace behavior.</p>
-        </article>
-        <article class="shell-panel">
-          <span class="surface-meta">Registered modules</span>
-          <h3>Available capabilities</h3>
-          ${modules.length
-            ? `<ul class="placeholder-list">${modules.map((module) => `<li><strong>${module.name}</strong><span> · ${module.status}</span><span> · ${module.capabilities.length} capability(ies)</span></li>`).join("")}</ul>`
-            : "<p>No modules registered.</p>"}
-        </article>
-      </section>
-    `;
+    return renderModulesSurface(context);
   }
 
   if (route.id === "agents") {

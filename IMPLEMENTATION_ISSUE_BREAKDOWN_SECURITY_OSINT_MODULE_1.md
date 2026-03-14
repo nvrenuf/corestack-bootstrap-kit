@@ -1108,3 +1108,16 @@ Still deferred:
 - Reused existing model registry and local-first routing contracts, execution restriction hooks, workflow/module usage context, policy/approval posture, and audit/event correlation.
 - Added explicit implemented vs partial vs planned/deferred framing to keep operator-facing scope truthful without introducing fake model lifecycle controls.
 - Module relationship remains truthful: Security / OSINT Module 1 consumes model execution through the core layer; Models is not a module-owned page.
+
+## Modules surface depth slice (core-owned architecture/capability workspace)
+
+Status: completed (MVP thin-slice scope)
+
+What landed:
+- Deepened Modules from placeholder into a core-owned architecture/capability workspace.
+- Reused existing module registration contract and current workflow/run/case/evidence/approval/audit context for truthful module posture visibility.
+- Added explicit implemented vs partially implemented vs planned/deferred framing.
+- Preserved scope boundaries: no marketplace/catalog, licensing, packaging/distribution lifecycle manager, or fake editable controls.
+
+Carry-forward scope:
+- Broader module-platform lifecycle administration remains a separate non-MVP issue.

@@ -6,11 +6,11 @@
 
 ## Latest issue update
 
-- Issue name: Models surface depth slice (core-owned model governance/execution visibility)
+- Issue name: Modules surface depth slice (core-owned module architecture/capability visibility)
 - Status: completed for MVP thin-slice scope
 - Commit hash: `current branch head`
-- Short note: Deepened Models from placeholder framing into a thin, truthful core-owned governance/execution workspace by reusing existing model registry/routing, execution restriction hooks, workflow/module usage, policy/approval posture, and audit/event context with explicit implemented vs partial vs deferred status.
-- Next recommended issue: Continue non-MVP breadth for #9 model-platform lifecycle depth plus #21 audit/security taxonomy/operations depth.
+- Short note: Deepened Modules from placeholder framing into a thin, truthful core-owned module architecture/capability workspace by reusing module registration/workflow/run/case/evidence/policy/model/tool/audit context with explicit implemented vs partial vs deferred scope.
+- Next recommended issue: Continue non-MVP breadth for module-platform lifecycle depth (packaging/distribution/admin) while preserving the core-owned module boundary.
 
 ## Completed issues (verified in `main`)
 
@@ -36,6 +36,7 @@
 - [x] Implement connectors governance/readiness surface depth slice (`current branch head`, PR TBD)
 - [x] Implement agents orchestration/readiness surface depth slice (`current branch head`, PR TBD)
 - [x] Implement models governance/execution surface depth slice (`current branch head`, PR TBD)
+- [x] Implement modules architecture/capability surface depth slice (`current branch head`, PR TBD)
 - [x] Docs/runbook/configuration/threat-model notes hardened for the MVP-supported operation path (`current branch head`, PR TBD); full platform-grade operations/documentation breadth remains out of scope.
 
 ## In-progress issues
@@ -47,7 +48,7 @@
 
 ## Next recommended issue
 
-- Continue non-MVP breadth for #9 model-platform lifecycle depth plus #21 audit/security taxonomy/operations depth.
+- Continue non-MVP breadth for module-platform lifecycle depth (packaging/distribution/admin) plus #21 audit/security taxonomy/operations depth.
 
 ## References
 

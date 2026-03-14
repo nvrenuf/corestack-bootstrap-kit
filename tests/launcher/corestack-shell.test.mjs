@@ -104,7 +104,7 @@ test("logs-audit route renders filtered correlated events for investigation dril
   assert.match(rendered, /cases-evidence\?caseId=case-1/);
 });
 
-test("module hook and modules route render registered module visibility", () => {
+test("modules route renders architecture/capability visibility with truthful scope framing", () => {
   const modules = [{
     id: "security-osint-module-1",
     name: "Security / OSINT Module 1",
@@ -113,11 +113,61 @@ test("module hook and modules route render registered module visibility", () => 
   }];
 
   const hook = renderModuleHook(modules);
-  const modulesSurface = renderRouteContent(getRoute("modules"), { modules });
+  const modulesSurface = renderRouteContent(getRoute("modules"), {
+    modules,
+    moduleWorkflowLinks: [{
+      workflowId: "security-osint.alert-triage",
+      workflowName: "Alert triage and investigation",
+      moduleId: "security-osint-module-1",
+    }],
+    surfaceRelationships: [{
+      surface: "Launcher",
+      state: "implemented now",
+      notes: "Module-contributed workflow start paths are launched through the shared core launcher.",
+    }],
+    module1Capability: {
+      workflowId: "security-osint.alert-triage",
+      workflowName: "Alert triage and investigation",
+      runCount: 2,
+      caseCount: 1,
+      evidenceCount: 3,
+      artifactCount: 2,
+      findingCount: 1,
+      approvalCount: 1,
+      auditEventCount: 8,
+    },
+    statusFraming: {
+      implementedNow: ["Module registration inventory is visible with current module/capability posture."],
+      partiallyImplemented: ["Participation across policies/models/connectors/agents is visibility-first."],
+      plannedDeferred: ["Module packaging and marketplace behavior remain out of scope."],
+    },
+  });
 
   assert.match(hook, /Security \/ OSINT Module 1/);
-  assert.match(modulesSurface, /Registered domain capabilities are visible here/);
+  assert.match(modulesSurface, /Core-owned module architecture workspace/);
+  assert.match(modulesSurface, /A module is a domain capability package/);
   assert.match(modulesSurface, /1 capability\(ies\)/);
+  assert.match(modulesSurface, /Runs observed:<\/strong> 2/);
+  assert.match(modulesSurface, /Module packaging and marketplace behavior remain out of scope/);
+});
+
+test("modules route handles sparse context without implying fake module management controls", () => {
+  const modulesSurface = renderRouteContent(getRoute("modules"), {
+    modules: [],
+    moduleWorkflowLinks: [],
+    surfaceRelationships: [],
+    module1Capability: null,
+    statusFraming: {
+      implementedNow: ["Module registration inventory is visible with current module/capability posture."],
+      partiallyImplemented: ["Participation across policies/models/connectors/agents is visibility-first."],
+      plannedDeferred: ["No marketplace, packaging/distribution, entitlement, or install/update manager."],
+    },
+  });
+
+  assert.match(modulesSurface, /No modules are currently registered in this environment/);
+  assert.match(modulesSurface, /No module-to-surface relationships are currently mapped/);
+  assert.match(modulesSurface, /No module workflow links are currently registered/);
+  assert.match(modulesSurface, /read-oriented and intentionally avoids fake install\/update or marketplace controls/i);
 });
 
 test("agents surface renders orchestration/readiness visibility with truthful status framing", () => {

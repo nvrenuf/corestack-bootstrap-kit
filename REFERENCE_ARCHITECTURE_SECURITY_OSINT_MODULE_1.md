@@ -892,3 +892,16 @@ Planned/deferred:
 - Core control-plane now exposes a thin Models workspace that projects model governance/execution posture from existing architecture contracts.
 - Visibility composes model registry metadata, local-first/provider-boundary routing posture, restriction hooks, and audit-correlated model events.
 - This update does not alter architecture boundaries: modules remain consumers of the core model layer, and model lifecycle platform breadth remains deferred.
+
+## Modules surface depth architecture note (MVP thin slice)
+
+Implemented now:
+- Added a core-owned Modules architecture/capability workspace that projects module registry truth and current module-to-core-surface relationships.
+- Security / OSINT Module 1 contribution is surfaced through existing workflow/run/case/evidence/approval/audit relationships rather than module-private infrastructure.
+- Implemented/partial/deferred scope framing is explicit to avoid over-claiming module-platform maturity.
+
+Partially implemented:
+- Current visibility is intentionally bounded to current registered module and existing contract signals.
+
+Planned/deferred:
+- Full module platform lifecycle (packaging/distribution/catalog/entitlements/install/update) remains intentionally outside MVP thin-slice scope.

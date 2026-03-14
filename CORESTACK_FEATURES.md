@@ -150,3 +150,20 @@ Capability-oriented source of truth for CoreStack feature status.
 
 ### Planned / deferred
 - Full model-platform lifecycle management (provider onboarding/configuration, deployment/fleet controls, benchmark/evaluation lab, and training/fine-tuning administration).
+
+
+## Modules architecture/capability workspace (core-owned)
+
+### Implemented now
+- Modules route now provides a thin, truthful architecture/capability workspace instead of a simple placeholder.
+- The page explicitly defines what a module is in Corestack (domain capability package contributing workflows/data/extension behavior) and clarifies that nav items are not modules.
+- Registered module inventory is visible in-product using current module registry contract data.
+- Security / OSINT Module 1 contribution is mapped with workflow linkage plus current run/case/evidence/approval/audit posture derived from existing core contracts.
+- Module participation across core-owned surfaces is shown with explicit implemented-now relationship framing.
+
+### Partially implemented
+- Modules visibility is read-oriented and scoped to the currently registered Module 1 and current MVP workflow path.
+- Participation visibility across Policies/Models/Connectors/Agents is projected from existing contracts and does not include deep per-module administration.
+
+### Planned / deferred
+- Module packaging/distribution lifecycle, marketplace/catalog UX, licensing/entitlements, and install/update management remain intentionally deferred.

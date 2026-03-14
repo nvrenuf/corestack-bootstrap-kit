@@ -1181,3 +1181,19 @@ Partially implemented:
 
 Planned/deferred:
 - Full model lifecycle management, provider onboarding/configuration UX, benchmark/evaluation labs, deployment orchestration, and fine-tuning/training administration.
+
+## Modules surface depth reconciliation (MVP thin slice)
+
+Implemented now:
+- Modules surface is a core-owned architecture/capability workspace, not a module-owned shell.
+- Surface defines module semantics explicitly: a module is a domain capability package that contributes workflows, data relationships, and extension behavior into shared control-plane contracts.
+- Registered module inventory is rendered from existing module registry contract data.
+- Security / OSINT Module 1 contribution is visible via workflow registration plus run/case/evidence/approval/audit relationship posture using existing contracts.
+- Surface maps module participation across core-owned surfaces (Launcher, Runs, Cases/Evidence, Investigation Workspace, Files/Artifacts, Logs/Audit, Policies, Models, Connectors, Agents).
+
+Partially implemented:
+- Current surface is read-oriented and scoped to current module registry/workflow paths.
+- Per-module deep administration remains intentionally minimal.
+
+Planned/deferred:
+- Module packaging/distribution platform lifecycle, marketplace/catalog behavior, licensing/entitlement controls, and install/update management UX.
