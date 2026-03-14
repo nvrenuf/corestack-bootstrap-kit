@@ -88,6 +88,17 @@ Closing as planning complete. Any follow-on implementation work remains tracked 
 - PR #31: `492f359`
 - PR #32: `69e72a7`
 
+
+## Issues to close when artifact storage hardening PR merges
+
+- #TBD — Issue 4.2: Implement artifact storage linkage and metadata persistence
+
+### Close note to paste for Issue 4.2
+
+Completed for MVP thin-slice scope.
+
+Hardened artifact persistence/linkage behavior with stricter storage metadata normalization and validation, lifecycle/storage-state consistency enforcement, stronger run/case linkage checks, and tighter evidence/finding reference-integrity boundaries while keeping broad repository/export/search infrastructure explicitly out of scope (commit `current branch head`, PR TBD).
+
 ## Issues to close when approval slice PR merges
 
 - #5.1 — Define and implement the approval object model and state machine

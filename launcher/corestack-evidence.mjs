@@ -44,7 +44,31 @@ function normalizeStorageRef(storageRef) {
 
   assertObject(storageRef, "artifact.storageRef");
   assertNonEmptyString(storageRef.uri, "artifact.storageRef.uri");
-  return clone(storageRef);
+  const normalized = { uri: storageRef.uri.trim() };
+
+  if (storageRef.mediaType != null) {
+    assertNonEmptyString(storageRef.mediaType, "artifact.storageRef.mediaType");
+    normalized.mediaType = storageRef.mediaType.trim();
+  }
+
+  if (storageRef.byteSize != null) {
+    if (!Number.isInteger(storageRef.byteSize) || storageRef.byteSize < 0) {
+      throw new Error("artifact.storageRef.byteSize must be a non-negative integer");
+    }
+    normalized.byteSize = storageRef.byteSize;
+  }
+
+  if (storageRef.versionId != null) {
+    assertNonEmptyString(storageRef.versionId, "artifact.storageRef.versionId");
+    normalized.versionId = storageRef.versionId.trim();
+  }
+
+  if (storageRef.etag != null) {
+    assertNonEmptyString(storageRef.etag, "artifact.storageRef.etag");
+    normalized.etag = storageRef.etag.trim();
+  }
+
+  return normalized;
 }
 
 function validateIntegrity(value) {
@@ -56,6 +80,25 @@ function validateIntegrity(value) {
   assertNonEmptyString(value.algorithm, "artifact.integrity.algorithm");
   assertNonEmptyString(value.value, "artifact.integrity.value");
   return clone(value);
+}
+
+function normalizeMetadata(value, label) {
+  if (value == null) {
+    return {};
+  }
+
+  assertObject(value, label);
+  return clone(value);
+}
+
+function assertArtifactStatusConsistency(lifecycleState, storageState) {
+  if (lifecycleState === "deleted" && storageState !== "tombstoned") {
+    throw new Error("artifact.status consistency violation: deleted artifacts must be tombstoned");
+  }
+
+  if (storageState === "tombstoned" && lifecycleState !== "deleted") {
+    throw new Error("artifact.status consistency violation: tombstoned artifacts must be deleted");
+  }
 }
 
 export function createEvidenceStore({
@@ -137,11 +180,45 @@ export function createEvidenceStore({
     }
   }
 
+  function assertArtifactLinkageCompatibility(artifactIds = [], state, { runId, caseId, label }) {
+    for (const artifactId of artifactIds) {
+      const artifact = state.artifacts.find((entry) => entry.artifactId === artifactId);
+      if (!artifact) {
+        continue;
+      }
+
+      if (artifact.runId !== runId) {
+        throw new Error(`${label} references artifact outside run boundary: ${artifactId}`);
+      }
+
+      if (caseId != null && artifact.caseId !== caseId) {
+        throw new Error(`${label} references artifact outside case boundary: ${artifactId}`);
+      }
+    }
+  }
+
   function assertEvidenceReferencesExist(evidenceIds = [], state, label) {
     for (const evidenceId of evidenceIds) {
       assertNonEmptyString(evidenceId, `${label}.evidenceIds[]`);
       if (!state.evidenceItems.some((evidenceItem) => evidenceItem.evidenceId === evidenceId)) {
         throw new Error(`${label} references unknown evidence: ${evidenceId}`);
+      }
+    }
+  }
+
+  function assertEvidenceLinkageCompatibility(evidenceIds = [], state, { runId, caseId, label }) {
+    for (const evidenceId of evidenceIds) {
+      const evidence = state.evidenceItems.find((entry) => entry.evidenceId === evidenceId);
+      if (!evidence) {
+        continue;
+      }
+
+      if (evidence.runId !== runId) {
+        throw new Error(`${label} references evidence outside run boundary: ${evidenceId}`);
+      }
+
+      if (caseId != null && evidence.caseId !== caseId) {
+        throw new Error(`${label} references evidence outside case boundary: ${evidenceId}`);
       }
     }
   }
@@ -199,12 +276,14 @@ export function createEvidenceStore({
       assertLifecycleState(lifecycleState, ARTIFACT_LIFECYCLE_STATES, "artifact.lifecycleState");
       assertLifecycleState(storageState, ARTIFACT_STORAGE_STATES, "artifact.storageState");
       const normalizedIntegrity = validateIntegrity(integrity);
+      const normalizedMetadata = normalizeMetadata(metadata, "artifact.metadata");
       const run = assertRunExists(runId, "artifact.runId");
       const caseRecord = assertCaseExists(caseId, "artifact.caseId");
       if (!runId && !caseId) {
         throw new Error("artifact requires at least one linkage: runId or caseId");
       }
       assertRunCaseLinkage(runId, caseId, run, caseRecord, "artifact");
+      assertArtifactStatusConsistency(lifecycleState, storageState);
 
       const timestamp = now();
       const state = readState();
@@ -221,7 +300,7 @@ export function createEvidenceStore({
         storageState,
         integrity: normalizedIntegrity,
         auditRef,
-        metadata,
+        metadata: normalizedMetadata,
         createdAt: timestamp,
         updatedAt: timestamp,
       };
@@ -262,6 +341,7 @@ export function createEvidenceStore({
       validateSource(source);
       validateProvenance(provenance);
       assertLifecycleState(lifecycleState, EVIDENCE_LIFECYCLE_STATES, "evidence.lifecycleState");
+      const normalizedMetadata = normalizeMetadata(metadata, "evidence.metadata");
 
       const run = assertRunExists(runId, "evidence.runId");
       const caseRecord = assertCaseExists(caseId, "evidence.caseId");
@@ -270,6 +350,7 @@ export function createEvidenceStore({
       const timestamp = now();
       const state = readState();
       assertArtifactReferencesExist(artifactIds, state, "evidence");
+      assertArtifactLinkageCompatibility(artifactIds, state, { runId, caseId, label: "evidence" });
       const evidenceItem = {
         evidenceId: createEvidenceId(),
         type,
@@ -282,7 +363,7 @@ export function createEvidenceStore({
         artifactIds,
         lifecycleState,
         auditRef,
-        metadata,
+        metadata: normalizedMetadata,
         createdAt: timestamp,
         updatedAt: timestamp,
       };
@@ -299,6 +380,7 @@ export function createEvidenceStore({
           classification: evidenceItem.classification,
           lifecycle_state: evidenceItem.lifecycleState,
           artifact_ids: evidenceItem.artifactIds,
+          artifact_count: evidenceItem.artifactIds.length,
         },
       });
       return clone(evidenceItem);
@@ -322,6 +404,7 @@ export function createEvidenceStore({
       assertNonEmptyString(runId, "finding.runId");
       validateProvenance(provenance);
       assertLifecycleState(lifecycleState, FINDING_LIFECYCLE_STATES, "finding.lifecycleState");
+      const normalizedMetadata = normalizeMetadata(metadata, "finding.metadata");
       const run = assertRunExists(runId, "finding.runId");
       const caseRecord = assertCaseExists(caseId, "finding.caseId");
       assertRunCaseLinkage(runId, caseId, run, caseRecord, "finding");
@@ -329,7 +412,9 @@ export function createEvidenceStore({
       const timestamp = now();
       const state = readState();
       assertEvidenceReferencesExist(evidenceIds, state, "finding");
+      assertEvidenceLinkageCompatibility(evidenceIds, state, { runId, caseId, label: "finding" });
       assertArtifactReferencesExist(artifactIds, state, "finding");
+      assertArtifactLinkageCompatibility(artifactIds, state, { runId, caseId, label: "finding" });
       const finding = {
         findingId: createFindingId(),
         type,
@@ -342,7 +427,7 @@ export function createEvidenceStore({
         provenance,
         lifecycleState,
         auditRef,
-        metadata,
+        metadata: normalizedMetadata,
         createdAt: timestamp,
         updatedAt: timestamp,
       };
@@ -360,6 +445,8 @@ export function createEvidenceStore({
           lifecycle_state: finding.lifecycleState,
           evidence_ids: finding.evidenceIds,
           artifact_ids: finding.artifactIds,
+          evidence_count: finding.evidenceIds.length,
+          artifact_count: finding.artifactIds.length,
         },
       });
       return clone(finding);

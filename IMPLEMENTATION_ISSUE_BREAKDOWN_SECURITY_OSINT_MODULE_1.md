@@ -459,7 +459,7 @@ Create the smallest evidence-bearing object set needed for Module 1.
 
 - MVP
 
-#### Issue 4.2: Implement artifact storage linkage and metadata persistence [~] (main: `69e72a7`, PR #32; thin linkage landed)
+#### Issue 4.2: Implement artifact storage linkage and metadata persistence [x] (main: `current branch head`, PR TBD; MVP hardening pass landed)
 
 ##### Purpose
 
@@ -487,7 +487,7 @@ Support file-like outputs such as fetched content, normalized payloads, and repo
 
 ##### Status
 
-- in progress (thin storage linkage landed; full artifact lifecycle coverage and hardening remain open)
+- completed for MVP thin slice (artifact metadata normalization/validation, lifecycle consistency checks, run/case boundary validation, and stronger evidence/finding reference integrity landed; broad repository/export/search infrastructure remains out of scope)
 
 ##### Status target
 

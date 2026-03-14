@@ -23,12 +23,12 @@
 
 ## In-progress issues
 
-- [ ] Implement artifact storage linkage and metadata persistence — thin linkage landed (`69e72a7`, PR #32), but full lifecycle and hardening acceptance criteria remain open.
+- [x] Implement artifact storage linkage and metadata persistence — MVP hardening pass landed (`current branch head`, PR TBD) with stricter storage metadata normalization/validation, lifecycle consistency enforcement, and run/case/evidence/finding reference integrity checks; broad storage/export/search concerns remain out of scope.
 - [x] Implement structured audit/event logging for runs, tools, evidence, and approvals (`c0fae98`, PR TBD)
 
 ## Next recommended issue
 
-- Artifact storage hardening (Issue #4.2 follow-through) before expanding review-surface breadth.
+- Issue 8.1: Implement run detail and case detail review surfaces (artifact linkage base is now hardened for MVP).
 
 ## References
 
@@ -39,7 +39,7 @@
 
 - Convenience/UI plumbing fix: restored secondary quick links to existing platform utilities (n8n, Ollama, DB Admin/Adminer) on the Launcher surface for operator access, without changing shell architecture, workflow behavior, or roadmap scope.
 - Issue 4.1 completed with a thin core-owned evidence model (evidence item, artifact, finding) including run/case linkage, provenance basics, lifecycle states, and audit reference hooks.
-- Issue 4.2 has thin artifact storage metadata persistence landed (normalized `storageRef`, run/case linkage validation, artifact/evidence reference checks), but remains in progress for full lifecycle/hardening acceptance criteria.
+- Issue 4.2 completed for MVP thin-slice hardening: storage metadata is normalized/validated more strictly, artifact lifecycle and storage-state consistency is enforced, metadata integrity handling is normalized, and evidence/finding references are constrained to compatible run/case boundaries.
 - Issue 5.1 + 5.2 completed in a combined thin slice with pending/approved/denied/expired approval states, run pending-approval checkpoints, queue/detail review surfaces, and approval lifecycle audit events.
 - Issue 6.1 completed in a thin core-owned slice by adding a reusable model registry and local-first router contract with policy/audit compatibility hooks and structured unavailable/disallowed route failures.
 - Issue 6.2 completed in a thin core-owned slice by introducing model execution audit hooks (requested/decisioned/result), correlation metadata, and external-provider restriction blocking hooks built on top of the routing contract.
