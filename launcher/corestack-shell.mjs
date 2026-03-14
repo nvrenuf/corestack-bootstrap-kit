@@ -78,6 +78,25 @@ function renderCaseSummary(caseItem) {
   `;
 }
 
+function renderPlatformUtilitiesPanel() {
+  const platformUtilities = [
+    { id: "n8n", label: "n8n", href: "http://localhost:5678/home/workflows" },
+    { id: "ollama", label: "Ollama API", href: "http://localhost:11434/api/tags" },
+    { id: "db-admin", label: "DB Admin / Adminer", href: "http://localhost:8081/" },
+  ];
+
+  return `
+    <article class="shell-panel">
+      <span class="surface-meta">Operator convenience</span>
+      <h3>Platform utilities</h3>
+      <p>Quick links to existing platform utilities. These shortcuts are secondary to core workflow and case surfaces.</p>
+      <ul class="placeholder-list">
+        ${platformUtilities.map((utility) => `<li><a href="${utility.href}" target="_blank" rel="noopener noreferrer">${utility.label}</a></li>`).join("")}
+      </ul>
+    </article>
+  `;
+}
+
 function renderHomeSurface(context = {}) {
   const activeRuns = context.activeRuns ?? [];
   const recentRuns = context.recentRuns ?? [];
@@ -133,6 +152,7 @@ function renderHomeSurface(context = {}) {
           }
         </div>
       </article>
+      ${renderPlatformUtilitiesPanel()}
     </section>
   `;
 }
@@ -222,11 +242,6 @@ function renderLauncherSurface(context = {}) {
   const moduleName = module?.name ?? "Security / OSINT Module 1";
   const workflowId = launcherEntry?.workflowId ?? "security-osint.alert-triage";
   const startRoute = launcherEntry?.route ?? "#/launcher?start=security-osint-alert-triage";
-  const platformUtilities = [
-    { id: "n8n", label: "n8n", href: "http://localhost:5678/home/workflows" },
-    { id: "ollama", label: "Ollama API", href: "http://localhost:11434/api/tags" },
-    { id: "db-admin", label: "DB Admin / Adminer", href: "http://localhost:8081/" },
-  ];
 
   return `
     <section class="surface-grid" data-surface-id="launcher">
@@ -266,14 +281,7 @@ function renderLauncherSurface(context = {}) {
           <li>The launcher stays module-aware without becoming an app catalog.</li>
         </ul>
       </article>
-      <article class="shell-panel">
-        <span class="surface-meta">Operator convenience</span>
-        <h3>Platform utilities</h3>
-        <p>Quick links to existing platform utilities. These shortcuts are secondary to core workflow and case surfaces.</p>
-        <ul class="placeholder-list">
-          ${platformUtilities.map((utility) => `<li><a href="${utility.href}" target="_blank" rel="noopener noreferrer">${utility.label}</a></li>`).join("")}
-        </ul>
-      </article>
+      ${renderPlatformUtilitiesPanel()}
     </section>
   `;
 }
