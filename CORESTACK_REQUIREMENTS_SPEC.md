@@ -1065,3 +1065,14 @@ This specification consolidates and formalizes:
 - [SECURITY_OSINT_MODULE_1.md](/Users/leecuevas/Projects/corestack-bootstrap-kit/SECURITY_OSINT_MODULE_1.md)
 - [REFERENCE_ARCHITECTURE_SECURITY_OSINT_MODULE_1.md](/Users/leecuevas/Projects/corestack-bootstrap-kit/REFERENCE_ARCHITECTURE_SECURITY_OSINT_MODULE_1.md)
 - [UX_INFORMATION_ARCHITECTURE_CORESTACK_DESKTOP.md](/Users/leecuevas/Projects/corestack-bootstrap-kit/UX_INFORMATION_ARCHITECTURE_CORESTACK_DESKTOP.md)
+
+
+## MVP integration validation status (Issue #22 thin slice)
+
+Implemented in this slice:
+- CI-friendly validation harness command for current supported gateway/module path.
+- Integration coverage for allow, malformed, disallowed, oversize, and timeout fail-closed behavior.
+- Assertions for normalized audit/security events and schema-conformant responses on supported paths.
+
+Deferred:
+- Broad platform-wide future tool/provider/module matrix coverage.

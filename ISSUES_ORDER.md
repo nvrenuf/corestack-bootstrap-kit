@@ -119,9 +119,9 @@ Note: These are MVP-slice thin-slice reconciliations. Keep Milestone issues #4/#
 
 14. **Integration tests + validation harness (E2E, negative tests, allowlist tests)**  #22 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/22  
     Owner: TBD  
-    - [ ] Golden-path and negative-path E2E tests are implemented  
-    - [ ] Contract tests enforce schema conformance  
-    - [ ] CI-friendly runner is available
+    - [x] Golden-path and negative-path E2E tests are implemented (MVP thin-slice for current supported gateway/module path only; broad future matrix remains open)  
+    - [x] Contract tests enforce schema conformance for current supported paths  
+    - [x] CI-friendly runner is available (`scripts/tool-system/validate-mvp-slice.sh`, `make mvp-validation`)
 
 15. **Docs: runbook + configuration + threat model notes**  #23 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/23  
     Owner: TBD  

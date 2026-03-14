@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: lint fmt test smoke tool-system-test
+.PHONY: lint fmt test smoke tool-system-test mvp-validation
 
 lint:
 	./tests/shellcheck.sh
@@ -18,3 +18,7 @@ smoke:
 
 tool-system-test:
 	./scripts/tool-system/test.sh
+
+
+mvp-validation:
+	./scripts/tool-system/validate-mvp-slice.sh

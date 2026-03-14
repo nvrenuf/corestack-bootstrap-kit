@@ -130,3 +130,8 @@ MVP defers:
 - How should redaction policy interact with evidence provenance requirements?
 - Which event subsets should be query-optimized first for analyst and reviewer workflows?
 - What export schema should represent correlated run/case/evidence/approval timelines in future releases?
+
+
+## MVP validation harness coverage update
+
+Current integration tests explicitly assert normalized `tool.execution.requested`, `tool.execution.result`, and `tool.execution.failure` event expectations for supported allow/deny/failure/timeout flows. This validates current audit behavior for the MVP-supported gateway paths while broader taxonomy governance remains deferred.

@@ -176,3 +176,11 @@ Completed in thin-slice MVP scope.
 Implemented the first end-to-end Security/OSINT Module 1 workflow path from launcher initiation through run creation, case linkage, policy decisioning with approval checkpoint handling, model routing/execution participation, evidence/artifact/finding creation, and structured audit/event emissions using existing core contracts (commit `current branch head`, PR TBD).
 
 Keeping second/third Module 1 workflows and broader analyst workbench/dashboard expansion out of scope for subsequent issues.
+
+## Issue status note to paste for #22 (integration tests + validation harness)
+
+Status update: completed for MVP thin-slice sequencing (keep issue open for non-MVP matrix breadth if desired).
+
+Implemented a narrow, CI-friendly validation harness for the currently supported Corestack MVP path, including tool-gateway integration/E2E tests that verify golden-path allow behavior, malformed/disallowed fail-closed behavior, oversize and timeout fail-closed behavior, schema/contract conformance, and normalized audit/security event expectations. Added a repeatable runner (`scripts/tool-system/validate-mvp-slice.sh`, `make mvp-validation`) and preserved compatibility checks for the current Security/OSINT Alert Triage and Investigation workflow path.
+
+This does not claim broad generic platform test-framework completion or future tool/provider/module matrix coverage.

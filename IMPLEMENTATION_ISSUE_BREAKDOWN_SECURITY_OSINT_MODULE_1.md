@@ -994,3 +994,20 @@ This breakdown is based on:
 - [REFERENCE_ARCHITECTURE_SECURITY_OSINT_MODULE_1.md](/Users/leecuevas/Projects/corestack-bootstrap-kit/REFERENCE_ARCHITECTURE_SECURITY_OSINT_MODULE_1.md)
 - [UX_INFORMATION_ARCHITECTURE_CORESTACK_DESKTOP.md](/Users/leecuevas/Projects/corestack-bootstrap-kit/UX_INFORMATION_ARCHITECTURE_CORESTACK_DESKTOP.md)
 - [CORESTACK_REQUIREMENTS_SPEC.md](/Users/leecuevas/Projects/corestack-bootstrap-kit/CORESTACK_REQUIREMENTS_SPEC.md)
+
+## Issue #22 reconciliation update (MVP thin slice)
+
+Status update:
+- MVP-thin integration/E2E validation slice is now implemented for the currently supported path.
+
+What is now covered:
+- golden-path supported request execution through the hardened gateway
+- malformed and disallowed request fail-closed behavior
+- oversize and timeout fail-closed behavior on supported paths
+- schema/contract conformance assertions for supported tool schemas
+- normalized audit/security event assertions for allow/deny/failure/timeout paths
+- compatibility checks for the current Security/OSINT Alert Triage and Investigation workflow path
+
+What remains open for full issue completion:
+- broader platform-grade validation breadth outside the current MVP-supported tool/module path
+- future tool/provider/module matrix expansion

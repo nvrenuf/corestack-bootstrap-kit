@@ -809,3 +809,8 @@ It should guide the architecture work for:
 - workflow engine and orchestration
 - policy, approval, and audit architecture
 - evidence/case and artifact architecture
+
+
+## Integration validation harness alignment (Issue #22 MVP thin slice)
+
+Architecture validation now includes a narrow end-to-end harness that exercises the supported tool gateway allow/deny/error paths and verifies Security/OSINT Module 1 workflow compatibility with those hardened contracts. This is an MVP validation slice, not a generic cross-module platform test framework.

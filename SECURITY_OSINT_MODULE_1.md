@@ -822,3 +822,8 @@ This document is intended to satisfy and guide:
 - Milestone 1 and 2 work on control plane architecture, tool gating, workflow orchestration, model routing, audit, and evidence trails
 
 Corestack remains one desktop/control plane, and Security/OSINT Module 1 is the first module used to validate the shared platform contracts.
+
+
+## Validation harness compatibility (MVP thin slice)
+
+The current Alert Triage and Investigation workflow is now validated in the MVP harness path alongside hardened tool-gateway and audit/security behavior. The harness intentionally targets only the supported Module 1 path and does not claim full platform-grade workflow matrix coverage.

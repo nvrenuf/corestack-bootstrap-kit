@@ -166,3 +166,20 @@ When running multiple CoreStack packs side-by-side, use a unique Docker Compose 
 - `COMPOSE_PROJECT_NAME=<project-name> docker compose ...`
 
 Compose prefixes resources (containers, networks, volumes) by project name, which prevents collisions across simultaneous pack runs.
+
+## MVP integration validation harness
+
+Run the narrow MVP validation harness (tool-gateway integration + Security/OSINT workflow compatibility):
+
+```bash
+make mvp-validation
+```
+
+Equivalent direct command:
+
+```bash
+./scripts/tool-system/validate-mvp-slice.sh
+```
+
+This harness is intentionally scoped to the currently supported MVP path and is not a full future-tool/module matrix.
+

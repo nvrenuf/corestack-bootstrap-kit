@@ -6,11 +6,11 @@
 
 ## Latest issue update
 
-- Issue name: Issue #21 — Add audit logging + security events
-- Status: in progress (MVP thin-slice audit/security-event hardening complete on current branch)
-- Commit hash: `79e129c`
-- Short note: Hardened supported tool-gateway audit/security emissions to include explicit request/result/failure events, stable deny/failure context fields, fail-closed timeout events, and redaction-safe URL logging while preserving existing audit/event contracts and linked review compatibility.
-- Next recommended issue: Move to #22 integration/E2E validation for audit/security paths, then continue non-MVP breadth on #21 observability/taxonomy governance.
+- Issue name: Issue #22 — Integration tests + validation harness (E2E, negative tests, allowlist tests)
+- Status: completed for MVP thin-slice sequencing (full issue remains open for broader non-MVP matrix breadth)
+- Commit hash: `TBD`
+- Short note: Added a narrow CI-friendly validation harness and integration tests for the current supported tool-gateway + Security/OSINT Module 1 path, including allow, malformed/disallowed denial, oversize fail-closed, timeout fail-closed, schema conformance, and normalized audit/security event expectations.
+- Next recommended issue: Continue #23 docs/runbook hardening, then remaining non-MVP platform hardening for #18 and #21 breadth.
 
 ## Completed issues (verified in `main`)
 
@@ -40,7 +40,7 @@
 
 ## Next recommended issue
 
-- Prioritize #22 integration/E2E validation of hardened audit-security paths, then continue remaining non-MVP breadth for #21 and #18 platform controls.
+- Prioritize #23 docs/runbook hardening for operator closeout, then continue remaining non-MVP breadth for #21 and #18 platform controls.
 
 ## References
 
