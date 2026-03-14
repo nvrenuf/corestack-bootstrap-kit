@@ -247,6 +247,44 @@ function getRouteContext(routeId) {
     };
   }
 
+  if (routeId === "investigation-workspace") {
+    const evidenceItems = evidenceStore.listEvidenceItems();
+    const artifacts = evidenceStore.listArtifacts();
+    const findings = evidenceStore.listFindings();
+    const approvals = approvalStore.listApprovals();
+    const selectedCaseId = getSelectedEntityIdFromHash("caseId") ?? cases[0]?.caseId ?? null;
+    const selectedCase = selectedCaseId ? caseStore.getCase(selectedCaseId) : null;
+    const linkedRuns = selectedCase
+      ? selectedCase.runIds
+          .map((runId) => runStore.getRun(runId))
+          .filter(Boolean)
+      : [];
+    const primaryRun = linkedRuns[0] ?? null;
+
+    return {
+      cases,
+      selectedCaseId,
+      selectedCase,
+      linkedRuns,
+      primaryRun,
+      selectedCaseApprovals: selectedCaseId
+        ? approvals.filter((approval) => approval.links.caseId === selectedCaseId)
+        : [],
+      selectedCaseEvidence: selectedCaseId
+        ? evidenceItems.filter((item) => item.caseId === selectedCaseId)
+        : [],
+      selectedCaseArtifacts: selectedCaseId
+        ? artifacts.filter((item) => item.caseId === selectedCaseId)
+        : [],
+      selectedCaseFindings: selectedCaseId
+        ? findings.filter((item) => item.caseId === selectedCaseId)
+        : [],
+      selectedCaseAuditEvents: selectedCaseId
+        ? auditStore.listEvents({ caseId: selectedCaseId }).slice(0, 5)
+        : [],
+    };
+  }
+
   if (routeId === "files-artifacts") {
     const evidenceItems = evidenceStore.listEvidenceItems();
     const artifacts = evidenceStore.listArtifacts();

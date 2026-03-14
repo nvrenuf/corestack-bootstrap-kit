@@ -19,6 +19,7 @@ test("top-level routes match the documented control-plane navigation order", () 
       "Runs",
       "Approvals",
       "Cases / Evidence",
+      "Investigation Workspace",
       "Files / Artifacts",
       "Logs / Audit",
       "Agents",
@@ -269,4 +270,57 @@ test("files-artifacts route handles sparse contexts gracefully", () => {
   assert.match(rendered, /Select an artifact to inspect linkage/);
   assert.match(rendered, /Select an evidence item to inspect provenance/);
   assert.match(rendered, /Select a finding to inspect a thin severity\/summary projection/);
+});
+
+
+test("investigation workspace renders unified case/run/findings/evidence/audit/approval projection", () => {
+  const rendered = renderRouteContent(getRoute("investigation-workspace"), {
+    cases: [{ caseId: "case-1", title: "Suspicious auth chain", status: "open" }],
+    selectedCaseId: "case-1",
+    selectedCase: { caseId: "case-1", title: "Suspicious auth chain", status: "open", moduleId: "security-osint-module-1" },
+    linkedRuns: [{ runId: "run-1" }],
+    primaryRun: {
+      runId: "run-1",
+      workflowName: "Alert triage and investigation",
+      status: "pending_approval",
+      currentStepTitle: "Analyst review checkpoint",
+      policyDecisions: [{ decisionId: "pd-1" }],
+      pendingApproval: { approvalId: "approval-1" },
+    },
+    selectedCaseApprovals: [{ approvalId: "approval-1", status: "pending" }],
+    selectedCaseEvidence: [{ evidenceId: "e-1" }],
+    selectedCaseArtifacts: [{ artifactId: "a-1", type: "snapshot", lifecycleState: "available" }],
+    selectedCaseFindings: [{ findingId: "f-1", severity: "high", summary: "Credential exposure", lifecycleState: "open" }],
+    selectedCaseAuditEvents: [{ event_type: "approval.lifecycle.created", timestamp: "2026-01-01T00:00:00.000Z" }],
+  });
+
+  assert.match(rendered, /Investigation workspace/);
+  assert.match(rendered, /Case summary/);
+  assert.match(rendered, /Run summary/);
+  assert.match(rendered, /Findings rollup/);
+  assert.match(rendered, /Evidence rollup/);
+  assert.match(rendered, /Review state/);
+  assert.match(rendered, /approval\.lifecycle\.created/);
+    assert.match(rendered, /Current checkpoint: approval-1/);
+});
+
+test("investigation workspace handles sparse investigation data without crashing", () => {
+  const rendered = renderRouteContent(getRoute("investigation-workspace"), {
+    cases: [],
+    selectedCaseId: null,
+    selectedCase: null,
+    linkedRuns: [],
+    primaryRun: null,
+    selectedCaseApprovals: [],
+    selectedCaseEvidence: [],
+    selectedCaseArtifacts: [],
+    selectedCaseFindings: [],
+    selectedCaseAuditEvents: [],
+  });
+
+  assert.match(rendered, /No cases available yet/);
+  assert.match(rendered, /No case selected/);
+  assert.match(rendered, /No linked run/);
+  assert.match(rendered, /No findings generated yet/);
+    assert.match(rendered, /No linked audit events found/);
 });

@@ -4,6 +4,7 @@ export const TOP_LEVEL_ROUTES = [
   { id: "runs", label: "Runs", scope: "core" },
   { id: "approvals", label: "Approvals", scope: "core" },
   { id: "cases-evidence", label: "Cases / Evidence", scope: "core" },
+  { id: "investigation-workspace", label: "Investigation Workspace", scope: "core" },
   { id: "files-artifacts", label: "Files / Artifacts", scope: "core" },
   { id: "logs-audit", label: "Logs / Audit", scope: "core" },
   { id: "agents", label: "Agents", scope: "core" },
@@ -354,6 +355,108 @@ function renderRunReviewSurface(context = {}) {
   `;
 }
 
+function renderInvestigationWorkspaceSurface(context = {}) {
+  const cases = context.cases ?? [];
+  const selectedCaseId = context.selectedCaseId ?? null;
+  const selectedCase = context.selectedCase ?? null;
+  const linkedRuns = context.linkedRuns ?? [];
+  const primaryRun = context.primaryRun ?? null;
+  const approvals = context.selectedCaseApprovals ?? [];
+  const evidenceItems = context.selectedCaseEvidence ?? [];
+  const artifacts = context.selectedCaseArtifacts ?? [];
+  const findings = context.selectedCaseFindings ?? [];
+  const auditEvents = context.selectedCaseAuditEvents ?? [];
+  const openFindings = findings.filter((item) => item.lifecycleState !== "resolved" && item.lifecycleState !== "dismissed").length;
+  const pendingApprovals = approvals.filter((item) => item.status === "pending").length;
+
+  return `
+    <section class="surface-grid" data-surface-id="investigation-workspace">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Unified operator view</span>
+        <h3>Investigation workspace</h3>
+        <p>Review one investigation in a single core-owned surface using existing case/run/evidence/audit/approval contracts.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Investigation selector</span>
+        <h3>Cases</h3>
+        ${cases.length
+          ? `<ul class="placeholder-list">${cases.map((caseItem) => `<li><a href="#/investigation-workspace?caseId=${caseItem.caseId}">${caseItem.title}</a><span> · ${caseItem.status}</span></li>`).join("")}</ul>`
+          : "<p>No cases available yet. Start from Launcher to create the first investigation context.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Case summary</span>
+        <h3>${selectedCaseId ?? "No case selected"}</h3>
+        ${selectedCase
+          ? `<ul class="placeholder-list">
+              <li><strong>Title:</strong> ${selectedCase.title ?? "n/a"}</li>
+              <li><strong>Status:</strong> ${selectedCase.status}</li>
+              <li><strong>Module:</strong> ${selectedCase.moduleId ?? "n/a"}</li>
+              <li><strong>Linked runs:</strong> ${linkedRuns.length}</li>
+            </ul>`
+          : "<p>Select a case to open a unified investigation workspace.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Run summary</span>
+        <h3>${primaryRun?.runId ?? "No linked run"}</h3>
+        ${primaryRun
+          ? `<ul class="placeholder-list">
+              <li><strong>Workflow:</strong> ${primaryRun.workflowName}</li>
+              <li><strong>Status:</strong> ${primaryRun.status}</li>
+              <li><strong>Current step:</strong> ${primaryRun.currentStepTitle ?? "n/a"}</li>
+              <li><strong>Policy decisions:</strong> ${primaryRun.policyDecisions?.length ?? 0}</li>
+            </ul>`
+          : "<p>No run is currently linked to this investigation.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Findings rollup</span>
+        <h3>Findings</h3>
+        <ul class="placeholder-list">
+          <li>Total findings: ${findings.length}</li>
+          <li>Open or in review: ${openFindings}</li>
+          <li>Resolved or dismissed: ${findings.length - openFindings}</li>
+        </ul>
+        ${findings.length
+          ? `<ul class="placeholder-list">${findings.slice(0, 3).map((item) => `<li>${item.severity} · ${item.summary}</li>`).join("")}</ul>`
+          : "<p>No findings generated yet for this investigation.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Artifacts and evidence</span>
+        <h3>Evidence rollup</h3>
+        <ul class="placeholder-list">
+          <li>Evidence items: ${evidenceItems.length}</li>
+          <li>Artifacts: ${artifacts.length}</li>
+        </ul>
+        ${artifacts.length
+          ? `<ul class="placeholder-list">${artifacts.slice(0, 3).map((item) => `<li>${item.type} · ${item.lifecycleState} · ${item.artifactId}</li>`).join("")}</ul>`
+          : "<p>No artifacts linked yet.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Audit and security</span>
+        <h3>Recent events</h3>
+        ${renderLinkedAuditEvents(auditEvents)}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Approval and review</span>
+        <h3>Review state</h3>
+        <ul class="placeholder-list">
+          <li>Linked approvals: ${approvals.length}</li>
+          <li>Pending approvals: ${pendingApprovals}</li>
+          <li>Current checkpoint: ${primaryRun?.pendingApproval?.approvalId ?? "none"}</li>
+        </ul>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Disposition</span>
+        <h3>Thin status projection</h3>
+        <ul class="placeholder-list">
+          <li><strong>Case disposition:</strong> ${selectedCase?.status ?? "n/a"}</li>
+          <li><strong>Run disposition:</strong> ${primaryRun?.status ?? "n/a"}</li>
+          <li><strong>Operator guidance:</strong> ${pendingApprovals ? "Resolve pending approval to continue" : "Continue review or close case when validated"}</li>
+        </ul>
+      </article>
+    </section>
+  `;
+}
+
 function renderCaseReviewSurface(context = {}) {
   const cases = context.cases ?? [];
   const selectedCaseId = context.selectedCaseId ?? null;
@@ -616,6 +719,10 @@ export function renderRouteContent(route, context = {}) {
 
   if (route.id === "cases-evidence") {
     return renderCaseReviewSurface(context);
+  }
+
+  if (route.id === "investigation-workspace") {
+    return renderInvestigationWorkspaceSurface(context);
   }
 
   if (route.id === "files-artifacts") {

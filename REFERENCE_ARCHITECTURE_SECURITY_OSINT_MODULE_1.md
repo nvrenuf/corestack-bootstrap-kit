@@ -837,3 +837,18 @@ It should guide the architecture work for:
 ## Integration validation harness alignment (Issue #22 MVP thin slice)
 
 Architecture validation now includes a narrow end-to-end harness that exercises the supported tool gateway allow/deny/error paths and verifies Security/OSINT Module 1 workflow compatibility with those hardened contracts. This is an MVP validation slice, not a generic cross-module platform test framework.
+
+## MVP architecture note: Unified Investigation Workspace composition (Issue #20)
+
+The investigation workspace is a composition layer in the existing control-plane shell:
+- Input scope: selected `caseId` and linked existing objects.
+- Data sources: case store, run store, evidence store, approval store, audit event store.
+- No new persistence model introduced.
+- No module-owned shell introduced.
+
+Projection contract used by the workspace:
+- case header from case object
+- linked run summary from existing run linkage
+- findings/artifacts/evidence rollups from existing evidence contracts
+- audit/security panel from existing linked audit queries
+- approval/review block from existing approval linkage

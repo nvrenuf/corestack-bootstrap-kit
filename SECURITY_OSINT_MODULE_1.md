@@ -842,3 +842,23 @@ Corestack remains one desktop/control plane, and Security/OSINT Module 1 is the 
 ## Validation harness compatibility (MVP thin slice)
 
 The current Alert Triage and Investigation workflow is now validated in the MVP harness path alongside hardened tool-gateway and audit/security behavior. The harness intentionally targets only the supported Module 1 path and does not claim full platform-grade workflow matrix coverage.
+
+## Issue #20 update: Unified Investigation Workspace (thin operator surface)
+
+Implemented now:
+- Module 1 investigations can be reviewed from one core-owned workspace that projects:
+  - case summary
+  - primary linked run summary
+  - findings rollup
+  - artifacts/evidence rollup
+  - recent linked audit/security events
+  - approval/review status
+  - thin disposition/status guidance
+- Surface is intentionally one-investigation-at-a-time and reuses existing contracts and projections.
+
+Still out of scope:
+- forensic console depth,
+- advanced timeline exploration,
+- export/report builder behavior,
+- collaboration/notes systems,
+- additional workflow families beyond the current MVP path.

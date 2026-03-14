@@ -6,11 +6,11 @@
 
 ## Latest issue update
 
-- Issue name: Issue #23 — Docs: runbook + configuration + threat model notes
-- Status: completed for MVP thin-slice sequencing (documentation hardening for the current supported path; broader platform-grade docs breadth remains open)
-- Commit hash: `TBD`
-- Short note: Hardened MVP operator documentation across runbook/configuration/threat-model sources with explicit supported run/validation steps, trust boundaries, fail-closed assumptions, audit/security-event review guidance, and honest deferred-scope notes for non-MVP breadth.
-- Next recommended issue: Continue remaining non-MVP platform hardening breadth for #18 and #21, or start the next visible capability thin-slice once those risk controls are stable.
+- Issue name: Issue #20 — Unified Investigation Workspace (Security/OSINT Module 1 thin operator surface)
+- Status: completed for MVP thin-slice scope (one coherent investigation workspace for current Module 1 path; broader investigation-platform breadth remains open)
+- Commit hash: `current branch head`
+- Short note: Added a core-owned unified investigation workspace that composes existing case/run/finding/artifact/evidence/audit/approval data into one operator surface with sparse-data-safe rendering and minimal disposition visibility.
+- Next recommended issue: Deepen investigation UX incrementally (still thin and core-owned) or return to remaining platform hardening breadth on #18/#21.
 
 ## Completed issues (verified in `main`)
 
@@ -30,6 +30,7 @@
 - [x] Implement first end-to-end Module 1 workflow: Alert triage and investigation (`ee7ccce`, PR TBD)
 - [x] Implement run detail and case detail review surfaces (`current branch head`, PR TBD)
 - [x] Implement artifact/evidence detail and linked audit lookup surfaces (`current branch head`, PR TBD)
+- [x] Implement unified investigation workspace for one coherent case-linked operator review context (`current branch head`, PR TBD)
 - [x] Docs/runbook/configuration/threat-model notes hardened for the MVP-supported operation path (`current branch head`, PR TBD); full platform-grade operations/documentation breadth remains out of scope.
 
 ## In-progress issues
@@ -62,3 +63,5 @@
 - Issue 8.2 completed in a thin core-owned review slice by adding Files/Artifacts artifact and evidence detail projection (plus thin finding detail) with linked recent correlated audit event lookup by evidence-bearing object identifiers and sparse-data fallback behavior.
 - Local repository does not contain a `main` branch ref; reconciliation was performed against the current integration branch (`work`) and its merged PR commits.
 - Tool gateway MVP hardening is complete for thin-slice governed behavior; enterprise gateway controls (broad allowlist/rate-limit/platform breadth) remain intentionally out of scope and should stay tracked in broader policy/tooling issues.
+
+- Issue 20 completed in a thin core-owned slice by introducing an Investigation Workspace route that unifies case header, linked run summary, findings/evidence/artifact rollups, approval state, and recent linked audit/security events in one operator context without introducing new object models.

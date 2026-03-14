@@ -1084,3 +1084,13 @@ Implemented in this slice:
 
 Deferred:
 - Broad platform-wide future tool/provider/module matrix coverage.
+
+## Issue #20 reconciliation update (Unified Investigation Workspace MVP thin slice)
+
+Implemented in this slice:
+- Added a core-owned unified investigation workspace route for one investigation at a time (`caseId` scoped) without changing shell architecture.
+- Composed existing case/run/finding/artifact/evidence/audit/approval contracts into one coherent operator surface.
+- Added thin disposition/status projection for current case and primary linked run state.
+
+Deferred:
+- Broad forensic workbench behavior, timeline exploration, report/export packaging, and cross-module generic workspace patterns.

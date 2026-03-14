@@ -145,3 +145,9 @@ MVP defers:
 ## MVP validation harness coverage update
 
 Current integration tests explicitly assert normalized `tool.execution.requested`, `tool.execution.result`, and `tool.execution.failure` event expectations for supported allow/deny/failure/timeout flows. This validates current audit behavior for the MVP-supported gateway paths while broader taxonomy governance remains deferred.
+
+## Issue #20 impact (Unified Investigation Workspace)
+
+No new audit event schema is introduced in this slice.
+
+The workspace reuses existing linked lookup behavior by `case_id`/`run_id` and evidence-bearing correlation references (`artifact_id`, `evidence_id`, `finding_id`) to project recent investigation-relevant events in one operator context.

@@ -1029,3 +1029,18 @@ What remains open for full platform maturity:
 - broad enterprise operations/deployment documentation breadth
 - future module/tool/provider matrix runbooks
 - full platform-grade threat modeling and long-horizon security governance artifacts
+
+## Issue #20 reconciliation update (MVP thin slice)
+
+Status: completed for MVP thin-slice scope.
+
+Implemented:
+- Added a unified investigation workspace route in the shared shell.
+- Composed existing run/case/evidence/artifact/finding/approval/audit contracts into one reviewable operator surface.
+- Added sparse-data-safe rendering and compatibility tests for current case/run/evidence/audit relationships plus approval visibility.
+
+Not implemented in this issue:
+- broader forensic console,
+- timeline explorer,
+- export/report packaging,
+- cross-module generic workspace framework.

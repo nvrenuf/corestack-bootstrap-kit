@@ -65,3 +65,16 @@ Capability-oriented source of truth for CoreStack feature status.
 
 ### Planned / deferred
 - Expanded operational runbooks for broader module/tool/provider matrix, enterprise hardening controls, and forensic/export depth.
+
+## Unified investigation workspace (Security/OSINT Module 1)
+
+### Implemented now
+- Core-owned `Investigation Workspace` surface that unifies one selected investigation into one coherent operator context.
+- Combined visibility for case summary, linked run summary, findings rollup, artifacts/evidence rollup, recent audit/security events, and approval/review state.
+- Thin disposition/status block for case/run state without introducing a report/export subsystem.
+
+### Partially implemented
+- Current surface is intentionally scoped to the present Module 1 MVP path and available linked data.
+
+### Planned / deferred
+- Deeper investigation UX (timeline, advanced graphing, richer correlation tools) and broader platform-grade forensic/reporting features.

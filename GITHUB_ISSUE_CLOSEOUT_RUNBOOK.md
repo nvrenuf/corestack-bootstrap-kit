@@ -191,3 +191,13 @@ This does not claim broad generic platform test-framework completion or future t
 Status update: completed for MVP thin-slice sequencing (keep broader platform-grade operations/docs breadth as future work).
 
 Hardened the current supported documentation path so operators can run and validate MVP behavior without code spelunking: updated runbook execution/configuration/validation guidance, added implementation-aware threat boundary and fail-closed assumptions, clarified audit/security-event review expectations, and documented known deferred scope explicitly to avoid over-claiming unfinished breadth.
+
+---
+
+## Issue #20 — Unified Investigation Workspace (Security/OSINT Module 1 thin operator surface)
+
+Status update: completed for MVP thin-slice scope.
+
+Implemented a single core-owned investigation workspace route that unifies one investigation context (case + linked run + findings + evidence/artifacts + recent linked audit/security events + approval/review state) using existing contracts. No new object model was introduced, and scope intentionally excludes broad forensic/timeline/report-export expansion.
+
+Keep future deep-investigation UX and report/export breadth as separate non-MVP issues.
