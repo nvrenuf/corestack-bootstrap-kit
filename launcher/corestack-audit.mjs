@@ -100,12 +100,23 @@ export function createAuditEventStore({
   }
 
   return {
-    listEvents({ eventType = null, runId = null, caseId = null, correlationId = null } = {}) {
+    listEvents({
+      eventType = null,
+      runId = null,
+      caseId = null,
+      correlationId = null,
+      artifactId = null,
+      evidenceId = null,
+      findingId = null,
+    } = {}) {
       return readEvents()
         .filter((event) => (eventType ? event.event_type === eventType : true))
         .filter((event) => (runId ? event.correlation.run_id === runId : true))
         .filter((event) => (caseId ? event.correlation.case_id === caseId : true))
         .filter((event) => (correlationId ? event.correlation.correlation_id === correlationId : true))
+        .filter((event) => (artifactId ? event.correlation.artifact_id === artifactId : true))
+        .filter((event) => (evidenceId ? event.correlation.evidence_id === evidenceId : true))
+        .filter((event) => (findingId ? event.correlation.finding_id === findingId : true))
         .map(clone);
     },
     recordEvent({ eventType, correlation = {}, payload = {}, timestamp = now(), eventId = createEventId() }) {

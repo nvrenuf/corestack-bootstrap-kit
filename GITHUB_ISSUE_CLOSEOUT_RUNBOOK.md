@@ -141,6 +141,18 @@ Implemented core-owned run detail and case detail review surfaces in the shared 
 
 Keeping deep artifact/evidence inspection and richer linked audit lookup tracked under Issue 8.2.
 
+## Issues to close when artifact/evidence detail PR merges
+
+- #TBD — Issue 8.2: Implement artifact/evidence detail and linked audit lookup
+
+### Close note to paste for Issue 8.2
+
+Completed in thin-slice MVP scope.
+
+Implemented a core-owned Files/Artifacts review surface that projects artifact and evidence detail (with optional thin finding detail), including identity/type/status, run/case linkage, provenance and storage/integrity metadata where available, linked object summaries, and recent correlated audit event history lookups via existing audit correlation fields (`artifact_id`, `evidence_id`, `finding_id`) with graceful sparse-data fallback (commit `current branch head`, PR TBD).
+
+Keeping broader forensic console, deep timeline exploration, and export/report packaging out of scope for subsequent issues.
+
 ## Issues to close when module registration slice PR merges
 
 - #TBD — Issue 7.1: Register Security/OSINT Module 1 through the core module contract

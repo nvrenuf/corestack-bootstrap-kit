@@ -863,7 +863,7 @@ Provide the minimum analyst workspace for execution and review.
 
 - complete for thin-slice MVP review surfaces (run detail and case detail with linked run/case/evidence/finding/approval/audit summaries)
 
-#### Issue 8.2: Implement artifact/evidence detail and linked audit lookup
+#### Issue 8.2: Implement artifact/evidence detail and linked audit lookup [x] (current branch head, PR TBD)
 
 ##### Purpose
 
@@ -894,6 +894,10 @@ Allow operators and reviewers to inspect provenance and reconstruct actions.
 ##### Status target
 
 - MVP
+
+##### Status
+
+- complete for thin-slice MVP review depth (artifact/evidence detail with linkage/provenance/storage projection, optional thin finding detail, and recent correlated audit event lookup with sparse-data fallback)
 
 ## 4. Recommended execution order
 

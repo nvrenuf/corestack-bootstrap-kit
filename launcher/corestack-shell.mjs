@@ -424,6 +424,179 @@ function renderCaseReviewSurface(context = {}) {
   `;
 }
 
+function renderLinkedAuditEvents(auditEvents = []) {
+  return auditEvents.length
+    ? `<ul class="placeholder-list">${auditEvents.map((event) => `<li>${event.event_type} · ${event.timestamp}</li>`).join("")}</ul>`
+    : "<p>No linked audit events found.</p>";
+}
+
+function renderArtifactDetail(context = {}) {
+  const selectedArtifact = context.selectedArtifact ?? null;
+  const selectedArtifactId = context.selectedArtifactId ?? null;
+  const evidenceItems = context.evidenceItems ?? [];
+  const findings = context.findings ?? [];
+  const linkedEvidence = selectedArtifact
+    ? evidenceItems.filter((item) => item.artifactIds?.includes(selectedArtifact.artifactId))
+    : [];
+  const linkedFindings = selectedArtifact
+    ? findings.filter((finding) => finding.artifactIds?.includes(selectedArtifact.artifactId))
+    : [];
+  const auditEvents = context.selectedArtifactAuditEvents ?? [];
+
+  if (!selectedArtifact) {
+    return `
+      <article class="shell-panel">
+        <span class="surface-meta">Artifact detail</span>
+        <h3>${selectedArtifactId ?? "No artifact selected"}</h3>
+        <p>Select an artifact to inspect linkage, storage metadata, and related audit history.</p>
+      </article>
+    `;
+  }
+
+  return `
+    <article class="shell-panel">
+      <span class="surface-meta">Artifact detail</span>
+      <h3>${selectedArtifact.artifactId}</h3>
+      <ul class="placeholder-list">
+        <li><strong>Type:</strong> ${selectedArtifact.type}</li>
+        <li><strong>Status:</strong> ${selectedArtifact.lifecycleState} / ${selectedArtifact.storageState}</li>
+        <li><strong>Run linkage:</strong> ${selectedArtifact.runId ?? "n/a"}</li>
+        <li><strong>Case linkage:</strong> ${selectedArtifact.caseId ?? "n/a"}</li>
+      </ul>
+      <h4>Storage and provenance</h4>
+      <ul class="placeholder-list">
+        <li><strong>URI:</strong> ${selectedArtifact.storageRef?.uri ?? "n/a"}</li>
+        <li><strong>Media type:</strong> ${selectedArtifact.storageRef?.mediaType ?? "n/a"}</li>
+        <li><strong>Byte size:</strong> ${selectedArtifact.storageRef?.byteSize ?? "n/a"}</li>
+        <li><strong>Integrity:</strong> ${selectedArtifact.integrity ? `${selectedArtifact.integrity.algorithm}:${selectedArtifact.integrity.value}` : "n/a"}</li>
+        <li><strong>Collected:</strong> ${selectedArtifact.provenance?.collectedAt ?? "n/a"}</li>
+        <li><strong>Collector type:</strong> ${selectedArtifact.provenance?.collectorType ?? "n/a"}</li>
+      </ul>
+      <h4>Linked objects</h4>
+      <ul class="placeholder-list">
+        <li>Linked evidence items: ${linkedEvidence.length}</li>
+        <li>Linked findings: ${linkedFindings.length}</li>
+      </ul>
+      <h4>Recent linked audit events</h4>
+      ${renderLinkedAuditEvents(auditEvents)}
+    </article>
+  `;
+}
+
+function renderEvidenceDetail(context = {}) {
+  const selectedEvidence = context.selectedEvidence ?? null;
+  const selectedEvidenceId = context.selectedEvidenceId ?? null;
+  const artifacts = context.artifacts ?? [];
+  const findings = context.findings ?? [];
+  const linkedArtifacts = selectedEvidence
+    ? artifacts.filter((artifact) => selectedEvidence.artifactIds?.includes(artifact.artifactId))
+    : [];
+  const linkedFindings = selectedEvidence
+    ? findings.filter((finding) => finding.evidenceIds?.includes(selectedEvidence.evidenceId))
+    : [];
+  const auditEvents = context.selectedEvidenceAuditEvents ?? [];
+
+  if (!selectedEvidence) {
+    return `
+      <article class="shell-panel">
+        <span class="surface-meta">Evidence detail</span>
+        <h3>${selectedEvidenceId ?? "No evidence selected"}</h3>
+        <p>Select an evidence item to inspect provenance, linked outputs, and audit history.</p>
+      </article>
+    `;
+  }
+
+  return `
+    <article class="shell-panel">
+      <span class="surface-meta">Evidence detail</span>
+      <h3>${selectedEvidence.evidenceId}</h3>
+      <ul class="placeholder-list">
+        <li><strong>Type:</strong> ${selectedEvidence.type}</li>
+        <li><strong>Status:</strong> ${selectedEvidence.lifecycleState}</li>
+        <li><strong>Summary:</strong> ${selectedEvidence.summary}</li>
+        <li><strong>Run linkage:</strong> ${selectedEvidence.runId ?? "n/a"}</li>
+        <li><strong>Case linkage:</strong> ${selectedEvidence.caseId ?? "n/a"}</li>
+      </ul>
+      <h4>Provenance</h4>
+      <ul class="placeholder-list">
+        <li><strong>Collected:</strong> ${selectedEvidence.provenance?.collectedAt ?? "n/a"}</li>
+        <li><strong>Collector type:</strong> ${selectedEvidence.provenance?.collectorType ?? "n/a"}</li>
+        <li><strong>Source kind:</strong> ${selectedEvidence.source?.kind ?? "n/a"}</li>
+      </ul>
+      <h4>Linked objects</h4>
+      <ul class="placeholder-list">
+        <li>Linked artifacts: ${linkedArtifacts.length}</li>
+        <li>Linked findings: ${linkedFindings.length}</li>
+      </ul>
+      <h4>Recent linked audit events</h4>
+      ${renderLinkedAuditEvents(auditEvents)}
+    </article>
+  `;
+}
+
+function renderFindingDetail(context = {}) {
+  const selectedFinding = context.selectedFinding ?? null;
+  const selectedFindingId = context.selectedFindingId ?? null;
+  const auditEvents = context.selectedFindingAuditEvents ?? [];
+
+  if (!selectedFinding) {
+    return `
+      <article class="shell-panel">
+        <span class="surface-meta">Finding detail</span>
+        <h3>${selectedFindingId ?? "No finding selected"}</h3>
+        <p>Select a finding to inspect a thin severity/summary projection and linked audit events.</p>
+      </article>
+    `;
+  }
+
+  return `
+    <article class="shell-panel">
+      <span class="surface-meta">Finding detail</span>
+      <h3>${selectedFinding.findingId}</h3>
+      <ul class="placeholder-list">
+        <li><strong>Type:</strong> ${selectedFinding.type}</li>
+        <li><strong>Severity:</strong> ${selectedFinding.severity}</li>
+        <li><strong>Status:</strong> ${selectedFinding.lifecycleState}</li>
+        <li><strong>Summary:</strong> ${selectedFinding.summary}</li>
+        <li><strong>Linked evidence:</strong> ${selectedFinding.evidenceIds?.length ?? 0}</li>
+        <li><strong>Linked artifacts:</strong> ${selectedFinding.artifactIds?.length ?? 0}</li>
+      </ul>
+      <h4>Recent linked audit events</h4>
+      ${renderLinkedAuditEvents(auditEvents)}
+    </article>
+  `;
+}
+
+function renderArtifactEvidenceSurface(context = {}) {
+  const artifacts = context.artifacts ?? [];
+  const evidenceItems = context.evidenceItems ?? [];
+  const findings = context.findings ?? [];
+
+  return `
+    <section class="surface-grid" data-surface-id="files-artifacts">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Core review surface</span>
+        <h3>Files / Artifacts</h3>
+        <p>Inspect evidence-bearing outputs with thin linkage and audit visibility for trustworthy review.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Selectors</span>
+        <h3>Evidence-bearing objects</h3>
+        <ul class="placeholder-list">
+          <li>Artifacts: ${artifacts.length}</li>
+          <li>Evidence items: ${evidenceItems.length}</li>
+          <li>Findings: ${findings.length}</li>
+        </ul>
+        ${artifacts.length ? `<h4>Artifact links</h4><ul class="placeholder-list">${artifacts.slice(0, 5).map((artifact) => `<li><a href="#/files-artifacts?artifactId=${artifact.artifactId}">${artifact.artifactId}</a> · ${artifact.type} · ${artifact.lifecycleState}</li>`).join("")}</ul>` : "<p>No artifacts recorded yet.</p>"}
+        ${evidenceItems.length ? `<h4>Evidence links</h4><ul class="placeholder-list">${evidenceItems.slice(0, 5).map((item) => `<li><a href="#/files-artifacts?evidenceId=${item.evidenceId}">${item.evidenceId}</a> · ${item.type} · ${item.lifecycleState}</li>`).join("")}</ul>` : "<p>No evidence items recorded yet.</p>"}
+      </article>
+      ${renderArtifactDetail(context)}
+      ${renderEvidenceDetail(context)}
+      ${renderFindingDetail(context)}
+    </section>
+  `;
+}
+
 export function renderRouteContent(route, context = {}) {
   if (route.id === "home") {
     return renderHomeSurface(context);
@@ -443,6 +616,10 @@ export function renderRouteContent(route, context = {}) {
 
   if (route.id === "cases-evidence") {
     return renderCaseReviewSurface(context);
+  }
+
+  if (route.id === "files-artifacts") {
+    return renderArtifactEvidenceSurface(context);
   }
 
   if (route.id === "modules") {

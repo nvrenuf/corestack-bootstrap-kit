@@ -247,6 +247,45 @@ function getRouteContext(routeId) {
     };
   }
 
+  if (routeId === "files-artifacts") {
+    const evidenceItems = evidenceStore.listEvidenceItems();
+    const artifacts = evidenceStore.listArtifacts();
+    const findings = evidenceStore.listFindings();
+    const selectedArtifactId = getSelectedEntityIdFromHash("artifactId") ?? artifacts[0]?.artifactId ?? null;
+    const selectedEvidenceId = getSelectedEntityIdFromHash("evidenceId") ?? evidenceItems[0]?.evidenceId ?? null;
+    const selectedFindingId = getSelectedEntityIdFromHash("findingId") ?? findings[0]?.findingId ?? null;
+    const selectedArtifact = selectedArtifactId
+      ? artifacts.find((artifact) => artifact.artifactId === selectedArtifactId) ?? null
+      : null;
+    const selectedEvidence = selectedEvidenceId
+      ? evidenceItems.find((item) => item.evidenceId === selectedEvidenceId) ?? null
+      : null;
+    const selectedFinding = selectedFindingId
+      ? findings.find((finding) => finding.findingId === selectedFindingId) ?? null
+      : null;
+
+    return {
+      artifacts,
+      evidenceItems,
+      findings,
+      selectedArtifactId,
+      selectedEvidenceId,
+      selectedFindingId,
+      selectedArtifact,
+      selectedEvidence,
+      selectedFinding,
+      selectedArtifactAuditEvents: selectedArtifactId
+        ? auditStore.listEvents({ artifactId: selectedArtifactId }).slice(0, 5)
+        : [],
+      selectedEvidenceAuditEvents: selectedEvidenceId
+        ? auditStore.listEvents({ evidenceId: selectedEvidenceId }).slice(0, 5)
+        : [],
+      selectedFindingAuditEvents: selectedFindingId
+        ? auditStore.listEvents({ findingId: selectedFindingId }).slice(0, 5)
+        : [],
+    };
+  }
+
   return {};
 }
 

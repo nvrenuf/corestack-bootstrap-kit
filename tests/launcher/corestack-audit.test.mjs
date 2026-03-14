@@ -214,3 +214,34 @@ test("policy decision correlation helper aligns with policy contract fields", ()
   assert.equal(correlation.request_id, "req-1");
   assert.equal(correlation.correlation_id, "corr-1");
 });
+
+test("audit list lookups can filter by evidence-bearing object correlation fields", () => {
+  const auditStore = createAuditEventStore({
+    storage: makeStorage(),
+    now: () => "2026-03-13T00:00:00.000Z",
+    createEventId: (() => {
+      let n = 0;
+      return () => `evt-${++n}`;
+    })(),
+  });
+
+  auditStore.recordEvent({
+    eventType: "evidence.object.mutated",
+    correlation: { artifact_id: "artifact-1", run_id: "run-1" },
+    payload: { object_type: "artifact" },
+  });
+  auditStore.recordEvent({
+    eventType: "evidence.object.mutated",
+    correlation: { evidence_id: "evidence-1", run_id: "run-1" },
+    payload: { object_type: "evidence" },
+  });
+  auditStore.recordEvent({
+    eventType: "evidence.object.mutated",
+    correlation: { finding_id: "finding-1", run_id: "run-1" },
+    payload: { object_type: "finding" },
+  });
+
+  assert.equal(auditStore.listEvents({ artifactId: "artifact-1" }).length, 1);
+  assert.equal(auditStore.listEvents({ evidenceId: "evidence-1" }).length, 1);
+  assert.equal(auditStore.listEvents({ findingId: "finding-1" }).length, 1);
+});

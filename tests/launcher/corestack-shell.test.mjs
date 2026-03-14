@@ -170,3 +170,103 @@ test("run and case detail surfaces handle sparse contexts gracefully", () => {
   assert.match(caseSurface, /No cases recorded yet/);
   assert.match(caseSurface, /Select a case to view details/);
 });
+
+test("files-artifacts route renders thin artifact and evidence detail with linked audit history", () => {
+  const rendered = renderRouteContent(getRoute("files-artifacts"), {
+    artifacts: [{
+      artifactId: "artifact-1",
+      type: "web.fetch.response",
+      lifecycleState: "available",
+      storageState: "active",
+      runId: "run-1",
+      caseId: "case-1",
+      storageRef: { uri: "artifact://local/run-1/file.json", mediaType: "application/json", byteSize: 64 },
+      provenance: { collectedAt: "2026-01-01T00:00:00.000Z", collectorType: "workflow_step" },
+      integrity: { algorithm: "sha256", value: "abc" },
+    }],
+    evidenceItems: [{
+      evidenceId: "evidence-1",
+      type: "source_snapshot",
+      lifecycleState: "collected",
+      summary: "Snapshot",
+      runId: "run-1",
+      caseId: "case-1",
+      artifactIds: ["artifact-1"],
+      source: { kind: "artifact" },
+      provenance: { collectedAt: "2026-01-01T00:00:00.000Z", collectorType: "workflow_step" },
+    }],
+    findings: [{
+      findingId: "finding-1",
+      type: "threat_signal",
+      severity: "medium",
+      lifecycleState: "open",
+      summary: "Signal",
+      evidenceIds: ["evidence-1"],
+      artifactIds: ["artifact-1"],
+    }],
+    selectedArtifactId: "artifact-1",
+    selectedEvidenceId: "evidence-1",
+    selectedFindingId: "finding-1",
+    selectedArtifact: {
+      artifactId: "artifact-1",
+      type: "web.fetch.response",
+      lifecycleState: "available",
+      storageState: "active",
+      runId: "run-1",
+      caseId: "case-1",
+      storageRef: { uri: "artifact://local/run-1/file.json", mediaType: "application/json", byteSize: 64 },
+      provenance: { collectedAt: "2026-01-01T00:00:00.000Z", collectorType: "workflow_step" },
+      integrity: { algorithm: "sha256", value: "abc" },
+    },
+    selectedEvidence: {
+      evidenceId: "evidence-1",
+      type: "source_snapshot",
+      lifecycleState: "collected",
+      summary: "Snapshot",
+      runId: "run-1",
+      caseId: "case-1",
+      artifactIds: ["artifact-1"],
+      source: { kind: "artifact" },
+      provenance: { collectedAt: "2026-01-01T00:00:00.000Z", collectorType: "workflow_step" },
+    },
+    selectedFinding: {
+      findingId: "finding-1",
+      type: "threat_signal",
+      severity: "medium",
+      lifecycleState: "open",
+      summary: "Signal",
+      evidenceIds: ["evidence-1"],
+      artifactIds: ["artifact-1"],
+    },
+    selectedArtifactAuditEvents: [{ event_type: "evidence.object.mutated", timestamp: "2026-01-01T00:00:00.000Z" }],
+    selectedEvidenceAuditEvents: [{ event_type: "evidence.object.mutated", timestamp: "2026-01-01T00:00:00.000Z" }],
+    selectedFindingAuditEvents: [{ event_type: "evidence.object.mutated", timestamp: "2026-01-01T00:00:00.000Z" }],
+  });
+
+  assert.match(rendered, /Files \/ Artifacts/);
+  assert.match(rendered, /artifact:\/\/local\/run-1\/file\.json/);
+  assert.match(rendered, /Linked evidence items: 1/);
+  assert.match(rendered, /Linked artifacts: 1/);
+  assert.match(rendered, /Severity:\s*<\/strong> medium/);
+  assert.match(rendered, /evidence\.object\.mutated/);
+});
+
+test("files-artifacts route handles sparse contexts gracefully", () => {
+  const rendered = renderRouteContent(getRoute("files-artifacts"), {
+    artifacts: [],
+    evidenceItems: [],
+    findings: [],
+    selectedArtifactId: null,
+    selectedEvidenceId: null,
+    selectedFindingId: null,
+    selectedArtifact: null,
+    selectedEvidence: null,
+    selectedFinding: null,
+  });
+
+  assert.match(rendered, /No artifacts recorded yet/);
+  assert.match(rendered, /No evidence items recorded yet/);
+  assert.match(rendered, /Select an artifact to inspect linkage/);
+  assert.match(rendered, /Select an evidence item to inspect provenance/);
+  assert.match(rendered, /Select a finding to inspect a thin severity\/summary projection/);
+});
