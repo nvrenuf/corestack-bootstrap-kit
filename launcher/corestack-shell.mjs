@@ -783,28 +783,75 @@ function renderArtifactEvidenceSurface(context = {}) {
   `;
 }
 
-function renderAgentsSurface() {
+function renderAgentsSurface(context = {}) {
+  const workflowCount = context.workflowCount ?? 0;
+  const runCount = context.runCount ?? 0;
+  const activeRunCount = context.activeRunCount ?? 0;
+  const moduleCount = context.moduleCount ?? 0;
+  const modelCount = context.modelCount ?? 0;
+  const toolGatewayEventCount = context.toolGatewayEventCount ?? 0;
+  const policyDecisionCount = context.policyDecisionCount ?? 0;
+  const pendingApprovalCount = context.pendingApprovalCount ?? 0;
+  const modelGovernanceEventCount = context.modelGovernanceEventCount ?? 0;
+  const agentInventory = context.agentInventory ?? [];
+  const moduleWorkflowLinks = context.moduleWorkflowLinks ?? [];
+
   return `
     <section class="surface-grid" data-surface-id="agents">
       <article class="shell-panel feature-panel">
-        <span class="surface-meta">Core-owned surface with module extension points</span>
+        <span class="surface-meta">Core-owned orchestration and readiness workspace</span>
         <h3>Agents</h3>
-        <p>Define where agent execution policy and runtime constraints are surfaced across workflows without introducing fake orchestration controls.</p>
+        <p>Help operators understand what currently counts as an agent-like execution role in Corestack MVP: workflow orchestration roles, AI-assisted workflow stages, and governed human review checkpoints.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Readiness signals (implemented contracts)</span>
+        <h3>Current orchestration posture</h3>
+        <ul class="placeholder-list">
+          <li>Registered workflows: ${workflowCount}</li>
+          <li>Total runs recorded: ${runCount} (active or gated: ${activeRunCount})</li>
+          <li>Registered modules contributing behavior: ${moduleCount}</li>
+          <li>Registered models available to execution roles: ${modelCount}</li>
+          <li>Tool-gateway governance events observed: ${toolGatewayEventCount}</li>
+          <li>Policy decisions attached to runs: ${policyDecisionCount}</li>
+          <li>Pending approval checkpoints: ${pendingApprovalCount}</li>
+          <li>Model governance audit events (route/restrict/result): ${modelGovernanceEventCount}</li>
+        </ul>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Execution-role inventory</span>
+        <h3>Implemented now vs partial vs planned/deferred</h3>
+        ${agentInventory.length
+    ? `<ul class="placeholder-list">${agentInventory.map((item) => `<li><strong>${item.role}</strong><span> · ${item.status}</span><br /><span>${item.responsibility}</span></li>`).join("")}</ul>`
+    : "<p>No execution-role inventory is available yet.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Workflow and module relationship</span>
+        <h3>Where agent-like behavior is currently applied</h3>
+        ${moduleWorkflowLinks.length
+    ? `<ul class="placeholder-list">${moduleWorkflowLinks.map((link) => `<li><strong>${link.workflowName}</strong><span> · ${link.workflowId}</span><span> · module: ${link.moduleId}</span></li>`).join("")}</ul>`
+    : "<p>No workflow-to-module links are registered yet.</p>"}
+        <ul class="placeholder-list">
+          <li><a href="#/runs">Runs</a> provides execution-level drill-in for workflow stages and state.</li>
+          <li><a href="#/models">Models</a> shows routing/restriction behavior used by AI-assisted roles.</li>
+          <li><a href="#/connectors">Connectors</a> shows governed tool boundaries available to workflows.</li>
+          <li><a href="#/policies">Policies</a> and <a href="#/approvals">Approvals</a> show governance checkpoints and review gates.</li>
+          <li><a href="#/logs-audit">Logs / Audit</a> preserves correlated execution/governance event history.</li>
+        </ul>
       </article>
       ${renderCapabilityStatus({
         ownership: "Core-owned with module extension points",
         implemented: [
-          "Alert triage workflow executes through the existing run/workflow contract.",
-          "Model routing and model execution hooks are enforced before response generation.",
-          "Audit events capture model route and execution correlation IDs.",
+          "Agent-like execution visibility is projected from existing run/workflow, model routing/execution, tool gateway, policy, approval, and audit contracts.",
+          "Security / OSINT Module 1 workflow roles are visible as current MVP execution actors inside the core control plane.",
+          "This workspace is truthful and read-oriented; no fake orchestration configuration controls are introduced.",
         ],
         planned: [
-          "Agent catalog and assignment controls remain deferred.",
-          "Multi-agent plans and toolchain orchestration remain deferred.",
+          "Fleet-scale multi-agent assignment, scheduling, and autonomous planning remain deferred.",
+          "Full agent lifecycle administration and deployment controls remain deferred.",
         ],
         moduleNotes: [
+          "Agents is a core-owned surface; modules contribute behavior through workflows and contracts.",
           "Security / OSINT Module 1 contributes workflow behavior, not a separate agent shell.",
-          "Future modules will register extension metadata here via the core module contract.",
         ],
       })}
     </section>
@@ -1085,7 +1132,7 @@ export function renderRouteContent(route, context = {}) {
   }
 
   if (route.id === "agents") {
-    return renderAgentsSurface();
+    return renderAgentsSurface(context);
   }
 
   if (route.id === "policies") {

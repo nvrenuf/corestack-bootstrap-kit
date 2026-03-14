@@ -271,4 +271,4 @@ This section remains as an implementation/runtime packaging plan for the Securit
 ## Nav surface completion reconciliation note
 
 - Thin-slice reconciliation completed: all current left-nav routes now resolve to intentional, truthful surfaces while preserving existing implemented investigation/review routes as primary operator workflows.
-- This is not a full completion claim for agents/policies/connectors/admin feature depth; those remain follow-on capability slices.
+- This is not a full completion claim for full platform-grade admin/tenancy/agent-orchestration depth; current Agents/Policies/Connectors slices are MVP-thin visibility layers and broader lifecycle controls remain follow-on work.

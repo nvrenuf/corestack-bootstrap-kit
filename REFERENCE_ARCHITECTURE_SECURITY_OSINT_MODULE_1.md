@@ -879,3 +879,10 @@ Planned/deferred:
 
 - Connectors is a core-owned shell surface that now projects controlled integration boundary status (implemented vs deferred) from existing gateway/policy/audit/module contracts.
 - This is intentionally not a connector lifecycle management subsystem; no new backend connector object model was added in this slice.
+
+
+## Agents surface mapping note (MVP thin slice)
+
+- Agents is a core-owned control-plane surface that now projects orchestration/readiness posture from existing contracts (runs/workflows, model governance hooks, tool gateway governance, policy/approval boundaries, audit correlation).
+- Module 1 contributes agent-relevant behavior through workflow contracts and module metadata, not through a module-owned agent shell.
+- No new backend orchestration object model was introduced in this slice.

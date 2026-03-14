@@ -6,11 +6,11 @@
 
 ## Latest issue update
 
-- Issue name: Launcher entry/path hash-route boot fix for local Connectors verification
+- Issue name: Agents surface depth slice (core-owned orchestration/readiness visibility)
 - Status: completed for MVP thin-slice scope
-- Commit hash: `6935241`
-- Short note: Added a compatibility launcher entry at `launcher/launcher/index.html` so `http://127.0.0.1:8000/launcher/index.html#/connectors` boots the existing Corestack shell even when local static hosting is rooted at `./launcher`; preserved the existing shell, navigation, and hash-route model.
-- Next recommended issue: Add thin Agents surface depth (core-owned orchestration/readiness visibility) while keeping #18/#21 broad hardening tracks open.
+- Commit hash: `current branch head`
+- Short note: Deepened Agents from placeholder framing into a thin, truthful core-owned orchestration/readiness workspace by reusing existing workflow/run, model governance, tool-gateway, policy/approval, module, and audit context with explicit implemented vs partial vs deferred status.
+- Next recommended issue: Continue non-MVP breadth for #21 audit/security taxonomy/operations depth and #18 tool-gateway platform-grade enforcement breadth.
 
 ## Completed issues (verified in `main`)
 
@@ -34,6 +34,7 @@
 - [x] Implement investigation drill-in and navigation polish for the Module 1 workspace path (`current branch head`, PR TBD)
 - [x] Complete all current left-nav surfaces as intentional product-map pages (core-owned/module-aware/extension-point framing) (`current branch head`, PR TBD)
 - [x] Implement connectors governance/readiness surface depth slice (`current branch head`, PR TBD)
+- [x] Implement agents orchestration/readiness surface depth slice (`current branch head`, PR TBD)
 - [x] Docs/runbook/configuration/threat-model notes hardened for the MVP-supported operation path (`current branch head`, PR TBD); full platform-grade operations/documentation breadth remains out of scope.
 
 ## In-progress issues
@@ -45,7 +46,7 @@
 
 ## Next recommended issue
 
-- Add thin Agents surface depth for core-owned orchestration readiness visibility, then continue non-MVP breadth for #21 and #18 platform controls.
+- Continue non-MVP breadth for #21 audit/security taxonomy/operations depth and #18 tool-gateway platform controls.
 
 ## References
 

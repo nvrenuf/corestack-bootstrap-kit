@@ -120,13 +120,50 @@ test("module hook and modules route render registered module visibility", () => 
   assert.match(modulesSurface, /1 capability\(ies\)/);
 });
 
-test("agents surface documents core ownership, implemented hooks, and deferred orchestration", () => {
-  const rendered = renderRouteContent(getRoute("agents"));
+test("agents surface renders orchestration/readiness visibility with truthful status framing", () => {
+  const rendered = renderRouteContent(getRoute("agents"), {
+    workflowCount: 1,
+    runCount: 2,
+    activeRunCount: 1,
+    moduleCount: 1,
+    modelCount: 1,
+    toolGatewayEventCount: 5,
+    policyDecisionCount: 2,
+    pendingApprovalCount: 1,
+    modelGovernanceEventCount: 3,
+    agentInventory: [
+      {
+        role: "Workflow run orchestrator",
+        status: "implemented now",
+        responsibility: "Launches workflow runs and tracks step state.",
+      },
+    ],
+    moduleWorkflowLinks: [
+      {
+        workflowId: "security-osint.alert-triage",
+        workflowName: "Alert triage and investigation",
+        moduleId: "security-osint-module-1",
+      },
+    ],
+  });
 
-  assert.match(rendered, /Core-owned surface with module extension points/);
-  assert.match(rendered, /Model routing and model execution hooks are enforced/);
-  assert.match(rendered, /Agent catalog and assignment controls remain deferred/);
-  assert.match(rendered, /Security \/ OSINT Module 1 contributes workflow behavior/);
+  assert.match(rendered, /Core-owned orchestration and readiness workspace/);
+  assert.match(rendered, /Registered workflows: 1/);
+  assert.match(rendered, /Workflow run orchestrator/);
+  assert.match(rendered, /Alert triage and investigation/);
+  assert.match(rendered, /fleet-scale multi-agent assignment, scheduling, and autonomous planning remain deferred/i);
+});
+
+
+test("agents surface handles sparse context without implying unsupported controls", () => {
+  const rendered = renderRouteContent(getRoute("agents"), {
+    agentInventory: [],
+    moduleWorkflowLinks: [],
+  });
+
+  assert.match(rendered, /No execution-role inventory is available yet/);
+  assert.match(rendered, /No workflow-to-module links are registered yet/);
+  assert.match(rendered, /read-oriented; no fake orchestration configuration controls are introduced/i);
 });
 
 test("policies surface renders thin governance workspace with implemented and deferred framing", () => {

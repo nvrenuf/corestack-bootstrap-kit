@@ -897,3 +897,16 @@ Partially implemented:
 
 Planned/deferred:
 - Broader enrichment connector lifecycle management and external handoff connector administration UX.
+
+
+## Agents surface relationship update (current thin slice)
+
+Implemented now:
+- Core-owned Agents surface now exposes current Module 1 agent-like execution posture through existing contracts.
+- Current Module 1 workflow participation is legible as workflow orchestration + AI-assisted model execution + governed human review checkpoints.
+
+Partially implemented:
+- Visibility is read-oriented and constrained to current MVP workflow families.
+
+Planned/deferred:
+- Full autonomous multi-agent management and lifecycle controls remain out of current MVP scope.

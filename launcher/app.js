@@ -158,7 +158,61 @@ function getRouteContext(routeId) {
 
 
   if (routeId === "agents") {
-    return {};
+    const workflows = workflowRegistry.list();
+    const approvals = approvalStore.listApprovals();
+    const policyDecisions = runs.flatMap((run) => run.policyDecisions ?? []);
+    const modelEvents = auditStore.listEvents().filter((event) =>
+      event.event_type === "model.route.selected"
+      || event.event_type === "model.execution.completed"
+      || event.event_type === "model.execution.restricted");
+    const toolEvents = auditStore.listEvents().filter((event) =>
+      event.event_type === "tool.execution.requested"
+      || event.event_type === "tool.execution.decisioned"
+      || event.event_type === "tool.execution.result"
+      || event.event_type === "tool.execution.failure");
+
+    return {
+      workflowCount: workflows.length,
+      runCount: runs.length,
+      activeRunCount: runs.filter((run) => run.status === "running" || run.status === "blocked" || run.status === "pending_approval").length,
+      moduleCount: modules.length,
+      modelCount: modelRegistry.list().length,
+      toolGatewayEventCount: toolEvents.length,
+      policyDecisionCount: policyDecisions.length,
+      pendingApprovalCount: approvals.filter((approval) => approval.status === "pending").length,
+      modelGovernanceEventCount: modelEvents.length,
+      agentInventory: [
+        {
+          id: "workflow-run-orchestrator",
+          role: "Workflow run orchestrator",
+          status: "implemented now",
+          responsibility: "Launches workflow runs, tracks step state, and keeps run↔case linkage in the core control plane.",
+        },
+        {
+          id: "triage-model-execution-role",
+          role: "AI-assisted triage execution role",
+          status: "implemented now",
+          responsibility: "Executes model-assisted workflow stages through local-first routing and execution restriction hooks.",
+        },
+        {
+          id: "human-review-checkpoint-role",
+          role: "Operator review checkpoint role",
+          status: "partially implemented",
+          responsibility: "Enforces require-approval gates before governed workflow steps continue.",
+        },
+        {
+          id: "multi-agent-planning-role",
+          role: "Autonomous multi-agent planning/assignment",
+          status: "planned / deferred",
+          responsibility: "Fleet-style assignment, scheduling, and autonomous collaboration are intentionally out of MVP scope.",
+        },
+      ],
+      moduleWorkflowLinks: workflows.slice(0, 6).map((workflow) => ({
+        workflowId: workflow.id,
+        workflowName: workflow.name,
+        moduleId: workflow.moduleId,
+      })),
+    };
   }
 
   if (routeId === "policies") {
