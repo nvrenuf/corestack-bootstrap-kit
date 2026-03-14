@@ -114,6 +114,25 @@ test("stricter request validation rejects unsupported fields and invalid URI pro
   assert.equal(badUriResult.error.details.field, "inputs.url");
 });
 
+test("tool allowlist is centralized and fail-closed", async () => {
+  let executed = false;
+  const gateway = createToolGateway({
+    allowedTools: ["web.search"],
+    policyCheck: async () => ({ outcome: "allow", reasons: [{ code: "OK", message: "Allowed" }] }),
+    executeTool: async () => {
+      executed = true;
+      return {};
+    },
+  });
+
+  const result = await gateway.execute({ tool: "web.fetch", request: fetchRequest() });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.status, "policy_denied");
+  assert.equal(result.error.code, "TOOL_NOT_ALLOWED");
+  assert.equal(executed, false);
+});
+
 test("deny outcome blocks execution and returns policy decision with normalized policy error", async () => {
   let executed = false;
   const gateway = createToolGateway({
@@ -168,6 +187,62 @@ test("require_approval outcome blocks execution in contract-aware way", async ()
   assert.equal(result.policy.outcome, "require_approval");
   assert.equal(result.policy.approval.required, true);
   assert.equal(executed, false);
+});
+
+test("oversize payloads are rejected with normalized error", async () => {
+  let policyCalled = false;
+  const gateway = createToolGateway({
+    policyCheck: async () => {
+      policyCalled = true;
+      return { outcome: "allow", reasons: [{ code: "OK", message: "Allowed" }] };
+    },
+    executeTool: async () => ({ ok: true }),
+  });
+
+  const result = await gateway.execute({
+    tool: "web.search",
+    request: {
+      ...searchRequest(),
+      inputs: {
+        query: "x".repeat(10000),
+        max_results: 3,
+      },
+    },
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.status, "invalid_request");
+  assert.equal(result.error.code, "PAYLOAD_TOO_LARGE");
+  assert.equal(result.error.http_status, 413);
+  assert.equal(policyCalled, false);
+});
+
+test("policy timeouts fail closed with normalized policy error", async () => {
+  const gateway = createToolGateway({
+    policyCheck: async () => new Promise((resolve) => setTimeout(() => resolve({ outcome: "allow", reasons: [{ code: "OK", message: "Allowed" }] }), 9000)),
+    executeTool: async () => ({ ok: true }),
+  });
+
+  const result = await gateway.execute({ tool: "web.fetch", request: fetchRequest() });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.status, "policy_error");
+  assert.equal(result.error.code, "POLICY_EVALUATION_FAILED");
+  assert.equal(result.error.details.reason, "timeout");
+});
+
+test("execution timeouts fail closed with normalized execution error", async () => {
+  const gateway = createToolGateway({
+    policyCheck: async () => ({ outcome: "allow", reasons: [{ code: "OK", message: "Allowed" }] }),
+    executeTool: async () => new Promise((resolve) => setTimeout(() => resolve({ ok: true }), 9000)),
+  });
+
+  const result = await gateway.execute({ tool: "web.fetch", request: fetchRequest() });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.status, "execution_error");
+  assert.equal(result.error.code, "TOOL_EXECUTION_FAILED");
+  assert.equal(result.error.details.reason, "timeout");
 });
 
 test("audit hooks emit structured request/decision/result events including blocked outcomes", async () => {

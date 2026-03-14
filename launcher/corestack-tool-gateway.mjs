@@ -2,10 +2,15 @@ import { createGovernedActionRequest, validatePolicyDecision } from "./corestack
 import { createPolicyDecisionAuditCorrelation } from "./corestack-audit.mjs";
 
 const SUPPORTED_TOOLS = ["web.fetch", "web.search"];
+const DEFAULT_ALLOWED_TOOLS = new Set(SUPPORTED_TOOLS);
 const ALLOWED_REQUEST_FIELDS = ["agent_id", "request_id", "purpose", "inputs", "context"];
 const ALLOWED_CONTEXT_FIELDS = ["correlation_id", "run_id", "case_id", "workflow_id", "module_id"];
 const ALLOWED_FETCH_INPUT_FIELDS = ["url"];
 const ALLOWED_SEARCH_INPUT_FIELDS = ["query", "max_results"];
+const TOOL_LIMITS = Object.freeze({
+  "web.fetch": Object.freeze({ maxRequestBytes: 8 * 1024, timeoutMs: 8_000 }),
+  "web.search": Object.freeze({ maxRequestBytes: 8 * 1024, timeoutMs: 8_000 }),
+});
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -25,6 +30,20 @@ function validationError(tool, message, field) {
     category: "validation",
     retryable: false,
     httpStatus: 400,
+  });
+}
+
+function enforcementError(tool, { status, code, message, category, retryable, httpStatus, details = {}, policy = null }) {
+  return normalizedError({
+    tool,
+    status,
+    code,
+    message,
+    category,
+    retryable,
+    httpStatus,
+    details,
+    policy,
   });
 }
 
@@ -62,6 +81,26 @@ function normalizedError({
 
 function hasOnlyAllowedFields(obj, allowed) {
   return Object.keys(obj).every((key) => allowed.includes(key));
+}
+
+function toUtf8Bytes(value) {
+  return Buffer.byteLength(JSON.stringify(value), "utf8");
+}
+
+async function withTimeout(task, timeoutMs, timeoutMessage) {
+  let timeoutHandle;
+  try {
+    return await Promise.race([
+      Promise.resolve().then(task),
+      new Promise((_, reject) => {
+        timeoutHandle = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutHandle) {
+      clearTimeout(timeoutHandle);
+    }
+  }
 }
 
 function isNullableString(value) {
@@ -198,6 +237,7 @@ function buildAuditEvent({ eventType, tool, request, decision = null, actor, now
 export function createToolGateway({
   policyCheck,
   executeTool,
+  allowedTools = SUPPORTED_TOOLS,
   emitEvent = () => {},
   now = () => new Date().toISOString(),
   createDecisionId = () => `policy-${Date.now()}`,
@@ -210,10 +250,41 @@ export function createToolGateway({
     throw new Error("executeTool must be provided");
   }
 
+  const configuredAllowedTools = new Set(Array.isArray(allowedTools) ? allowedTools : []);
+
   return {
     async execute({ tool, request, actor = { actor_id: "system", actor_type: "service" } }) {
-      if (!SUPPORTED_TOOLS.includes(tool)) {
+      if (!DEFAULT_ALLOWED_TOOLS.has(tool)) {
         return validationError(tool, "unsupported tool", "tool");
+      }
+
+      if (!configuredAllowedTools.has(tool)) {
+        return enforcementError(tool, {
+          status: "policy_denied",
+          code: "TOOL_NOT_ALLOWED",
+          message: "tool is not allowlisted for execution",
+          category: "policy",
+          retryable: false,
+          httpStatus: 403,
+          details: { reason: "allowlist_block" },
+        });
+      }
+
+      const toolLimits = TOOL_LIMITS[tool];
+      const requestBytes = toUtf8Bytes(request);
+      if (requestBytes > toolLimits.maxRequestBytes) {
+        return enforcementError(tool, {
+          status: "invalid_request",
+          code: "PAYLOAD_TOO_LARGE",
+          message: "request payload exceeds maximum supported bytes",
+          category: "validation",
+          retryable: false,
+          httpStatus: 413,
+          details: {
+            max_bytes: toolLimits.maxRequestBytes,
+            request_bytes: requestBytes,
+          },
+        });
       }
 
       const invalid = validateToolRequest(tool, request);
@@ -272,25 +343,55 @@ export function createToolGateway({
         },
       }));
 
-      const rawDecision = await policyCheck(clone(governedRequest));
-      const decision = validatePolicyDecision({
-        decision_id: rawDecision?.decision_id ?? createDecisionId(),
-        request_id: rawDecision?.request_id ?? governedRequest.request_id,
-        outcome: rawDecision?.outcome,
-        reasons: rawDecision?.reasons,
-        obligations: rawDecision?.obligations ?? [],
-        approval: rawDecision?.approval ?? null,
-        policy_ref: rawDecision?.policy_ref ?? null,
-        expires_at: rawDecision?.expires_at ?? null,
-        decided_at: rawDecision?.decided_at ?? now(),
-        audit: {
-          event_type: rawDecision?.audit?.event_type ?? "policy.decision",
-          correlation_id: rawDecision?.audit?.correlation_id ?? request.context.correlation_id,
-          decision_trace_id: rawDecision?.audit?.decision_trace_id ?? null,
-          decided_at: rawDecision?.audit?.decided_at ?? null,
-          requested_at: rawDecision?.audit?.requested_at ?? null,
-        },
-      });
+      let decision;
+      try {
+        const rawDecision = await withTimeout(
+          () => policyCheck(clone(governedRequest)),
+          toolLimits.timeoutMs,
+          "policy decision timed out",
+        );
+        decision = validatePolicyDecision({
+          decision_id: rawDecision?.decision_id ?? createDecisionId(),
+          request_id: rawDecision?.request_id ?? governedRequest.request_id,
+          outcome: rawDecision?.outcome,
+          reasons: rawDecision?.reasons,
+          obligations: rawDecision?.obligations ?? [],
+          approval: rawDecision?.approval ?? null,
+          policy_ref: rawDecision?.policy_ref ?? null,
+          expires_at: rawDecision?.expires_at ?? null,
+          decided_at: rawDecision?.decided_at ?? now(),
+          audit: {
+            event_type: rawDecision?.audit?.event_type ?? "policy.decision",
+            correlation_id: rawDecision?.audit?.correlation_id ?? request.context.correlation_id,
+            decision_trace_id: rawDecision?.audit?.decision_trace_id ?? null,
+            decided_at: rawDecision?.audit?.decided_at ?? null,
+            requested_at: rawDecision?.audit?.requested_at ?? null,
+          },
+        });
+      } catch (error) {
+        emitEvent(buildAuditEvent({
+          eventType: "tool.execution.result",
+          tool,
+          request,
+          actor,
+          now,
+          payload: {
+            execution_status: "error",
+            error_code: "POLICY_EVALUATION_FAILED",
+          },
+        }));
+        return enforcementError(tool, {
+          status: "policy_error",
+          code: "POLICY_EVALUATION_FAILED",
+          message: "policy evaluation failed",
+          category: "policy",
+          retryable: true,
+          httpStatus: 503,
+          details: {
+            reason: error?.message === "policy decision timed out" ? "timeout" : "policy_error",
+          },
+        });
+      }
 
       emitEvent(buildAuditEvent({
         eventType: "tool.execution.decisioned",
@@ -334,7 +435,39 @@ export function createToolGateway({
         });
       }
 
-      const result = await executeTool({ tool, request: clone(request), decision: clone(decision) });
+      let result;
+      try {
+        result = await withTimeout(
+          () => executeTool({ tool, request: clone(request), decision: clone(decision) }),
+          toolLimits.timeoutMs,
+          "tool execution timed out",
+        );
+      } catch (error) {
+        emitEvent(buildAuditEvent({
+          eventType: "tool.execution.result",
+          tool,
+          request,
+          decision,
+          actor,
+          now,
+          payload: {
+            execution_status: "error",
+            error_code: "TOOL_EXECUTION_FAILED",
+          },
+        }));
+        return enforcementError(tool, {
+          status: "execution_error",
+          code: "TOOL_EXECUTION_FAILED",
+          message: "tool execution failed",
+          category: "execution",
+          retryable: true,
+          httpStatus: 502,
+          details: {
+            reason: error?.message === "tool execution timed out" ? "timeout" : "execution_error",
+          },
+          policy: decision,
+        });
+      }
       emitEvent(buildAuditEvent({
         eventType: "tool.execution.result",
         tool,

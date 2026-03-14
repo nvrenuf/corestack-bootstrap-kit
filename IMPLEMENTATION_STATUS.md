@@ -6,11 +6,11 @@
 
 ## Latest issue update
 
-- Issue name: Issue 8.2 — Implement artifact/evidence detail and linked audit lookup
-- Status: completed
+- Issue name: Issue #18 — Implement Tool Gateway enforcement layer
+- Status: in progress (MVP thin-slice enforcement complete on current branch)
 - Commit hash: `current branch head` (to be replaced with final commit SHA after merge)
-- Short note: Added a thin core-owned Files/Artifacts review surface for artifact/evidence (and optional finding) detail with linked recent correlated audit history using existing evidence/artifact/finding and audit/event contracts, including sparse-data-safe rendering.
-- Next recommended issue: Return to remaining hardening scope (Issue #18 / policy-tooling hardening), not a broader forensic UI expansion.
+- Short note: Hardened the core-owned gateway into a single enforced path for supported tools with centralized allowlist checks, schema-first validation, payload-byte and timeout controls, fail-closed normalized deny/error handling, and audit-compatible decision/result emissions without adding new workflow/UI surfaces.
+- Next recommended issue: Complete remaining non-MVP breadth for #18/#21/#22 (platform rate limits + broader integration/E2E hardening).
 
 ## Completed issues (verified in `main`)
 
@@ -35,10 +35,11 @@
 
 - [x] Implement artifact storage linkage and metadata persistence — MVP hardening pass landed (`current branch head`, PR TBD) with stricter storage metadata normalization/validation, lifecycle consistency enforcement, and run/case/evidence/finding reference integrity checks; broad storage/export/search concerns remain out of scope.
 - [x] Implement structured audit/event logging for runs, tools, evidence, and approvals (`c0fae98`, PR TBD)
+- [~] Issue #18 Tool Gateway enforcement layer — MVP thin-slice enforcement hardening landed (`current branch head`, PR TBD); full issue remains open for broader rate-limit/platform breadth.
 
 ## Next recommended issue
 
-- Return to hardening scope (Issue #18 and related policy/tooling controls) rather than expanding UI into a full forensic console.
+- Move to remaining security hardening scope: close #18 non-MVP breadth (platform rate limits) and then prioritize #21/#22 audit-security and integration/E2E validation.
 
 ## References
 
