@@ -213,3 +213,15 @@ This harness is intentionally scoped to the currently supported MVP path and is 
 - Gateway rate-limit strategy and broader connector/provider controls remain tracked outside this slice.
 - Audit/event taxonomy governance and long-horizon retention architecture remain in-progress platform work.
 - Forensic/export packaging, broad compliance docs, and unsupported deployment patterns are intentionally deferred.
+
+
+## Operator endpoint note (launcher/startup UX)
+
+Implemented now:
+- Operator-facing launcher utility/startup messaging points Ollama access to `http://localhost:8080` as the default local gateway/base URL for this setup.
+
+Partially implemented:
+- Internal service-to-service Ollama wiring still uses compose/container-network addresses where applicable.
+
+Deferred:
+- Any broader endpoint topology redesign beyond current MVP gateway/local setup.

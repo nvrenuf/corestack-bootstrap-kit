@@ -6,11 +6,11 @@
 
 ## Latest issue update
 
-- Issue name: Issue #20 — Unified Investigation Workspace (Security/OSINT Module 1 thin operator surface)
-- Status: completed for MVP thin-slice scope (one coherent investigation workspace for current Module 1 path; broader investigation-platform breadth remains open)
+- Issue name: Investigation drill-in and navigation polish (Security/OSINT Module 1 thin operator UX slice)
+- Status: completed for MVP thin-slice scope (drill-in pivots and navigation polish on the existing investigation workspace path)
 - Commit hash: `current branch head`
-- Short note: Added a core-owned unified investigation workspace that composes existing case/run/finding/artifact/evidence/audit/approval data into one operator surface with sparse-data-safe rendering and minimal disposition visibility.
-- Next recommended issue: Deepen investigation UX incrementally (still thin and core-owned) or return to remaining platform hardening breadth on #18/#21.
+- Short note: Deepened drill-in flow between investigation workspace, run/case detail, files/artifacts detail, and logs/audit filtered context while preserving existing contracts; also removed numeric menu prefixes and switched operator-facing Ollama utility/startup endpoint defaults to `http://localhost:8080`.
+- Next recommended issue: Add another thin Module 1 capability slice (new workflow capability) or return to remaining non-MVP platform hardening breadth (#18/#21).
 
 ## Completed issues (verified in `main`)
 
@@ -31,6 +31,7 @@
 - [x] Implement run detail and case detail review surfaces (`current branch head`, PR TBD)
 - [x] Implement artifact/evidence detail and linked audit lookup surfaces (`current branch head`, PR TBD)
 - [x] Implement unified investigation workspace for one coherent case-linked operator review context (`current branch head`, PR TBD)
+- [x] Implement investigation drill-in and navigation polish for the Module 1 workspace path (`current branch head`, PR TBD)
 - [x] Docs/runbook/configuration/threat-model notes hardened for the MVP-supported operation path (`current branch head`, PR TBD); full platform-grade operations/documentation breadth remains out of scope.
 
 ## In-progress issues

@@ -862,3 +862,17 @@ Still out of scope:
 - export/report builder behavior,
 - collaboration/notes systems,
 - additional workflow families beyond the current MVP path.
+
+
+## Investigation drill-in/navigation polish (MVP thin-slice update)
+
+Implemented now:
+- Operators can pivot from investigation findings to linked files/artifacts detail and onward to filtered logs/audit history when link data exists.
+- Operators can pivot case ↔ run context directly from workspace/detail surfaces without introducing new object types.
+- Workspace review state continues to project approval/checkpoint status from existing approval/run contracts.
+
+Partially implemented:
+- Navigation depth is intentionally thin and constrained to current Alert Triage + Investigation workflow outputs.
+
+Planned/deferred:
+- Additional workflow families, deep forensic timeline tooling, and report/export packaging.
