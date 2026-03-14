@@ -133,6 +133,7 @@ body {
 
 .nav-link:hover,
 .nav-link:focus-visible {
+  color: #edf2fb;
   border-color: rgba(92, 118, 152, 0.54);
   background: rgba(92, 118, 152, 0.18);
   outline: none;
@@ -143,6 +144,13 @@ body {
   background: linear-gradient(90deg, rgba(92, 118, 152, 0.28), rgba(154, 106, 74, 0.2));
   border-color: rgba(154, 106, 74, 0.54);
   box-shadow: inset 0 0 0 1px rgba(244, 209, 171, 0.2);
+}
+
+.nav-link.active:hover,
+.nav-link.active:focus-visible {
+  color: #f7fbff;
+  border-color: rgba(154, 106, 74, 0.62);
+  background: linear-gradient(90deg, rgba(92, 118, 152, 0.34), rgba(154, 106, 74, 0.24));
 }
 
 
