@@ -1083,3 +1083,11 @@ What landed:
 
 Still deferred:
 - Full policy management platform capabilities (authoring lifecycle, simulation, compliance mapping, tenancy-wide administration).
+
+
+## Connectors surface depth reconciliation (MVP thin slice)
+
+- Upgraded the Connectors route from placeholder framing into a thin core-owned governance/readiness workspace.
+- Exposes currently supported controlled integration boundaries (`web.fetch`, `web.search`) with explicit implemented vs deferred status language.
+- Reuses existing tool-gateway, policy, audit/event, module applicability, and model boundary context; does not introduce fake connector configuration behavior.
+- This completes the Connectors depth objective for MVP thin-slice scope while full connector lifecycle/platform breadth remains deferred.

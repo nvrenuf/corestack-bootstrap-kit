@@ -175,3 +175,9 @@ Planned/deferred:
 
 - Policies now uses existing audit-linked governance signals (policy decisions, approval checkpoint linkage, and model restriction/routing events) to make governed behavior legible in one core-owned surface.
 - No new audit object model or event taxonomy was introduced; this is a projection/composition slice on top of existing correlated events and contracts.
+
+
+## Connectors workspace visibility note (current thin slice)
+
+- Connectors now consumes existing `tool.execution.*` and policy-outcome context to expose connector governance/readiness posture in-product.
+- No new audit taxonomy was introduced; this remains a projection layer on top of existing correlated events.

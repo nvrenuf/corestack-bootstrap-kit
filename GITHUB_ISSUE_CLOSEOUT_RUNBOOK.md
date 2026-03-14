@@ -227,3 +227,8 @@ Status update: completed for MVP thin-slice scope.
 Suggested closeout note:
 
 Deepened the core-owned Policies surface from a placeholder into a thin governance workspace that projects real MVP governance behavior using existing contracts: policy decisions on runs, decision outcome mix, approval checkpoint linkage/governed-action summary, policy-relevant model routing/restriction signals, and audit relationship pivots. Scope remains read-oriented and truthful (no policy authoring/versioning UX or enterprise governance administration).
+
+
+## Connectors surface depth slice closeout note
+
+Implemented a thin core-owned Connectors workspace that makes current controlled integration boundaries and governance/readiness posture visible using existing tool-gateway, policy, model, module, and audit context. This slice intentionally excludes connector onboarding, credential management, and lifecycle admin controls; keep broader connector-platform depth tracked separately.

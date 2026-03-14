@@ -197,7 +197,79 @@ function getRouteContext(routeId) {
     };
   }
 
-  if (routeId === "connectors" || routeId === "settings" || routeId === "admin-tenancy") {
+  if (routeId === "connectors") {
+    const toolEvents = auditStore.listEvents().filter((event) =>
+      event.event_type === "tool.execution.requested"
+      || event.event_type === "tool.execution.decisioned"
+      || event.event_type === "tool.execution.result"
+      || event.event_type === "tool.execution.invalid_request");
+    const connectorEventSummary = toolEvents.reduce((summary, event) => {
+      if (event.event_type === "tool.execution.requested") {
+        summary.requested += 1;
+      } else if (event.event_type === "tool.execution.decisioned") {
+        summary.decisioned += 1;
+      } else if (event.event_type === "tool.execution.result") {
+        summary.result += 1;
+      } else if (event.event_type === "tool.execution.invalid_request") {
+        summary.invalidRequest += 1;
+      }
+      return summary;
+    }, { requested: 0, decisioned: 0, result: 0, invalidRequest: 0 });
+
+    const gatewayPolicySummary = toolEvents.reduce((summary, event) => {
+      if (event.event_type !== "tool.execution.decisioned") {
+        return summary;
+      }
+
+      const outcome = event.payload?.outcome;
+      if (outcome === "allow") {
+        summary.allow += 1;
+      } else if (outcome === "require_approval") {
+        summary.requireApproval += 1;
+      } else if (outcome === "deny") {
+        summary.deny += 1;
+      }
+      return summary;
+    }, { allow: 0, deny: 0, requireApproval: 0 });
+
+    const models = modelRegistry.list();
+
+    return {
+      connectorInventory: [
+        {
+          id: "web.fetch",
+          boundary: "external HTTP/HTTPS retrieval via tool gateway",
+          status: "implemented",
+          notes: "Schema-validated request shape, allowlist and policy checks, fail-closed behavior, and audit/security event correlation are active.",
+        },
+        {
+          id: "web.search",
+          boundary: "external search provider path via tool gateway",
+          status: "implemented",
+          notes: "Governed execution and normalized result/error contracts are active on the MVP-supported gateway path.",
+        },
+        {
+          id: "connector lifecycle administration",
+          boundary: "provisioning, credentials, and per-tenant connector management",
+          status: "planned/deferred",
+          notes: "No in-product connector configuration UI is implemented in this slice.",
+        },
+      ],
+      connectorEventSummary,
+      gatewayPolicySummary,
+      moduleConnectorUsage: [
+        {
+          moduleName: "Security / OSINT Module 1",
+          workflowName: "Alert triage and investigation",
+          notes: "Workflow depends on governed external collection paths (web.fetch/web.search contracts) and reviews outcomes through Runs/Cases/Audit surfaces.",
+        },
+      ],
+      localModelCount: models.filter((model) => model.providerType === "local").length,
+      externalModelCount: models.filter((model) => model.providerType !== "local").length,
+    };
+  }
+
+  if (routeId === "settings" || routeId === "admin-tenancy") {
     return {};
   }
 

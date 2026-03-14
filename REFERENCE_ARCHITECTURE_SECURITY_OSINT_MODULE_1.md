@@ -873,3 +873,9 @@ Planned/deferred:
 - The control-plane left navigation now resolves all current routes to intentional surfaces without introducing separate module-owned shells.
 - Core operational surfaces (Runs, Approvals, Cases / Evidence, Investigation Workspace, Files / Artifacts, Logs / Audit) remain the primary implemented operator workflow path.
 - Adjacent surfaces (Agents, Policies, Models, Connectors, Settings, Admin / Tenancy) are intentionally thin but explicit about ownership, implemented contracts, and deferred capabilities.
+
+
+## Connectors surface mapping note (MVP thin slice)
+
+- Connectors is a core-owned shell surface that now projects controlled integration boundary status (implemented vs deferred) from existing gateway/policy/audit/module contracts.
+- This is intentionally not a connector lifecycle management subsystem; no new backend connector object model was added in this slice.

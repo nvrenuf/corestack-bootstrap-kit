@@ -108,3 +108,17 @@ Capability-oriented source of truth for CoreStack feature status.
 
 ### Planned / deferred
 - Policy authoring/versioning, simulation/testing, and broad enterprise policy administration remain deferred.
+
+
+## Connectors governance/readiness workspace (core-owned)
+
+### Implemented now
+- Connectors route now presents a thin operator workspace for controlled integration boundaries rather than a generic placeholder.
+- Implemented connector inventory is shown with explicit status framing for current paths (`web.fetch`, `web.search`) and truthful deferred lifecycle administration.
+- Readiness/governance context is projected from existing contracts: tool-gateway audit/security event counts, policy outcome summary, module applicability, and local-vs-external model posture context.
+
+### Partially implemented
+- Connector visibility is read-oriented and scope-limited to current MVP-supported gateway paths.
+
+### Planned / deferred
+- Connector onboarding/provisioning UX, credential/secret lifecycle tooling, tenant-scoped connector administration, and broad connector marketplace coverage.

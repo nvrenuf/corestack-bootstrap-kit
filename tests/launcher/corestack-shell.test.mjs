@@ -179,17 +179,62 @@ test("models surface renders registry visibility and model event links", () => {
   assert.match(rendered, /model\.route\.selected/);
 });
 
-test("connectors, settings, and admin tenancy surfaces resolve to intentional product pages", () => {
-  const connectors = renderRouteContent(getRoute("connectors"));
+test("connectors surface renders governed readiness/workspace framing while settings and admin remain intentional pages", () => {
+  const connectors = renderRouteContent(getRoute("connectors"), {
+    connectorInventory: [
+      {
+        id: "web.fetch",
+        boundary: "external HTTP/HTTPS retrieval via tool gateway",
+        status: "implemented",
+        notes: "Schema-validated and policy-governed.",
+      },
+    ],
+    connectorEventSummary: {
+      requested: 2,
+      decisioned: 2,
+      result: 2,
+      invalidRequest: 0,
+    },
+    gatewayPolicySummary: {
+      allow: 1,
+      requireApproval: 1,
+      deny: 0,
+    },
+    moduleConnectorUsage: [
+      {
+        moduleName: "Security / OSINT Module 1",
+        workflowName: "Alert triage and investigation",
+        notes: "Consumes governed external collection paths.",
+      },
+    ],
+    localModelCount: 1,
+    externalModelCount: 0,
+  });
   const settings = renderRouteContent(getRoute("settings"));
   const admin = renderRouteContent(getRoute("admin-tenancy"));
 
-  assert.match(connectors, /web\.fetch and web\.search tool contracts\/schemas are active/);
-  assert.match(connectors, /Connector onboarding UX and credential management remain deferred/);
+  assert.match(connectors, /Operator workspace for controlled integration boundaries/);
+  assert.match(connectors, /Controlled integration paths available now/);
+  assert.match(connectors, /Tool-gateway events observed — requested: 2, decisioned: 2, result: 2, invalid request: 0/);
+  assert.match(connectors, /Policy outcomes touching connector\/tool execution — allow: 1, require approval: 1, deny: 0/);
+  assert.match(connectors, /connector lifecycle administration/);
+  assert.match(connectors, /without introducing fake configuration controls/);
   assert.match(settings, /Configuration templates and runbooks define the current operational contract/);
   assert.match(settings, /In-product settings editors remain deferred/);
   assert.match(admin, /single-operator local baseline/);
   assert.match(admin, /Tenant lifecycle and role management UI remain deferred/);
+});
+
+
+test("connectors surface handles sparse context without implying connector management controls", () => {
+  const connectors = renderRouteContent(getRoute("connectors"), {
+    connectorInventory: [],
+    moduleConnectorUsage: [],
+  });
+
+  assert.match(connectors, /No connector inventory entries are currently registered/);
+  assert.match(connectors, /No module connector usage is currently mapped/);
+  assert.match(connectors, /provisioning automation remain deferred/);
 });
 
 test("runs route renders thin run detail review with linkage summaries", () => {

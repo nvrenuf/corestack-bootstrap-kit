@@ -6,11 +6,11 @@
 
 ## Latest issue update
 
-- Issue name: Policies surface depth slice (core-owned governance workspace)
+- Issue name: Connectors surface depth slice (core-owned governance/readiness workspace)
 - Status: completed for MVP thin-slice scope
 - Commit hash: `current branch head`
-- Short note: Deepened the Policies route from placeholder status into a truthful governance workspace using existing contracts and data projection (policy decision outcomes, approval checkpoint linkage, governed action summary, model governance signals, and audit relationship framing) without introducing unsupported policy authoring behavior.
-- Next recommended issue: Deepen connector governance visibility (health/status + policy relevance) as the next thin core-owned operations slice while keeping #18/#21 broad hardening tracks open.
+- Short note: Deepened the Connectors route into a truthful operator workspace that shows implemented controlled integration boundaries, governance/readiness posture, and implemented-vs-deferred framing using existing tool-gateway/policy/audit/model/module context without introducing fake connector-management controls.
+- Next recommended issue: Add thin Agents surface depth (core-owned orchestration/readiness visibility) while keeping #18/#21 broad hardening tracks open.
 
 ## Completed issues (verified in `main`)
 
@@ -33,6 +33,7 @@
 - [x] Implement unified investigation workspace for one coherent case-linked operator review context (`current branch head`, PR TBD)
 - [x] Implement investigation drill-in and navigation polish for the Module 1 workspace path (`current branch head`, PR TBD)
 - [x] Complete all current left-nav surfaces as intentional product-map pages (core-owned/module-aware/extension-point framing) (`current branch head`, PR TBD)
+- [x] Implement connectors governance/readiness surface depth slice (`current branch head`, PR TBD)
 - [x] Docs/runbook/configuration/threat-model notes hardened for the MVP-supported operation path (`current branch head`, PR TBD); full platform-grade operations/documentation breadth remains out of scope.
 
 ## In-progress issues
@@ -44,7 +45,7 @@
 
 ## Next recommended issue
 
-- Continue remaining non-MVP breadth for #21 and #18 platform controls, then choose the next visible product capability thin-slice.
+- Add thin Agents surface depth for core-owned orchestration readiness visibility, then continue non-MVP breadth for #21 and #18 platform controls.
 
 ## References
 

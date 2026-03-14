@@ -911,26 +911,68 @@ function renderModelsSurface(context = {}) {
   `;
 }
 
-function renderConnectorsSurface() {
+function renderConnectorsSurface(context = {}) {
+  const connectorInventory = context.connectorInventory ?? [];
+  const connectorEventSummary = context.connectorEventSummary ?? {
+    requested: 0,
+    decisioned: 0,
+    result: 0,
+    invalidRequest: 0,
+  };
+  const gatewayPolicySummary = context.gatewayPolicySummary ?? {
+    allow: 0,
+    deny: 0,
+    requireApproval: 0,
+  };
+  const moduleConnectorUsage = context.moduleConnectorUsage ?? [];
+  const localModelCount = context.localModelCount ?? 0;
+  const externalModelCount = context.externalModelCount ?? 0;
+
   return `
     <section class="surface-grid" data-surface-id="connectors">
       <article class="shell-panel feature-panel">
         <span class="surface-meta">Core-owned surface with module extension points</span>
         <h3>Connectors</h3>
-        <p>Define connector governance and capability registration boundaries without exposing fake integration setup flows.</p>
+        <p>Operator workspace for controlled integration boundaries: what paths exist now, what governance is active, and what remains deferred.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Implemented connector inventory</span>
+        <h3>Controlled integration paths available now</h3>
+        ${connectorInventory.length
+          ? `<ul class="placeholder-list">${connectorInventory.map((item) => `<li><strong>${item.id}</strong><span> · ${item.boundary}</span><span> · status: ${item.status}</span><br /><small>${item.notes}</small></li>`).join("")}</ul>`
+          : "<p>No connector inventory entries are currently registered.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Readiness and governance posture</span>
+        <h3>Current MVP trust boundary</h3>
+        <ul class="placeholder-list">
+          <li>Tool-gateway events observed — requested: ${connectorEventSummary.requested}, decisioned: ${connectorEventSummary.decisioned}, result: ${connectorEventSummary.result}, invalid request: ${connectorEventSummary.invalidRequest}.</li>
+          <li>Policy outcomes touching connector/tool execution — allow: ${gatewayPolicySummary.allow}, require approval: ${gatewayPolicySummary.requireApproval}, deny: ${gatewayPolicySummary.deny}.</li>
+          <li>Model boundary context relevant to connectors — local models: ${localModelCount}, external models: ${externalModelCount}.</li>
+          <li>Operator assumption: connector use remains policy-subject, audit-correlated, and local-first by default in this MVP slice.</li>
+        </ul>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Module applicability</span>
+        <h3>Where connectors apply today</h3>
+        ${moduleConnectorUsage.length
+          ? `<ul class="placeholder-list">${moduleConnectorUsage.map((item) => `<li><strong>${item.moduleName}</strong><span> · ${item.workflowName}</span><br /><small>${item.notes}</small></li>`).join("")}</ul>`
+          : "<p>No module connector usage is currently mapped.</p>"}
       </article>
       ${renderCapabilityStatus({
         ownership: "Core-owned with module extension points",
         implemented: [
-          "web.fetch and web.search tool contracts/schemas are active through the tool gateway path.",
-          "Tool gateway enforcement and audit hardening thin-slices are active.",
+          "web.fetch and web.search tool contracts/schemas are active through the governed tool gateway path.",
+          "Connector-facing access is policy-subject and emits correlated audit/security events for review surfaces.",
+          "This page provides operator-visible connector readiness/governance framing without introducing fake configuration controls.",
         ],
         planned: [
-          "Connector onboarding UX and credential management remain deferred.",
-          "Connector health dashboards remain deferred.",
+          "Connector onboarding UX, credential vaulting, and provisioning automation remain deferred.",
+          "Live connector health probes and per-tenant connector lifecycle administration remain deferred.",
         ],
         moduleNotes: [
-          "Security / OSINT Module 1 consumes connector outputs via tool workflows.",
+          "Security / OSINT Module 1 consumes connector-backed tool paths through core workflows; Connectors remains core-owned.",
+          "Future modules can declare connector dependencies through core contracts without creating module-owned connector admin pages.",
         ],
       })}
     </section>
@@ -1055,7 +1097,7 @@ export function renderRouteContent(route, context = {}) {
   }
 
   if (route.id === "connectors") {
-    return renderConnectorsSurface();
+    return renderConnectorsSurface(context);
   }
 
   if (route.id === "settings") {

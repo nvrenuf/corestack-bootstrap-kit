@@ -1140,3 +1140,17 @@ Deferred:
 #### Deferred requirements
 
 - Full management tooling depth for agents, policies, connectors, and tenancy lifecycle administration.
+
+
+## Connectors surface depth reconciliation update (MVP thin slice)
+
+Implemented now:
+- Connectors route now functions as a thin core-owned operator workspace for controlled integration boundaries rather than placeholder text.
+- Current MVP-supported connector paths are explicitly listed (`web.fetch`, `web.search`) with truthful implemented/deferred status framing.
+- Governance/readiness posture is projected from existing contracts (tool-gateway audit/security events, policy-decision outcomes, module applicability, and local-first model boundary context).
+
+Partially implemented:
+- Visibility is read-oriented and scoped to currently supported gateway paths.
+
+Planned/deferred:
+- Connector onboarding/configuration UI, secret-management workflows, tenant-scoped connector lifecycle administration, and marketplace-scale connector catalog management.

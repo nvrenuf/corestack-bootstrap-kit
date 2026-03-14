@@ -884,3 +884,16 @@ Planned/deferred:
 - Security / OSINT Module 1 contributes workflows and module metadata into core-owned navigation surfaces.
 - The module does not own left-nav routes; operators access module behavior through Launcher, Runs, Cases / Evidence, Investigation Workspace, Files / Artifacts, Logs / Audit, and related core surfaces.
 - Additional non-investigation nav pages currently expose module relationship/status framing only (not separate module admin tooling).
+
+
+## Connectors surface relationship update (current thin slice)
+
+Implemented now:
+- Core-owned Connectors surface provides operator-visible inventory and governance/readiness framing for currently supported controlled paths used by Module 1 (`web.fetch`, `web.search`).
+- Module 1 connector use remains routed through core contracts (tool gateway, policy, approvals when required, and audit correlation).
+
+Partially implemented:
+- Surface is visibility-first and does not provide connector provisioning/editing actions.
+
+Planned/deferred:
+- Broader enrichment connector lifecycle management and external handoff connector administration UX.
