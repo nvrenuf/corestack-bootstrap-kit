@@ -113,9 +113,9 @@ Note: These are MVP-slice thin-slice reconciliations. Keep Milestone issues #4/#
 
 13. **Add audit logging + security events (requests, domains, decisions, failures)**  #21 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/21  
     Owner: TBD  
-    - [ ] Structured event format is implemented  
-    - [ ] Allow and deny decisions are logged with reasons  
-    - [ ] Secret redaction rules are enforced
+    - [x] Structured event format is implemented (MVP thin-slice for supported tool gateway request/result/failure paths; broader platform taxonomy governance remains open)  
+    - [x] Allow and deny decisions are logged with stable reasons/context for supported tool gateway paths  
+    - [x] Secret redaction rules are enforced for audit-emitted URL fields (query/fragment stripped)
 
 14. **Integration tests + validation harness (E2E, negative tests, allowlist tests)**  #22 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/22  
     Owner: TBD  

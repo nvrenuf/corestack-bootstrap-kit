@@ -28,6 +28,18 @@ from app.core.schemas import Envelope, ErrorObject, WebFetchRequest, WebSearchRe
 router = APIRouter(prefix="/tools")
 
 
+def _sanitize_url_for_audit(url: str | None) -> str | None:
+    if not url:
+        return None
+    parsed = urlparse(url)
+    if not parsed.scheme or not parsed.netloc:
+        return None
+    safe_netloc = parsed.hostname or ""
+    if parsed.port:
+        safe_netloc = f"{safe_netloc}:{parsed.port}"
+    return f"{parsed.scheme}://{safe_netloc}{parsed.path or ''}"
+
+
 def _json_size_bytes(obj: Any) -> int:
     return len(json.dumps(obj, separators=(",", ":"), ensure_ascii=True).encode("utf-8"))
 
@@ -56,10 +68,13 @@ def _envelope_error(
         emit_tool_event(
             {
                 **audit,
+                "event_type": "tool.execution.failure",
+                "event_phase": "result",
                 "http_status": http_code,
                 "duration_ms": float(timings.get("total", 0.0)),
                 "bytes_out": _json_size_bytes(content),
                 "error_code": code,
+                "failure_class": code,
             }
         )
     return JSONResponse(status_code=http_code, content=content)
@@ -143,6 +158,38 @@ def _n8n_headers() -> Dict[str, str]:
     return headers
 
 
+def _emit_request_event(
+    *,
+    tool: str,
+    backend: str,
+    bytes_in: int,
+    requester: str | None,
+    correlation_id: str | None,
+    domain: str,
+    url: str | None,
+) -> None:
+    emit_tool_event(
+        {
+            "event_type": "tool.execution.requested",
+            "event_phase": "request",
+            "tool_name": tool,
+            "decision": "allow",
+            "reason_code": "REQUEST_RECEIVED",
+            "domain": domain,
+            "url": _sanitize_url_for_audit(url),
+            "http_status": 102,
+            "duration_ms": 0.0,
+            "bytes_in": bytes_in,
+            "bytes_out": 0,
+            "requester": requester,
+            "correlation_id": correlation_id,
+            "upstream": backend,
+            "error_code": None,
+            "failure_class": None,
+        }
+    )
+
+
 def _upstream_error_code(http_code: int) -> str:
     if http_code == 401:
         return "UNAUTHORIZED"
@@ -218,6 +265,16 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
             },
         )
 
+    _emit_request_event(
+        tool="web.fetch",
+        backend=backend,
+        bytes_in=bytes_in,
+        requester=req.agent_id,
+        correlation_id=req.request_id,
+        domain=hostname,
+        url=req.inputs.url,
+    )
+
     if not is_allowed_host(hostname):
         elapsed = round((time.perf_counter() - started) * 1000, 2)
         return _envelope_error(
@@ -233,7 +290,7 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
                 "decision": "deny",
                 "reason_code": "POLICY_DENIED",
                 "domain": hostname,
-                "url": req.inputs.url,
+                "url": _sanitize_url_for_audit(req.inputs.url),
                 "bytes_in": bytes_in,
                 "bytes_out": 0,
                 "requester": req.agent_id,
@@ -306,11 +363,12 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
                 "decision": "deny",
                 "reason_code": "UPSTREAM_TIMEOUT",
                 "domain": hostname,
-                "url": req.inputs.url,
+                "url": _sanitize_url_for_audit(req.inputs.url),
                 "bytes_in": bytes_in,
                 "requester": req.agent_id,
                 "correlation_id": req.request_id,
                 "upstream": backend,
+                "fail_closed": True,
             },
         )
     except httpx.HTTPStatusError as exc:
@@ -333,7 +391,7 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
                 "decision": "deny",
                 "reason_code": _upstream_error_code(exc.response.status_code),
                 "domain": hostname,
-                "url": req.inputs.url,
+                "url": _sanitize_url_for_audit(req.inputs.url),
                 "bytes_in": bytes_in,
                 "requester": req.agent_id,
                 "correlation_id": req.request_id,
@@ -355,7 +413,7 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
                 "decision": "deny",
                 "reason_code": "UPSTREAM_TOO_LARGE",
                 "domain": hostname,
-                "url": req.inputs.url,
+                "url": _sanitize_url_for_audit(req.inputs.url),
                 "bytes_in": bytes_in,
                 "requester": req.agent_id,
                 "correlation_id": req.request_id,
@@ -377,7 +435,7 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
                 "decision": "deny",
                 "reason_code": "INTERNAL_ERROR",
                 "domain": hostname,
-                "url": req.inputs.url,
+                "url": _sanitize_url_for_audit(req.inputs.url),
                 "bytes_in": bytes_in,
                 "requester": req.agent_id,
                 "correlation_id": req.request_id,
@@ -389,10 +447,12 @@ async def web_fetch(payload: Dict[str, Any]) -> JSONResponse:
     emit_tool_event(
         {
             "tool_name": "web.fetch",
+            "event_type": "tool.execution.result",
+            "event_phase": "result",
             "decision": "allow",
             "reason_code": "OK",
             "domain": hostname,
-            "url": req.inputs.url,
+            "url": _sanitize_url_for_audit(req.inputs.url),
             "http_status": status_code,
             "duration_ms": round((time.perf_counter() - started) * 1000, 2),
             "bytes_in": bytes_in,
@@ -447,6 +507,16 @@ async def web_search(payload: Dict[str, Any]) -> JSONResponse:
     if limited:
         return limited
 
+    _emit_request_event(
+        tool="web.search",
+        backend=backend,
+        bytes_in=bytes_in,
+        requester=req.agent_id,
+        correlation_id=req.request_id,
+        domain="",
+        url=None,
+    )
+
     if backend == "n8n":
         try:
             raw = await post_json(
@@ -484,6 +554,7 @@ async def web_search(payload: Dict[str, Any]) -> JSONResponse:
                     "requester": req.agent_id,
                     "correlation_id": req.request_id,
                     "upstream": backend,
+                    "fail_closed": True,
                 },
             )
         except httpx.HTTPStatusError as exc:
@@ -574,6 +645,8 @@ async def web_search(payload: Dict[str, Any]) -> JSONResponse:
     emit_tool_event(
         {
             "tool_name": "web.search",
+            "event_type": "tool.execution.result",
+            "event_phase": "result",
             "decision": "allow" if envelope.ok else "deny",
             "reason_code": "OK" if envelope.ok else (envelope.error.code if envelope.error else "ERROR"),
             "domain": "",

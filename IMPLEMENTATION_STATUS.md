@@ -6,11 +6,11 @@
 
 ## Latest issue update
 
-- Issue name: Issue #18 — Implement Tool Gateway enforcement layer
-- Status: in progress (MVP thin-slice enforcement complete on current branch)
-- Commit hash: `current branch head` (to be replaced with final commit SHA after merge)
-- Short note: Hardened the core-owned gateway into a single enforced path for supported tools with centralized allowlist checks, schema-first validation, payload-byte and timeout controls, fail-closed normalized deny/error handling, and audit-compatible decision/result emissions without adding new workflow/UI surfaces.
-- Next recommended issue: Complete remaining non-MVP breadth for #18/#21/#22 (platform rate limits + broader integration/E2E hardening).
+- Issue name: Issue #21 — Add audit logging + security events
+- Status: in progress (MVP thin-slice audit/security-event hardening complete on current branch)
+- Commit hash: `79e129c`
+- Short note: Hardened supported tool-gateway audit/security emissions to include explicit request/result/failure events, stable deny/failure context fields, fail-closed timeout events, and redaction-safe URL logging while preserving existing audit/event contracts and linked review compatibility.
+- Next recommended issue: Move to #22 integration/E2E validation for audit/security paths, then continue non-MVP breadth on #21 observability/taxonomy governance.
 
 ## Completed issues (verified in `main`)
 
@@ -36,10 +36,11 @@
 - [x] Implement artifact storage linkage and metadata persistence — MVP hardening pass landed (`current branch head`, PR TBD) with stricter storage metadata normalization/validation, lifecycle consistency enforcement, and run/case/evidence/finding reference integrity checks; broad storage/export/search concerns remain out of scope.
 - [x] Implement structured audit/event logging for runs, tools, evidence, and approvals (`c0fae98`, PR TBD)
 - [~] Issue #18 Tool Gateway enforcement layer — MVP thin-slice enforcement hardening landed (`current branch head`, PR TBD); full issue remains open for broader rate-limit/platform breadth.
+- [~] Issue #21 Audit logging + security events — MVP thin-slice hardening landed (`79e129c`, PR TBD); full issue remains open for broader observability breadth/taxonomy governance.
 
 ## Next recommended issue
 
-- Move to remaining security hardening scope: close #18 non-MVP breadth (platform rate limits) and then prioritize #21/#22 audit-security and integration/E2E validation.
+- Prioritize #22 integration/E2E validation of hardened audit-security paths, then continue remaining non-MVP breadth for #21 and #18 platform controls.
 
 ## References
 

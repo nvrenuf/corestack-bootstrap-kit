@@ -32,7 +32,10 @@
     "requester": { "type": ["string", "null"] },
     "correlation_id": { "type": ["string", "null"] },
     "upstream": { "type": "string", "minLength": 1 },
-    "error_code": { "type": ["string", "null"] }
+    "error_code": { "type": ["string", "null"] },
+    "event_type": { "type": "string", "minLength": 1 },
+    "event_phase": { "type": "string", "enum": ["request", "decision", "result"] },
+    "failure_class": { "type": ["string", "null"] },
+    "fail_closed": { "type": "boolean" }
   }
 }
-

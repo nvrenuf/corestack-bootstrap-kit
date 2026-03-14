@@ -88,7 +88,13 @@ def test_audit_logging_successful_fetch_emits_allow_event(tmp_path, monkeypatch)
 
         lines = audit_path.read_text(encoding="utf-8").splitlines()
         events = [json.loads(line) for line in lines if line.strip()]
-        allow = next(e for e in events if e.get("tool_name") == "web.fetch" and e.get("decision") == "allow")
+        allow = next(
+            e
+            for e in events
+            if e.get("tool_name") == "web.fetch"
+            and e.get("decision") == "allow"
+            and e.get("event_type") == "tool.execution.result"
+        )
         assert allow["reason_code"] == "OK"
         assert allow["http_status"] == 200
         assert allow["duration_ms"] >= 0

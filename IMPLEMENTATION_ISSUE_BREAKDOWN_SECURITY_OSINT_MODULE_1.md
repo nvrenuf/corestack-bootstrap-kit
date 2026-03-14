@@ -524,7 +524,7 @@ Provide reconstructable action history for the initial MVP slice.
 
 ##### Status
 
-- completed (thin structured event model, persistence store, and run/tool/evidence hooks landed)
+- completed for MVP thin-slice scope (structured event model/persistence plus supported tool-gateway request/decision/result/failure/timeout hardening with normalized security context and redaction-safe URL audit emission)
 
 ##### Status target
 

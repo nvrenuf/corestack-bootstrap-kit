@@ -51,7 +51,7 @@ Keep #18 open for non-MVP breadth (strict enterprise allowlist/rate-limit/timeou
 
 Status update: completed for MVP thin slice.
 
-Structured audit/event logging scaffolding for runs, tools, evidence/artifacts/findings, and approval-compatible placeholder events landed in commit `c0fae98` (PR TBD), including correlation references and minimal persistence for reconstructable event history.
+Structured audit/event logging scaffolding landed in commit `c0fae98`. Current branch head (PR TBD) hardens MVP supported tool-gateway security events with explicit request/result/failure emissions, stable deny/failure reason context, explicit fail-closed timeout events, and redaction-safe URL audit fields. Keep #21 open for non-MVP observability breadth and taxonomy governance.
 
 ## Issues to keep open
 
