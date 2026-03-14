@@ -1154,3 +1154,17 @@ Partially implemented:
 
 Planned/deferred:
 - Connector onboarding/configuration UI, secret-management workflows, tenant-scoped connector lifecycle administration, and marketplace-scale connector catalog management.
+
+
+## Agents surface depth reconciliation update (MVP thin slice)
+
+Implemented now:
+- Agents route now functions as a thin core-owned orchestration/readiness workspace rather than placeholder framing.
+- Existing contracts are composed into operator-visible agent posture signals: workflow/run execution state, model route/restriction/result governance signals, tool-gateway activity, policy decisions, approvals, and audit correlation.
+- Agent-like execution roles are framed truthfully as current MVP actors (workflow orchestrator, AI-assisted workflow execution role, and operator review checkpoint role).
+
+Partially implemented:
+- Surface is read-oriented and scoped to currently supported workflow/module behavior.
+
+Planned/deferred:
+- Multi-agent assignment/scheduling orchestration, autonomous collaboration controls, and full agent lifecycle administration UX.

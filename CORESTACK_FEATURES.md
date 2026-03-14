@@ -122,3 +122,17 @@ Capability-oriented source of truth for CoreStack feature status.
 
 ### Planned / deferred
 - Connector onboarding/provisioning UX, credential/secret lifecycle tooling, tenant-scoped connector administration, and broad connector marketplace coverage.
+
+
+## Agents orchestration/readiness workspace (core-owned)
+
+### Implemented now
+- Agents route now provides a thin core-owned orchestration/readiness workspace instead of a placeholder.
+- Surface projects implemented execution-role inventory and posture using existing contracts: workflow/run state, model routing/execution governance signals, tool-gateway activity, policy decisions, approvals, and correlated audit events.
+- Operators can see module/workflow relationship context for agent-like behavior (for current MVP, Security / OSINT Module 1 alert-triage workflow).
+
+### Partially implemented
+- Current behavior is visibility-first and read-oriented for MVP-supported execution roles.
+
+### Planned / deferred
+- Fleet-scale multi-agent assignment/scheduling/planning and full agent lifecycle administration UX remain deferred.

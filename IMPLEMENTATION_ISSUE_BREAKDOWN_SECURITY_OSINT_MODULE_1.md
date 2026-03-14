@@ -1091,3 +1091,12 @@ Still deferred:
 - Exposes currently supported controlled integration boundaries (`web.fetch`, `web.search`) with explicit implemented vs deferred status language.
 - Reuses existing tool-gateway, policy, audit/event, module applicability, and model boundary context; does not introduce fake connector configuration behavior.
 - This completes the Connectors depth objective for MVP thin-slice scope while full connector lifecycle/platform breadth remains deferred.
+
+
+## Agents surface depth reconciliation (MVP thin slice)
+
+- Status: completed for MVP thin-slice scope.
+- Upgraded Agents from truthful placeholder framing into a thin core-owned orchestration/readiness workspace.
+- Reused existing run/workflow, model routing/execution, tool-gateway, policy/approval, and audit/event contracts to expose implemented execution-role posture without fake orchestration controls.
+- Added explicit implemented vs partial vs planned/deferred framing for what currently counts as an agent-like role in MVP.
+- Module relationship remains truthful: Security / OSINT Module 1 contributes workflow behavior into a core-owned Agents surface.

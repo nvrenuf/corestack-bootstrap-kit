@@ -232,3 +232,8 @@ Deepened the core-owned Policies surface from a placeholder into a thin governan
 ## Connectors surface depth slice closeout note
 
 Implemented a thin core-owned Connectors workspace that makes current controlled integration boundaries and governance/readiness posture visible using existing tool-gateway, policy, model, module, and audit context. This slice intentionally excludes connector onboarding, credential management, and lifecycle admin controls; keep broader connector-platform depth tracked separately.
+
+
+## Agents surface depth slice closeout note
+
+Implemented a thin core-owned Agents workspace that makes current agent-like execution posture legible for operators using existing workflow/run, model governance, tool-gateway governance, policy/approval, module relationship, and audit/event context. This slice is visibility-first and truthful; it does not introduce fake fleet controls, autonomous multi-agent scheduling, or lifecycle administration UX.

@@ -181,3 +181,9 @@ Planned/deferred:
 
 - Connectors now consumes existing `tool.execution.*` and policy-outcome context to expose connector governance/readiness posture in-product.
 - No new audit taxonomy was introduced; this remains a projection layer on top of existing correlated events.
+
+
+## Agents workspace visibility note (current thin slice)
+
+- Agents workspace now consumes existing correlated events/signals (run lifecycle, model route/execution governance signals, tool execution governance events, policy/approval linkage) to make execution-role posture legible.
+- No new event taxonomy/category was added for this slice; it is a composition/projection layer over existing event contracts.
