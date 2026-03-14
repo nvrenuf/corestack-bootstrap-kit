@@ -6,10 +6,10 @@
 
 ## Latest issue update
 
-- Issue name: Connectors surface depth slice (core-owned governance/readiness workspace)
+- Issue name: Launcher entry/path hash-route boot fix for local Connectors verification
 - Status: completed for MVP thin-slice scope
-- Commit hash: `current branch head`
-- Short note: Deepened the Connectors route into a truthful operator workspace that shows implemented controlled integration boundaries, governance/readiness posture, and implemented-vs-deferred framing using existing tool-gateway/policy/audit/model/module context without introducing fake connector-management controls.
+- Commit hash: `6935241`
+- Short note: Added a compatibility launcher entry at `launcher/launcher/index.html` so `http://127.0.0.1:8000/launcher/index.html#/connectors` boots the existing Corestack shell even when local static hosting is rooted at `./launcher`; preserved the existing shell, navigation, and hash-route model.
 - Next recommended issue: Add thin Agents surface depth (core-owned orchestration/readiness visibility) while keeping #18/#21 broad hardening tracks open.
 
 ## Completed issues (verified in `main`)

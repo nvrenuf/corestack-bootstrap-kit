@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Corestack Control Plane</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="shell-sidebar">
+      <div class="brand-block">
+        <p class="eyebrow">Corestack</p>
+        <h1>Control Plane</h1>
+        <p class="brand-copy">One desktop for workflows, investigations, and platform governance.</p>
+      </div>
+      <nav aria-label="Primary" class="primary-nav" data-primary-nav></nav>
+      <section class="module-hook" aria-label="Module-aware navigation hooks">
+        <p class="hook-label">Module hooks</p>
+        <div data-module-nav-hook></div>
+      </section>
+    </aside>
+    <div class="shell-main">
+      <header class="shell-header">
+        <div>
+          <p class="eyebrow">Persistent shell</p>
+          <h2 data-route-title>Home</h2>
+        </div>
+        <div class="header-status">
+          <span class="status-pill">Core-owned shell</span>
+          <span class="status-pill muted">Module-aware extension points</span>
+        </div>
+      </header>
+      <main class="shell-content" data-route-content></main>
+    </div>
+  </div>
+  <script type="module" src="../app.js"></script>
+</body>
+</html>
