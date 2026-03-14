@@ -826,7 +826,7 @@ Support formal package generation from completed or in-progress cases.
 
 ### Epic 8: MVP operator review surfaces
 
-#### Issue 8.1: Implement run detail and case detail review surfaces
+#### Issue 8.1: Implement run detail and case detail review surfaces [x] (current branch head, PR TBD)
 
 ##### Purpose
 
@@ -858,6 +858,10 @@ Provide the minimum analyst workspace for execution and review.
 ##### Status target
 
 - MVP
+
+##### Status
+
+- complete for thin-slice MVP review surfaces (run detail and case detail with linked run/case/evidence/finding/approval/audit summaries)
 
 #### Issue 8.2: Implement artifact/evidence detail and linked audit lookup
 

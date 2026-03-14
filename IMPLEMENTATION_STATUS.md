@@ -4,6 +4,14 @@
 
 - MVP slice reconciliation (Core control-plane and governed tooling baseline)
 
+## Latest issue update
+
+- Issue name: Issue 8.1 — Implement run detail and case detail review surfaces
+- Status: completed
+- Commit hash: `current branch head` (to be replaced with final commit SHA after merge)
+- Short note: Added thin core-owned run and case review surfaces using existing run/case/evidence/finding/approval/audit contracts, including sparse-data-safe rendering.
+- Next recommended issue: Issue 8.2 — Implement artifact/evidence detail and linked audit lookup
+
 ## Completed issues (verified in `main`)
 
 - [x] Implement persistent Corestack shell and navigation skeleton (`8cd6592`, PR #28)
@@ -20,6 +28,7 @@
 - [x] Add model execution logging and external-provider restriction hooks (`current branch head`, PR TBD)
 - [x] Register Security/OSINT Module 1 through the core module contract (`current branch head`, PR TBD)
 - [x] Implement first end-to-end Module 1 workflow: Alert triage and investigation (`ee7ccce`, PR TBD)
+- [x] Implement run detail and case detail review surfaces (`current branch head`, PR TBD)
 
 ## In-progress issues
 
@@ -28,7 +37,7 @@
 
 ## Next recommended issue
 
-- Issue 8.1: Implement run detail and case detail review surfaces (artifact linkage base is now hardened for MVP).
+- Issue 8.2: Implement artifact/evidence detail and linked audit lookup.
 
 ## References
 
@@ -45,5 +54,6 @@
 - Issue 6.2 completed in a thin core-owned slice by introducing model execution audit hooks (requested/decisioned/result), correlation metadata, and external-provider restriction blocking hooks built on top of the routing contract.
 - Issue 7.1 completed in a thin core-owned slice (commit `current branch head`) by adding a reusable module registration contract and registering Security/OSINT Module 1 for launcher/modules visibility without enabling marketplace behavior.
 - Issue 7.2 completed in a thin end-to-end slice by adding a control-plane-launched alert triage workflow that creates/links cases, enforces approval checkpoints, executes through model routing/execution hooks, and persists evidence/artifact/finding outputs with audit event history.
+- Issue 8.1 completed in a thin core-owned review slice by adding run detail and case detail surfaces that project existing run/case/evidence/artifact/finding/approval/audit data into navigable control-plane review views, including sparse-data fallback behavior.
 - Local repository does not contain a `main` branch ref; reconciliation was performed against the current integration branch (`work`) and its merged PR commits.
 - Tool gateway MVP hardening is complete for thin-slice governed behavior; enterprise gateway controls (broad allowlist/rate-limit/platform breadth) remain intentionally out of scope and should stay tracked in broader policy/tooling issues.

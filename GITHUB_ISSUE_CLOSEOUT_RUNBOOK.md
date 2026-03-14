@@ -129,6 +129,18 @@ Implemented structured model execution audit hooks (`model.execution.requested`,
 
 Keeping broad provider integrations and full inference orchestration out of scope for subsequent issues.
 
+## Issues to close when run/case review surface PR merges
+
+- #TBD — Issue 8.1: Implement run detail and case detail review surfaces
+
+### Close note to paste for Issue 8.1
+
+Completed in thin-slice MVP scope.
+
+Implemented core-owned run detail and case detail review surfaces in the shared control plane shell, with module-aware content projected from existing run/case/evidence/artifact/finding/approval/audit contracts. The slice focuses on reviewability and workflow traceability (including sparse-data-safe rendering) without expanding into a full analyst workbench or reporting dashboard (commit `current branch head`, PR TBD).
+
+Keeping deep artifact/evidence inspection and richer linked audit lookup tracked under Issue 8.2.
+
 ## Issues to close when module registration slice PR merges
 
 - #TBD — Issue 7.1: Register Security/OSINT Module 1 through the core module contract

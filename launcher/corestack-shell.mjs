@@ -286,6 +286,144 @@ function renderLauncherSurface(context = {}) {
   `;
 }
 
+function renderRunReviewSurface(context = {}) {
+  const runs = context.runs ?? [];
+  const selectedRunId = context.selectedRunId ?? null;
+  const selectedRun = context.selectedRun ?? null;
+  const approvals = context.selectedRunApprovals ?? [];
+  const evidenceItems = context.selectedRunEvidence ?? [];
+  const artifacts = context.selectedRunArtifacts ?? [];
+  const findings = context.selectedRunFindings ?? [];
+  const auditEvents = context.selectedRunAuditEvents ?? [];
+
+  const runList = runs.length
+    ? `<ul class="placeholder-list">${runs.map((run) => `
+      <li>
+        <a href="#/runs?runId=${run.runId}">${run.workflowName}</a>
+        <span> · ${run.status}</span>
+      </li>
+    `).join("")}</ul>`
+    : "<p>No runs recorded yet.</p>";
+
+  const detail = selectedRun
+    ? `
+      <ul class="placeholder-list">
+        <li><strong>Run ID:</strong> ${selectedRun.runId}</li>
+        <li><strong>Status:</strong> ${selectedRun.status}</li>
+        <li><strong>Workflow:</strong> ${selectedRun.workflowName} (${selectedRun.workflowId})</li>
+        <li><strong>Module:</strong> ${selectedRun.moduleId}</li>
+        <li><strong>Case linkage:</strong> ${selectedRun.caseId ?? "Not linked"}</li>
+      </ul>
+      <h4>Policy and approvals</h4>
+      <ul class="placeholder-list">
+        <li>Policy decisions on run: ${selectedRun.policyDecisions?.length ?? 0}</li>
+        <li>Pending approval checkpoint: ${selectedRun.pendingApproval?.approvalId ?? "none"}</li>
+        <li>Linked approvals: ${approvals.length}</li>
+      </ul>
+      <h4>Evidence footprint</h4>
+      <ul class="placeholder-list">
+        <li>Evidence items: ${evidenceItems.length}</li>
+        <li>Artifacts: ${artifacts.length}</li>
+        <li>Findings: ${findings.length}</li>
+      </ul>
+      <h4>Recent audit events</h4>
+      ${auditEvents.length
+        ? `<ul class="placeholder-list">${auditEvents.map((event) => `<li>${event.event_type} · ${event.timestamp}</li>`).join("")}</ul>`
+        : "<p>No audit events found for this run.</p>"}
+    `
+    : "<p>Select a run to view details.</p>";
+
+  return `
+    <section class="surface-grid" data-surface-id="runs">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Core review surface</span>
+        <h3>Run detail</h3>
+        <p>Thin run-level review of workflow execution, linkage, policy gates, and generated objects.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Run selector</span>
+        <h3>Recent runs</h3>
+        ${runList}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Run detail</span>
+        <h3>${selectedRunId ?? "No run selected"}</h3>
+        ${detail}
+      </article>
+    </section>
+  `;
+}
+
+function renderCaseReviewSurface(context = {}) {
+  const cases = context.cases ?? [];
+  const selectedCaseId = context.selectedCaseId ?? null;
+  const selectedCase = context.selectedCase ?? null;
+  const linkedRuns = context.linkedRuns ?? [];
+  const approvals = context.selectedCaseApprovals ?? [];
+  const evidenceItems = context.selectedCaseEvidence ?? [];
+  const artifacts = context.selectedCaseArtifacts ?? [];
+  const findings = context.selectedCaseFindings ?? [];
+  const auditEvents = context.selectedCaseAuditEvents ?? [];
+
+  const caseList = cases.length
+    ? `<ul class="placeholder-list">${cases.map((caseItem) => `
+      <li>
+        <a href="#/cases-evidence?caseId=${caseItem.caseId}">${caseItem.title}</a>
+        <span> · ${caseItem.status}</span>
+      </li>
+    `).join("")}</ul>`
+    : "<p>No cases recorded yet.</p>";
+
+  const detail = selectedCase
+    ? `
+      <ul class="placeholder-list">
+        <li><strong>Case ID:</strong> ${selectedCase.caseId}</li>
+        <li><strong>Status:</strong> ${selectedCase.status}</li>
+        <li><strong>Module:</strong> ${selectedCase.moduleId}</li>
+        <li><strong>Linked runs:</strong> ${linkedRuns.length}</li>
+      </ul>
+      ${linkedRuns.length
+        ? `<h4>Run links</h4><ul class="placeholder-list">${linkedRuns.map((run) => `<li>${run.workflowName} · ${run.runId} · ${run.status}</li>`).join("")}</ul>`
+        : "<p>No linked run details available.</p>"}
+      <h4>Evidence footprint</h4>
+      <ul class="placeholder-list">
+        <li>Evidence items: ${evidenceItems.length}</li>
+        <li>Artifacts: ${artifacts.length}</li>
+        <li>Findings: ${findings.length}</li>
+      </ul>
+      <h4>Approvals</h4>
+      <ul class="placeholder-list">
+        <li>Linked approvals: ${approvals.length}</li>
+        <li>Pending approvals: ${approvals.filter((approval) => approval.status === "pending").length}</li>
+      </ul>
+      <h4>Recent audit events</h4>
+      ${auditEvents.length
+        ? `<ul class="placeholder-list">${auditEvents.map((event) => `<li>${event.event_type} · ${event.timestamp}</li>`).join("")}</ul>`
+        : "<p>No audit events found for this case.</p>"}
+    `
+    : "<p>Select a case to view details.</p>";
+
+  return `
+    <section class="surface-grid" data-surface-id="cases-evidence">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Core review surface</span>
+        <h3>Case detail</h3>
+        <p>Thin case-level review of linked runs, generated evidence, approvals, and recent audit activity.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Case selector</span>
+        <h3>Recent cases</h3>
+        ${caseList}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Case detail</span>
+        <h3>${selectedCaseId ?? "No case selected"}</h3>
+        ${detail}
+      </article>
+    </section>
+  `;
+}
+
 export function renderRouteContent(route, context = {}) {
   if (route.id === "home") {
     return renderHomeSurface(context);
@@ -297,6 +435,14 @@ export function renderRouteContent(route, context = {}) {
 
   if (route.id === "approvals") {
     return renderApprovalsSurface(context);
+  }
+
+  if (route.id === "runs") {
+    return renderRunReviewSurface(context);
+  }
+
+  if (route.id === "cases-evidence") {
+    return renderCaseReviewSurface(context);
   }
 
   if (route.id === "modules") {
