@@ -71,10 +71,13 @@ Capability-oriented source of truth for CoreStack feature status.
 ### Implemented now
 - Core-owned `Investigation Workspace` surface that unifies one selected investigation into one coherent operator context.
 - Combined visibility for case summary, linked run summary, findings rollup, artifacts/evidence rollup, recent audit/security events, and approval/review state.
+- Thin drill-in pivots between investigation workspace, run detail, case detail, files/artifacts detail, approvals queue, and filtered logs/audit context.
 - Thin disposition/status block for case/run state without introducing a report/export subsystem.
+- Menu labels render as product navigation (without numeric launcher prefixes).
+- Operator-facing Ollama utility endpoint defaults to `http://localhost:8080` in launcher/startup surfaces.
 
 ### Partially implemented
-- Current surface is intentionally scoped to the present Module 1 MVP path and available linked data.
+- Current surface remains intentionally scoped to the present Module 1 MVP path and available linked data.
 
 ### Planned / deferred
 - Deeper investigation UX (timeline, advanced graphing, richer correlation tools) and broader platform-grade forensic/reporting features.

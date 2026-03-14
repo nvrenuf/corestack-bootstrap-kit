@@ -27,6 +27,18 @@ export function getRoute(routeId) {
   return TOP_LEVEL_ROUTES.find((route) => route.id === routeId) ?? TOP_LEVEL_ROUTES[0];
 }
 
+export function renderPrimaryNav(activeRouteId) {
+  return TOP_LEVEL_ROUTES.map((route) => `
+    <a
+      class="nav-link ${route.id === activeRouteId ? "active" : ""}"
+      href="#/${route.id}"
+      data-route-link="${route.id}"
+    >
+      <span>${route.label}</span>
+    </a>
+  `).join("");
+}
+
 export function renderSurfacePlaceholder(route) {
   return `
     <section class="surface-placeholder" data-surface-id="${route.id}">
@@ -82,7 +94,7 @@ function renderCaseSummary(caseItem) {
 function renderPlatformUtilitiesPanel() {
   const platformUtilities = [
     { id: "n8n", label: "n8n", href: "http://localhost:5678/home/workflows" },
-    { id: "ollama", label: "Ollama API", href: "http://localhost:11434/api/tags" },
+    { id: "ollama", label: "Ollama API", href: "http://localhost:8080" },
     { id: "db-admin", label: "DB Admin / Adminer", href: "http://localhost:8081/" },
   ];
 
@@ -416,7 +428,7 @@ function renderInvestigationWorkspaceSurface(context = {}) {
           <li>Resolved or dismissed: ${findings.length - openFindings}</li>
         </ul>
         ${findings.length
-          ? `<ul class="placeholder-list">${findings.slice(0, 3).map((item) => `<li>${item.severity} · ${item.summary}</li>`).join("")}</ul>`
+          ? `<ul class="placeholder-list">${findings.slice(0, 3).map((item) => `<li>${item.severity} · <a href="#/files-artifacts?findingId=${item.findingId}">${item.summary}</a>${item.evidenceIds?.[0] ? ` · <a href="#/files-artifacts?evidenceId=${item.evidenceIds[0]}">evidence</a>` : ""}${item.artifactIds?.[0] ? ` · <a href="#/files-artifacts?artifactId=${item.artifactIds[0]}">artifact</a>` : ""}${item.findingId ? ` · <a href="#/logs-audit?findingId=${item.findingId}">audit</a>` : ""}</li>`).join("")}</ul>`
           : "<p>No findings generated yet for this investigation.</p>"}
       </article>
       <article class="shell-panel">
@@ -427,7 +439,7 @@ function renderInvestigationWorkspaceSurface(context = {}) {
           <li>Artifacts: ${artifacts.length}</li>
         </ul>
         ${artifacts.length
-          ? `<ul class="placeholder-list">${artifacts.slice(0, 3).map((item) => `<li>${item.type} · ${item.lifecycleState} · ${item.artifactId}</li>`).join("")}</ul>`
+          ? `<ul class="placeholder-list">${artifacts.slice(0, 3).map((item) => `<li>${item.type} · ${item.lifecycleState} · <a href="#/files-artifacts?artifactId=${item.artifactId}">${item.artifactId}</a> · <a href="#/logs-audit?artifactId=${item.artifactId}">audit</a></li>`).join("")}</ul>`
           : "<p>No artifacts linked yet.</p>"}
       </article>
       <article class="shell-panel">
@@ -442,6 +454,16 @@ function renderInvestigationWorkspaceSurface(context = {}) {
           <li>Linked approvals: ${approvals.length}</li>
           <li>Pending approvals: ${pendingApprovals}</li>
           <li>Current checkpoint: ${primaryRun?.pendingApproval?.approvalId ?? "none"}</li>
+        </ul>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Drill-in pivots</span>
+        <h3>Investigation navigation</h3>
+        <ul class="placeholder-list">
+          <li>${selectedCaseId ? `<a href="#/cases-evidence?caseId=${selectedCaseId}">Open case detail</a>` : "Case detail unavailable"}</li>
+          <li>${primaryRun?.runId ? `<a href="#/runs?runId=${primaryRun.runId}">Open linked run detail</a>` : "Run detail unavailable"}</li>
+          <li>${selectedCaseId ? `<a href="#/logs-audit?caseId=${selectedCaseId}">Open case audit history</a>` : "Case audit history unavailable"}</li>
+          <li>${pendingApprovals ? `<a href="#/approvals">Open approvals queue</a>` : "No pending approvals"}</li>
         </ul>
       </article>
       <article class="shell-panel">
@@ -486,7 +508,7 @@ function renderCaseReviewSurface(context = {}) {
         <li><strong>Linked runs:</strong> ${linkedRuns.length}</li>
       </ul>
       ${linkedRuns.length
-        ? `<h4>Run links</h4><ul class="placeholder-list">${linkedRuns.map((run) => `<li>${run.workflowName} · ${run.runId} · ${run.status}</li>`).join("")}</ul>`
+        ? `<h4>Run links</h4><ul class="placeholder-list">${linkedRuns.map((run) => `<li><a href="#/runs?runId=${run.runId}">${run.workflowName}</a> · ${run.runId} · ${run.status} · <a href="#/investigation-workspace?caseId=${selectedCase.caseId}">workspace</a></li>`).join("")}</ul>`
         : "<p>No linked run details available.</p>"}
       <h4>Evidence footprint</h4>
       <ul class="placeholder-list">
@@ -503,6 +525,7 @@ function renderCaseReviewSurface(context = {}) {
       ${auditEvents.length
         ? `<ul class="placeholder-list">${auditEvents.map((event) => `<li>${event.event_type} · ${event.timestamp}</li>`).join("")}</ul>`
         : "<p>No audit events found for this case.</p>"}
+      <p><a href="#/logs-audit?caseId=${selectedCase.caseId}">Open full case audit history</a></p>
     `
     : "<p>Select a case to view details.</p>";
 
@@ -529,7 +552,7 @@ function renderCaseReviewSurface(context = {}) {
 
 function renderLinkedAuditEvents(auditEvents = []) {
   return auditEvents.length
-    ? `<ul class="placeholder-list">${auditEvents.map((event) => `<li>${event.event_type} · ${event.timestamp}</li>`).join("")}</ul>`
+    ? `<ul class="placeholder-list">${auditEvents.map((event) => `<li>${event.event_type} · ${event.timestamp}${event.correlation?.run_id ? ` · <a href="#/runs?runId=${event.correlation.run_id}">run</a>` : ""}${event.correlation?.case_id ? ` · <a href="#/cases-evidence?caseId=${event.correlation.case_id}">case</a>` : ""}</li>`).join("")}</ul>`
     : "<p>No linked audit events found.</p>";
 }
 
@@ -582,6 +605,7 @@ function renderArtifactDetail(context = {}) {
       </ul>
       <h4>Recent linked audit events</h4>
       ${renderLinkedAuditEvents(auditEvents)}
+      <p><a href="#/logs-audit?artifactId=${selectedArtifact.artifactId}">Open artifact audit history</a></p>
     </article>
   `;
 }
@@ -633,6 +657,7 @@ function renderEvidenceDetail(context = {}) {
       </ul>
       <h4>Recent linked audit events</h4>
       ${renderLinkedAuditEvents(auditEvents)}
+      <p><a href="#/logs-audit?evidenceId=${selectedEvidence.evidenceId}">Open evidence audit history</a></p>
     </article>
   `;
 }
@@ -666,7 +691,39 @@ function renderFindingDetail(context = {}) {
       </ul>
       <h4>Recent linked audit events</h4>
       ${renderLinkedAuditEvents(auditEvents)}
+      <p><a href="#/logs-audit?findingId=${selectedFinding.findingId}">Open finding audit history</a></p>
     </article>
+  `;
+}
+
+function renderAuditSurface(context = {}) {
+  const auditEvents = context.auditEvents ?? [];
+  const selectedFilters = context.selectedFilters ?? [];
+  const filterSummary = selectedFilters.length
+    ? selectedFilters.map((item) => `${item.label}: ${item.value}`).join(" · ")
+    : "none";
+
+  return `
+    <section class="surface-grid" data-surface-id="logs-audit">
+      <article class="shell-panel feature-panel">
+        <span class="surface-meta">Core audit surface</span>
+        <h3>Logs / Audit</h3>
+        <p>Inspect linked audit and security history using existing run/case/finding/artifact/evidence correlation IDs.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Filter context</span>
+        <h3>Active drill-in filters</h3>
+        <ul class="placeholder-list">
+          <li><strong>Filters:</strong> ${filterSummary}</li>
+          <li><a href="#/logs-audit">Clear filters</a></li>
+        </ul>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Events</span>
+        <h3>Recent correlated events</h3>
+        ${renderLinkedAuditEvents(auditEvents)}
+      </article>
+    </section>
   `;
 }
 
@@ -727,6 +784,10 @@ export function renderRouteContent(route, context = {}) {
 
   if (route.id === "files-artifacts") {
     return renderArtifactEvidenceSurface(context);
+  }
+
+  if (route.id === "logs-audit") {
+    return renderAuditSurface(context);
   }
 
   if (route.id === "modules") {

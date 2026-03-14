@@ -1094,3 +1094,17 @@ Implemented in this slice:
 
 Deferred:
 - Broad forensic workbench behavior, timeline exploration, report/export packaging, and cross-module generic workspace patterns.
+
+
+## Investigation drill-in/navigation polish reconciliation (current thin slice)
+
+Implemented now:
+- Investigation workspace provides direct pivots to linked run detail, case detail, files/artifacts detail, approvals, and filtered logs/audit views using existing IDs (`runId`, `caseId`, `artifactId`, `evidenceId`, `findingId`).
+- Findings/artifacts summaries provide direct drill-in links to linked detail and audit history surfaces where references exist.
+- Navigation labels render without numeric prefixes for operator-facing product readability.
+
+Partially implemented:
+- Drill-in is scoped to current Module 1 MVP objects and available linkage data only.
+
+Deferred:
+- Broad forensic timeline, report/export packaging, and cross-module generic investigation workspace behavior.

@@ -6,6 +6,7 @@ import {
   getRoute,
   normalizeRoute,
   renderModuleHook,
+  renderPrimaryNav,
   renderRouteContent,
   renderSurfacePlaceholder,
 } from "../../launcher/corestack-shell.mjs";
@@ -39,6 +40,14 @@ test("unknown routes normalize back to Home inside the same shell", () => {
   assert.equal(normalizeRoute("#/launcher?start=security-osint-alert-triage"), "launcher");
 });
 
+test("primary navigation renders product-style labels without numeric launcher prefixes", () => {
+  const rendered = renderPrimaryNav("home");
+
+  assert.match(rendered, /data-route-link="home"/);
+  assert.doesNotMatch(rendered, /nav-index/);
+  assert.doesNotMatch(rendered, />\d{2}</);
+});
+
 test("placeholder rendering stays core-owned and does not imply a separate module shell", () => {
   const route = getRoute("modules");
   const rendered = renderSurfacePlaceholder(route);
@@ -55,7 +64,7 @@ test("home renders the core entry widgets for active work, approvals, and recent
   assert.match(rendered, /Recent work/);
   assert.match(rendered, /Platform utilities/);
   assert.match(rendered, /href="http:\/\/localhost:5678\/home\/workflows"/);
-  assert.match(rendered, /href="http:\/\/localhost:11434\/api\/tags"/);
+  assert.match(rendered, /href="http:\/\/localhost:8080"/);
   assert.match(rendered, /href="http:\/\/localhost:8081\/"/);
 });
 
@@ -69,12 +78,31 @@ test("launcher exposes a Security\/OSINT workflow start path inside the shared s
   assert.match(rendered, /Attach run to Security \/ OSINT alert triage/);
   assert.match(rendered, /Platform utilities/);
   assert.match(rendered, /href="http:\/\/localhost:5678\/home\/workflows"/);
-  assert.match(rendered, /href="http:\/\/localhost:11434\/api\/tags"/);
+  assert.match(rendered, /href="http:\/\/localhost:8080"/);
   assert.match(rendered, /Ollama API/);
   assert.match(rendered, /DB Admin \/ Adminer/);
   assert.match(rendered, /href="http:\/\/localhost:8081\/"/);
 });
 
+
+test("logs-audit route renders filtered correlated events for investigation drill-ins", () => {
+  const rendered = renderRouteContent(getRoute("logs-audit"), {
+    selectedFilters: [{ label: "Finding", value: "finding-1" }],
+    auditEvents: [
+      {
+        event_type: "evidence.object.mutated",
+        timestamp: "2026-01-01T00:00:00.000Z",
+        correlation: { run_id: "run-1", case_id: "case-1" },
+      },
+    ],
+  });
+
+  assert.match(rendered, /Logs \/ Audit/);
+  assert.match(rendered, /Finding: finding-1/);
+  assert.match(rendered, /evidence\.object\.mutated/);
+  assert.match(rendered, /runs\?runId=run-1/);
+  assert.match(rendered, /cases-evidence\?caseId=case-1/);
+});
 
 test("module hook and modules route render registered module visibility", () => {
   const modules = [{
@@ -300,8 +328,11 @@ test("investigation workspace renders unified case/run/findings/evidence/audit/a
   assert.match(rendered, /Findings rollup/);
   assert.match(rendered, /Evidence rollup/);
   assert.match(rendered, /Review state/);
+  assert.match(rendered, /Open linked run detail/);
+  assert.match(rendered, /files-artifacts\?findingId=f-1/);
+  assert.match(rendered, /logs-audit\?findingId=f-1/);
   assert.match(rendered, /approval\.lifecycle\.created/);
-    assert.match(rendered, /Current checkpoint: approval-1/);
+  assert.match(rendered, /Current checkpoint: approval-1/);
 });
 
 test("investigation workspace handles sparse investigation data without crashing", () => {

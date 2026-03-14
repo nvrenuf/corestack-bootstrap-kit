@@ -1044,3 +1044,21 @@ Not implemented in this issue:
 - timeline explorer,
 - export/report packaging,
 - cross-module generic workspace framework.
+
+
+## Reconciliation update — investigation drill-in and navigation polish thin slice
+
+### Status
+- completed for MVP thin-slice scope on current Security/OSINT Module 1 investigation path
+
+### Implemented now
+- Investigation workspace adds thin drill-in links to case detail, run detail, files/artifacts detail, approvals queue, and filtered logs/audit context.
+- Findings and artifact summaries now provide direct pivots to linked detail/audit surfaces where existing linkage data is present.
+- Files/artifacts detail adds direct pivots to filtered logs/audit views for artifact/evidence/finding correlation review.
+- Navigation menu labels render without numeric prefixes to match product UI expectations.
+
+### Partially implemented
+- Drill-in remains intentionally constrained to existing run/case/finding/artifact/evidence/audit/approval contracts and one Module 1 workflow family.
+
+### Planned/deferred
+- Broad forensic/timeline consoles, report/export packaging, and cross-module generic investigation workbench behavior.

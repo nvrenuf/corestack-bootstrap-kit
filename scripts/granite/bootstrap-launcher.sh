@@ -9,8 +9,9 @@ CHAT_MODEL="${CHAT_MODEL:-granite3.1-moe:3b-instruct-q4_K_M}"
 FALLBACK_CHAT_MODEL="${FALLBACK_CHAT_MODEL:-mistral:7b}"
 EMBEDDING_MODEL="${EMBEDDING_MODEL:-nomic-embed-text:v1.5}"
 OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-http://host.docker.internal:11434}"
+OLLAMA_OPERATOR_URL="${OLLAMA_OPERATOR_URL:-http://localhost:8080}"
 
-export CHAT_MODEL EMBEDDING_MODEL OLLAMA_BASE_URL
+export CHAT_MODEL EMBEDDING_MODEL OLLAMA_BASE_URL OLLAMA_OPERATOR_URL
 
 wait_for_ollama() {
   local retries=60
@@ -55,7 +56,7 @@ Corestack stack is up.
 - Launcher: http://localhost:8080
 - Open WebUI: http://localhost:3000
 - n8n: http://localhost:5678
-- Ollama API tags: http://localhost:11434/api/tags
+- Ollama API (operator default): ${OLLAMA_OPERATOR_URL}
 - Chat model: ${CHAT_MODEL}
 - Embedding model: ${EMBEDDING_MODEL}
 EOF

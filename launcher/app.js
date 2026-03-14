@@ -1,8 +1,8 @@
 import {
-  TOP_LEVEL_ROUTES,
   getRoute,
   normalizeRoute,
   renderModuleHook,
+  renderPrimaryNav,
   renderRouteContent,
 } from "./corestack-shell.mjs";
 import {
@@ -131,16 +131,7 @@ function getSelectedEntityIdFromHash(param) {
 }
 
 function renderNav(activeRouteId) {
-  navRoot.innerHTML = TOP_LEVEL_ROUTES.map((route, index) => `
-    <a
-      class="nav-link ${route.id === activeRouteId ? "active" : ""}"
-      href="#/${route.id}"
-      data-route-link="${route.id}"
-    >
-      <span>${route.label}</span>
-      <span class="nav-index">${String(index + 1).padStart(2, "0")}</span>
-    </a>
-  `).join("");
+  navRoot.innerHTML = renderPrimaryNav(activeRouteId);
 }
 
 function getRouteContext(routeId) {
@@ -282,6 +273,32 @@ function getRouteContext(routeId) {
       selectedCaseAuditEvents: selectedCaseId
         ? auditStore.listEvents({ caseId: selectedCaseId }).slice(0, 5)
         : [],
+    };
+  }
+
+  if (routeId === "logs-audit") {
+    const selectedRunId = getSelectedEntityIdFromHash("runId");
+    const selectedCaseId = getSelectedEntityIdFromHash("caseId");
+    const selectedArtifactId = getSelectedEntityIdFromHash("artifactId");
+    const selectedEvidenceId = getSelectedEntityIdFromHash("evidenceId");
+    const selectedFindingId = getSelectedEntityIdFromHash("findingId");
+    const selectedFilters = [
+      selectedRunId ? { label: "Run", value: selectedRunId } : null,
+      selectedCaseId ? { label: "Case", value: selectedCaseId } : null,
+      selectedArtifactId ? { label: "Artifact", value: selectedArtifactId } : null,
+      selectedEvidenceId ? { label: "Evidence", value: selectedEvidenceId } : null,
+      selectedFindingId ? { label: "Finding", value: selectedFindingId } : null,
+    ].filter(Boolean);
+
+    return {
+      selectedFilters,
+      auditEvents: auditStore.listEvents({
+        runId: selectedRunId,
+        caseId: selectedCaseId,
+        artifactId: selectedArtifactId,
+        evidenceId: selectedEvidenceId,
+        findingId: selectedFindingId,
+      }).slice(0, 15),
     };
   }
 

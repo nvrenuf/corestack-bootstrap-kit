@@ -852,3 +852,16 @@ Projection contract used by the workspace:
 - findings/artifacts/evidence rollups from existing evidence contracts
 - audit/security panel from existing linked audit queries
 - approval/review block from existing approval linkage
+
+
+## Investigation drill-in/navigation polish architecture note (thin slice)
+
+Implemented now:
+- Reused existing core route surfaces (`investigation-workspace`, `runs`, `cases-evidence`, `files-artifacts`, `logs-audit`, `approvals`) as composable drill-in targets.
+- Reused existing correlation contracts (`run_id`, `case_id`, `artifact_id`, `evidence_id`, `finding_id`) for filtered audit projection in Logs/Audit.
+
+Partially implemented:
+- Logs/Audit remains a thin correlated-event projection surface, not a full SIEM/timeline system.
+
+Planned/deferred:
+- Advanced cross-case correlation graphs, timeline exploration, and report/export packaging architecture.

@@ -201,3 +201,12 @@ Status update: completed for MVP thin-slice scope.
 Implemented a single core-owned investigation workspace route that unifies one investigation context (case + linked run + findings + evidence/artifacts + recent linked audit/security events + approval/review state) using existing contracts. No new object model was introduced, and scope intentionally excludes broad forensic/timeline/report-export expansion.
 
 Keep future deep-investigation UX and report/export breadth as separate non-MVP issues.
+
+
+## Issue status note to paste for investigation drill-in and navigation polish thin slice
+
+Status update: completed for MVP thin-slice scope.
+
+Deepened the existing core-owned investigation workspace by adding thin drill-in pivots across findings, artifacts/evidence detail, linked run/case detail, approvals queue, and filtered logs/audit context using existing correlation/linkage contracts. Also polished operator UX by removing numeric menu prefixes and updating operator-facing Ollama utility/startup endpoint defaults to `http://localhost:8080` without changing internal health/reachability checks.
+
+This does not claim full forensic platform completion; broad timeline/report/export and cross-module workbench behavior remain deferred.

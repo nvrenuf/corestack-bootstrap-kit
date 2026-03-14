@@ -151,3 +151,16 @@ Current integration tests explicitly assert normalized `tool.execution.requested
 No new audit event schema is introduced in this slice.
 
 The workspace reuses existing linked lookup behavior by `case_id`/`run_id` and evidence-bearing correlation references (`artifact_id`, `evidence_id`, `finding_id`) to project recent investigation-relevant events in one operator context.
+
+
+## Investigation drill-in usage note (current thin slice)
+
+Implemented now:
+- Operator drill-ins consume existing correlation keys (`run_id`, `case_id`, `artifact_id`, `evidence_id`, `finding_id`) to filter Logs/Audit views from workspace and detail surfaces.
+- No new audit event type/category was required for this thin slice; UI pivots are composed on top of current structured events.
+
+Partially implemented:
+- Filtered list projection is available for recent correlated events only.
+
+Planned/deferred:
+- Broader timeline analytics, long-horizon reconstruction UX, and export/report-focused audit presentation layers.

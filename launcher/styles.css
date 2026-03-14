@@ -106,10 +106,6 @@ body {
   border-color: rgba(178, 76, 47, 0.28);
 }
 
-.nav-index {
-  color: var(--muted);
-  font-size: 12px;
-}
 
 .shell-main {
   display: grid;
