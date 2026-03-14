@@ -187,3 +187,15 @@ Planned/deferred:
 
 - Agents workspace now consumes existing correlated events/signals (run lifecycle, model route/execution governance signals, tool execution governance events, policy/approval linkage) to make execution-role posture legible.
 - No new event taxonomy/category was added for this slice; it is a composition/projection layer over existing event contracts.
+
+## Models surface visibility reconciliation (MVP thin slice)
+
+Implemented now:
+- The core-owned Models surface now projects existing model-routing and model-execution audit signals into operator-visible governance posture.
+- Route selection/decision, restriction-blocked outcomes, and execution-result events are shown as reviewable model-governance signals alongside policy/approval context.
+
+Partially implemented:
+- Event visibility is thin and read-oriented for current MVP workflow paths.
+
+Deferred:
+- Full platform-grade analytics, long-horizon model-operations dashboards, and advanced governance forensics remain deferred.

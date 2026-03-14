@@ -237,3 +237,7 @@ Implemented a thin core-owned Connectors workspace that makes current controlled
 ## Agents surface depth slice closeout note
 
 Implemented a thin core-owned Agents workspace that makes current agent-like execution posture legible for operators using existing workflow/run, model governance, tool-gateway governance, policy/approval, module relationship, and audit/event context. This slice is visibility-first and truthful; it does not introduce fake fleet controls, autonomous multi-agent scheduling, or lifecycle administration UX.
+
+## Issue status note to paste for Models surface depth slice
+
+Implemented a thin core-owned Models workspace that makes current model governance and execution posture legible using existing contracts: model registry inventory, local-first/provider-boundary framing, workflow/module model usage visibility, policy/approval relevance, and audit-backed model route/restriction/result signals. Scope remains truthful and read-oriented (no fake model lifecycle/configuration editors), with full model-platform lifecycle depth explicitly deferred.

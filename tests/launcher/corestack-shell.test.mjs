@@ -196,11 +196,49 @@ test("policies surface handles sparse governance context without implying author
   assert.match(rendered, /policy authoring\/versioning UI remains deferred/i);
 });
 
-test("models surface renders registry visibility and model event links", () => {
+test("models surface renders governed execution posture with implemented vs deferred framing", () => {
   const rendered = renderRouteContent(getRoute("models"), {
     models: [
-      { id: "local.mistral-small", providerType: "local", localFirst: true },
+      {
+        id: "local.mistral-small",
+        kind: "llm",
+        providerType: "local",
+        localFirst: true,
+        status: { available: true },
+        policy: { externalProviderRestricted: false },
+      },
+      {
+        id: "cloud.gpt-fast",
+        kind: "llm",
+        providerType: "cloud",
+        localFirst: false,
+        status: { available: false },
+        policy: { externalProviderRestricted: true },
+      },
     ],
+    routingPosture: {
+      localCount: 1,
+      externalCount: 1,
+      localFirstDefaultCount: 1,
+      externalRestrictedCount: 1,
+    },
+    modelUsage: [
+      {
+        workflowName: "Alert triage and investigation",
+        moduleName: "Security / OSINT Module 1",
+        modelKinds: "llm (summarize, extract.entities)",
+        notes: "Uses core model router and restriction hooks.",
+      },
+    ],
+    modelGovernance: {
+      policyDecisionCount: 3,
+      runCountWithPolicyDecisions: 2,
+      pendingApprovals: 1,
+      totalApprovals: 2,
+      restrictionBlockedCount: 1,
+      selectedRouteCount: 4,
+      resultEventCount: 2,
+    },
     recentModelEvents: [
       {
         event_type: "model.route.selected",
@@ -210,10 +248,29 @@ test("models surface renders registry visibility and model event links", () => {
     ],
   });
 
-  assert.match(rendered, /Core-owned, module-aware surface/);
+  assert.match(rendered, /Operator workspace for governed model execution posture/);
+  assert.match(rendered, /Registered models: 2/);
   assert.match(rendered, /local\.mistral-small/);
-  assert.match(rendered, /local-first: yes/);
+  assert.match(rendered, /cloud\.gpt-fast/);
+  assert.match(rendered, /Local provider routes in registry: 1/);
+  assert.match(rendered, /External provider routes in registry: 1/);
+  assert.match(rendered, /Pending approvals linked to model-relevant governed actions: 1 \(of 2\)/);
+  assert.match(rendered, /Alert triage and investigation/);
   assert.match(rendered, /model\.route\.selected/);
+  assert.match(rendered, /Full model lifecycle administration .* remains deferred/);
+});
+
+test("models surface handles sparse data without implying fake model controls", () => {
+  const rendered = renderRouteContent(getRoute("models"), {
+    models: [],
+    modelUsage: [],
+    recentModelEvents: [],
+  });
+
+  assert.match(rendered, /No models registered/);
+  assert.match(rendered, /No workflow model usage links are registered yet/);
+  assert.match(rendered, /No linked audit events found/);
+  assert.match(rendered, /does not introduce fake provider or lifecycle editors/i);
 });
 
 test("connectors surface renders governed readiness/workspace framing while settings and admin remain intentional pages", () => {

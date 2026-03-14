@@ -1100,3 +1100,11 @@ Still deferred:
 - Reused existing run/workflow, model routing/execution, tool-gateway, policy/approval, and audit/event contracts to expose implemented execution-role posture without fake orchestration controls.
 - Added explicit implemented vs partial vs planned/deferred framing for what currently counts as an agent-like role in MVP.
 - Module relationship remains truthful: Security / OSINT Module 1 contributes workflow behavior into a core-owned Agents surface.
+
+## Models surface depth reconciliation (MVP thin slice)
+
+- Status: completed for MVP thin-slice scope.
+- Upgraded Models from truthful placeholder framing into a thin core-owned governance/execution posture workspace.
+- Reused existing model registry and local-first routing contracts, execution restriction hooks, workflow/module usage context, policy/approval posture, and audit/event correlation.
+- Added explicit implemented vs partial vs planned/deferred framing to keep operator-facing scope truthful without introducing fake model lifecycle controls.
+- Module relationship remains truthful: Security / OSINT Module 1 consumes model execution through the core layer; Models is not a module-owned page.

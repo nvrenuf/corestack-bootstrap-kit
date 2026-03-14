@@ -73,6 +73,7 @@ Goal: Deliver the minimum secure Corestack control plane that can host Module 1.
 - [x] Implement artifact/evidence detail and linked audit lookup surfaces (`current branch head`, PR TBD)
 - [x] Implement investigation workspace drill-in/navigation polish thin slice (`current branch head`, PR TBD)
 - [x] Deepen Policies into a core-owned governance workspace thin slice with implemented vs deferred framing and existing contract visibility (`current branch head`, PR TBD)
+- [x] Deepen Models into a core-owned governance/execution workspace thin slice with local-first/provider boundary, usage, governance, and audit visibility (`current branch head`, PR TBD)
 
 Note: These are MVP-slice thin-slice reconciliations. Keep Milestone issues #4/#18/#21 open until full acceptance criteria are satisfied.
 

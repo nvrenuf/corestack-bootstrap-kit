@@ -924,34 +924,92 @@ function renderPoliciesSurface(context = {}) {
 function renderModelsSurface(context = {}) {
   const models = context.models ?? [];
   const recentModelEvents = context.recentModelEvents ?? [];
+  const modelUsage = context.modelUsage ?? [];
+  const routingPosture = context.routingPosture ?? {
+    localCount: 0,
+    externalCount: 0,
+    localFirstDefaultCount: 0,
+    externalRestrictedCount: 0,
+  };
+  const modelGovernance = context.modelGovernance ?? {
+    policyDecisionCount: 0,
+    runCountWithPolicyDecisions: 0,
+    pendingApprovals: 0,
+    totalApprovals: 0,
+    restrictionBlockedCount: 0,
+    selectedRouteCount: 0,
+    resultEventCount: 0,
+  };
+
+  const availableModels = models.filter((model) => model.status?.available !== false).length;
+  const unavailableModels = models.length - availableModels;
+  const usageItems = modelUsage.length
+    ? modelUsage.map((usage) => `<li><strong>${usage.workflowName}</strong><span> · ${usage.moduleName}</span><span> · ${usage.modelKinds}</span><span> · ${usage.notes}</span></li>`).join("")
+    : "";
 
   return `
     <section class="surface-grid" data-surface-id="models">
       <article class="shell-panel feature-panel">
         <span class="surface-meta">Core-owned, module-aware surface</span>
         <h3>Models</h3>
-        <p>Track model registry, local-first routing, and model execution observability used by every module workflow.</p>
+        <p>Operator workspace for governed model execution posture: what routes exist, where models are used, and how policy/approval/audit controls apply in the current MVP.</p>
       </article>
       <article class="shell-panel">
-        <span class="surface-meta">Registry visibility</span>
-        <h3>Registered models</h3>
+        <span class="surface-meta">Implemented now: model inventory</span>
+        <h3>Registered execution paths</h3>
+        <ul class="placeholder-list">
+          <li>Registered models: ${models.length}</li>
+          <li>Available now: ${availableModels}</li>
+          <li>Unavailable now: ${unavailableModels}</li>
+        </ul>
         ${models.length
-          ? `<ul class="placeholder-list">${models.map((model) => `<li><strong>${model.id}</strong><span> · ${model.providerType}</span><span> · local-first: ${model.localFirst ? "yes" : "no"}</span></li>`).join("")}</ul>`
+          ? `<ul class="placeholder-list">${models.map((model) => `<li><strong>${model.id}</strong><span> · ${model.kind}</span><span> · ${model.providerType}</span><span> · local-first: ${model.localFirst ? "yes" : "no"}</span><span> · ${model.status?.available === false ? "unavailable" : "available"}</span></li>`).join("")}</ul>`
           : "<p>No models registered.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Routing and provider boundary posture</span>
+        <h3>Local-first and external boundary visibility</h3>
+        <ul class="placeholder-list">
+          <li>Local provider routes in registry: ${routingPosture.localCount}</li>
+          <li>External provider routes in registry: ${routingPosture.externalCount}</li>
+          <li>Models marked local-first: ${routingPosture.localFirstDefaultCount}</li>
+          <li>Models with external-provider restrictions flagged: ${routingPosture.externalRestrictedCount}</li>
+        </ul>
+        <p>This surface is read-oriented: it exposes current routing/restriction posture and does not introduce fake provider or lifecycle editors.</p>
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Where model execution applies in MVP</span>
+        <h3>Workflow and module usage visibility</h3>
+        ${usageItems ? `<ul class="placeholder-list">${usageItems}</ul>` : "<p>No workflow model usage links are registered yet.</p>"}
+      </article>
+      <article class="shell-panel">
+        <span class="surface-meta">Governance and approval posture</span>
+        <h3>Policy, approval, and restriction signals</h3>
+        <ul class="placeholder-list">
+          <li>Runs with policy decisions: ${modelGovernance.runCountWithPolicyDecisions}</li>
+          <li>Total policy decisions captured on runs: ${modelGovernance.policyDecisionCount}</li>
+          <li>Pending approvals linked to model-relevant governed actions: ${modelGovernance.pendingApprovals} (of ${modelGovernance.totalApprovals})</li>
+          <li>Model route selections observed in audit events: ${modelGovernance.selectedRouteCount}</li>
+          <li>Model restriction blocks observed in audit events: ${modelGovernance.restrictionBlockedCount}</li>
+          <li>Model execution result events observed: ${modelGovernance.resultEventCount}</li>
+        </ul>
         <h4>Recent model security events</h4>
         ${renderLinkedAuditEvents(recentModelEvents)}
       </article>
       ${renderCapabilityStatus({
         ownership: "Core-owned, module-aware",
         implemented: [
-          "Model registry and routing contract are active.",
-          "Execution hook logging and restriction points are active.",
+          "Model registry, local-first router, and execution hooks are active and reused by current workflow execution paths.",
+          "Provider boundary and restriction posture are visible through existing model descriptors plus route/restriction/result audit signals.",
+          "Model usage relationship to Security / OSINT Module 1 workflow is visible without creating module-owned model pages.",
         ],
         planned: [
-          "Advanced provider failover and per-tenant model governance remain deferred.",
+          "Full model lifecycle administration (provider onboarding, deployment orchestration, benchmarking, and fine-tuning lifecycle UX) remains deferred.",
+          "Advanced failover/routing optimization and tenant-level model governance administration remain deferred.",
         ],
         moduleNotes: [
-          "Security / OSINT Module 1 routes triage execution through this core model layer.",
+          "Models is a core-owned governance/execution posture surface; modules consume it through core contracts.",
+          "Security / OSINT Module 1 routes alert-triage model execution through this core layer.",
         ],
       })}
     </section>

@@ -136,3 +136,17 @@ Capability-oriented source of truth for CoreStack feature status.
 
 ### Planned / deferred
 - Fleet-scale multi-agent assignment/scheduling/planning and full agent lifecycle administration UX remain deferred.
+
+
+## Models governance/execution workspace (core-owned)
+
+### Implemented now
+- Models route now presents a thin core-owned operator workspace for governed model execution posture.
+- Existing model registry/routing contract is surfaced as model inventory and boundary visibility (kind/provider/local-first/availability) with truthful status framing.
+- Existing model usage/governance context is composed from workflow/module relationships plus policy/approval and audit-linked model route/restriction/result signals.
+
+### Partially implemented
+- Current behavior is read-oriented and scoped to current MVP workflow paths and available model events.
+
+### Planned / deferred
+- Full model-platform lifecycle management (provider onboarding/configuration, deployment/fleet controls, benchmark/evaluation lab, and training/fine-tuning administration).

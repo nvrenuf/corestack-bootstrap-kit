@@ -6,11 +6,11 @@
 
 ## Latest issue update
 
-- Issue name: Agents surface depth slice (core-owned orchestration/readiness visibility)
+- Issue name: Models surface depth slice (core-owned model governance/execution visibility)
 - Status: completed for MVP thin-slice scope
 - Commit hash: `current branch head`
-- Short note: Deepened Agents from placeholder framing into a thin, truthful core-owned orchestration/readiness workspace by reusing existing workflow/run, model governance, tool-gateway, policy/approval, module, and audit context with explicit implemented vs partial vs deferred status.
-- Next recommended issue: Continue non-MVP breadth for #21 audit/security taxonomy/operations depth and #18 tool-gateway platform-grade enforcement breadth.
+- Short note: Deepened Models from placeholder framing into a thin, truthful core-owned governance/execution workspace by reusing existing model registry/routing, execution restriction hooks, workflow/module usage, policy/approval posture, and audit/event context with explicit implemented vs partial vs deferred status.
+- Next recommended issue: Continue non-MVP breadth for #9 model-platform lifecycle depth plus #21 audit/security taxonomy/operations depth.
 
 ## Completed issues (verified in `main`)
 
@@ -35,6 +35,7 @@
 - [x] Complete all current left-nav surfaces as intentional product-map pages (core-owned/module-aware/extension-point framing) (`current branch head`, PR TBD)
 - [x] Implement connectors governance/readiness surface depth slice (`current branch head`, PR TBD)
 - [x] Implement agents orchestration/readiness surface depth slice (`current branch head`, PR TBD)
+- [x] Implement models governance/execution surface depth slice (`current branch head`, PR TBD)
 - [x] Docs/runbook/configuration/threat-model notes hardened for the MVP-supported operation path (`current branch head`, PR TBD); full platform-grade operations/documentation breadth remains out of scope.
 
 ## In-progress issues
@@ -46,7 +47,7 @@
 
 ## Next recommended issue
 
-- Continue non-MVP breadth for #21 audit/security taxonomy/operations depth and #18 tool-gateway platform controls.
+- Continue non-MVP breadth for #9 model-platform lifecycle depth plus #21 audit/security taxonomy/operations depth.
 
 ## References
 

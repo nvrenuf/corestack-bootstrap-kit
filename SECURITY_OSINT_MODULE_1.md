@@ -910,3 +910,9 @@ Partially implemented:
 
 Planned/deferred:
 - Full autonomous multi-agent management and lifecycle controls remain out of current MVP scope.
+
+## Reconciliation note — Models surface relationship (MVP thin slice)
+
+- Security / OSINT Module 1 continues to consume model execution through core-owned model contracts (registry, local-first routing, restriction hooks, and audit-linked execution events).
+- The Models nav surface is treated as a shared core control-plane workspace for governance/execution posture visibility, not a module-owned model administration page.
+- Current module usage shown in the Models surface is intentionally thin and truthful: alert-triage workflow dependence is visible, while broader model lifecycle administration remains deferred.

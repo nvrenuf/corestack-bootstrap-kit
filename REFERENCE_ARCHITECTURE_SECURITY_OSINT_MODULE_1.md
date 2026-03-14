@@ -886,3 +886,9 @@ Planned/deferred:
 - Agents is a core-owned control-plane surface that now projects orchestration/readiness posture from existing contracts (runs/workflows, model governance hooks, tool gateway governance, policy/approval boundaries, audit correlation).
 - Module 1 contributes agent-relevant behavior through workflow contracts and module metadata, not through a module-owned agent shell.
 - No new backend orchestration object model was introduced in this slice.
+
+## Reconciliation note — Core-owned Models surface depth (MVP thin slice)
+
+- Core control-plane now exposes a thin Models workspace that projects model governance/execution posture from existing architecture contracts.
+- Visibility composes model registry metadata, local-first/provider-boundary routing posture, restriction hooks, and audit-correlated model events.
+- This update does not alter architecture boundaries: modules remain consumers of the core model layer, and model lifecycle platform breadth remains deferred.

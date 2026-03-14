@@ -244,10 +244,43 @@ function getRouteContext(routeId) {
   }
 
   if (routeId === "models") {
+    const models = modelRegistry.list();
+    const approvals = approvalStore.listApprovals();
+    const policyDecisions = runs.flatMap((run) => run.policyDecisions ?? []);
+    const modelEvents = auditStore.listEvents().filter((event) =>
+      event.event_type === "model.routing.decision"
+      || event.event_type === "model.route.selected"
+      || event.event_type === "model.execution.requested"
+      || event.event_type === "model.execution.decisioned"
+      || event.event_type === "model.execution.result"
+      || event.event_type === "model.execution.restriction_blocked");
+
     return {
-      models: modelRegistry.list(),
-      recentModelEvents: auditStore.listEvents().filter((event) =>
-        event.event_type === "model.route.selected" || event.event_type === "model.execution.completed" || event.event_type === "model.execution.restricted").slice(0, 8),
+      models,
+      recentModelEvents: modelEvents.slice(0, 8),
+      routingPosture: {
+        localCount: models.filter((model) => model.providerType === "local").length,
+        externalCount: models.filter((model) => model.providerType !== "local").length,
+        localFirstDefaultCount: models.filter((model) => model.localFirst).length,
+        externalRestrictedCount: models.filter((model) => model.policy?.externalProviderRestricted).length,
+      },
+      modelUsage: [
+        {
+          moduleName: "Security / OSINT Module 1",
+          workflowName: "Alert triage and investigation",
+          modelKinds: "llm (summarize, extract.entities)",
+          notes: "Workflow model execution uses core model router plus execution restriction hooks and links to run/case/audit records.",
+        },
+      ],
+      modelGovernance: {
+        policyDecisionCount: policyDecisions.length,
+        runCountWithPolicyDecisions: runs.filter((run) => (run.policyDecisions?.length ?? 0) > 0).length,
+        pendingApprovals: approvals.filter((approval) => approval.status === "pending").length,
+        totalApprovals: approvals.length,
+        restrictionBlockedCount: modelEvents.filter((event) => event.event_type === "model.execution.restriction_blocked").length,
+        selectedRouteCount: modelEvents.filter((event) => event.event_type === "model.route.selected" || event.event_type === "model.routing.decision").length,
+        resultEventCount: modelEvents.filter((event) => event.event_type === "model.execution.result").length,
+      },
     };
   }
 

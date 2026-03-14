@@ -1168,3 +1168,16 @@ Partially implemented:
 
 Planned/deferred:
 - Multi-agent assignment/scheduling orchestration, autonomous collaboration controls, and full agent lifecycle administration UX.
+
+## Models surface depth reconciliation update (MVP thin slice)
+
+Implemented now:
+- Models route now functions as a thin core-owned model governance/execution posture workspace instead of a generic placeholder.
+- Existing model registry descriptors are projected into operator-visible inventory/status framing (kind, provider boundary, local-first posture, availability) without introducing editing controls.
+- Existing contracts are composed for model governance visibility: routing boundary counts, policy/approval relationship context, workflow/module usage context, and model-routing/execution audit signals.
+
+Partially implemented:
+- The surface is read-oriented and scoped to current MVP execution paths and available model events.
+
+Planned/deferred:
+- Full model lifecycle management, provider onboarding/configuration UX, benchmark/evaluation labs, deployment orchestration, and fine-tuning/training administration.
