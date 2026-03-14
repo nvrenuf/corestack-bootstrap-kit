@@ -419,7 +419,8 @@ Route governed tool execution through a single controlled path.
 
 ##### Status
 
-- complete for MVP thin slice (scaffolding + hardened validation, normalized deny/approval behavior, and structured audit-compatible events)
+- complete for MVP thin slice (single enforced execution path for supported tools, hardened schema validation, centralized allowlist + payload/timeout enforcement, normalized deny/error behavior, and structured audit-compatible events)
+- full Issue #18 acceptance remains open for broader platform-grade rate limiting and non-MVP breadth
 
 ### Epic 4: Evidence, artifact, and audit backbone
 

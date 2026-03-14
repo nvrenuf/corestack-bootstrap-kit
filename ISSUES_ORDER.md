@@ -59,7 +59,7 @@ Goal: Deliver the minimum secure Corestack control plane that can host Module 1.
 - [x] Define and implement minimum case object and run-to-case linkage (`821abc0`, PR #28)
 - [x] Define policy decision contract for governed actions (`0a8d76a`, PR #28)
 - [x] Implement `web.fetch` and `web.search` tool contracts and schemas (`2046ecd`, PR #28)
-- [x] Harden minimal governed tool gateway behavior with stricter validation, normalized denial/approval outcomes, and structured audit-compatible emissions (`current branch head`, PR TBD)
+- [x] Harden minimal governed tool gateway behavior with stricter validation, centralized allowlist + limit enforcement (payload bytes/timeouts), normalized denial/error outcomes, and structured audit-compatible emissions (`current branch head`, PR TBD; MVP thin-slice only, broader rate-limit/platform breadth remains open)
 - [x] Define the minimum evidence, artifact, and finding objects (`492f359`, PR #31)
 - [x] Implement artifact storage linkage and metadata persistence (`current branch head`, PR TBD; MVP hardening pass landed, broad storage/export remains out of scope)
 - [x] Implement structured audit/event logging for runs, tools, evidence, and approvals (`c0fae98`, PR TBD)
@@ -96,7 +96,7 @@ Note: These are MVP-slice thin-slice reconciliations. Keep Milestone issues #4/#
 10. **Implement Tool Gateway enforcement layer (allowlist, rate limit, payload validation)**  #18 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/18  
     Owner: TBD  
     - [ ] Inputs are validated against schema  
-    - [ ] Allowlists, rate limits, max bytes, and timeouts are enforced  
+    - [ ] Allowlists, rate limits, max bytes, and timeouts are enforced (MVP thin-slice: allowlist + max-bytes + timeout enforced in core gateway path; broader rate-limit platform controls remain open)  
     - [ ] Normalized errors are returned
 
 11. **Wire Tool Gateway → n8n (routing, auth header/shared secret, response normalization)**  #20 — https://github.com/nvrenuf/corestack-bootstrap-kit/issues/20  
